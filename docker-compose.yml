@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     networks:
-      - amame-network
+      - common_net
     volumes:
       - database_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
     networks:
-      - amame-network
+      - common_net
     depends_on:
       database:
         condition: service_healthy
@@ -59,7 +59,7 @@ services:
     ports:
       - "3000:3000"  # ✅ Exposé sur le port 3000
     networks:
-      - amame-network
+      - common_net
     depends_on:
       - backend
     volumes:
@@ -78,7 +78,7 @@ services:
       context: ./scraper
     container_name: amame-scraper-etablissement
     networks:
-      - amame-network
+      - common_net
     depends_on:
       database:
         condition: service_healthy
@@ -93,7 +93,7 @@ services:
       context: ./scraper
     container_name: amame-scraper-opportunity
     networks:
-      - amame-network
+      - common_net
     depends_on:
       database:
         condition: service_healthy
