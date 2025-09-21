@@ -28,7 +28,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASource_PASSWORD=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     networks:
       - amame-network
     depends_on:
@@ -68,8 +68,8 @@ services:
     container_name: amame-caddy
     restart: unless-stopped
     ports:
-      - "8081:80"
-      - "443:443"
+      - "7080:80"    # ✅ HTTP - Port changé
+      - "7443:443"   # ✅ HTTPS - Port changé
     networks:
       - amame-network
     volumes:
