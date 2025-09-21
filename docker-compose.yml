@@ -104,7 +104,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@database:5432/amame_db
 
 networks:
-  amame-network:
+  common_net:
     driver: bridge
 
 volumes:
