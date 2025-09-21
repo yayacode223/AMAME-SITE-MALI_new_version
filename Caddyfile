@@ -1,0 +1,18 @@
+{
+    auto_https off
+    admin off
+}
+
+http://localhost:80 {
+    # Route API simple
+    handle /api/* {
+        reverse_proxy http://backend:8080
+    }
+    
+    # Serveur de fichiers pour le frontend
+    handle /* {
+        root * /usr/share/caddy/dist
+        file_server
+        try_files {path} /index.html
+    }
+}

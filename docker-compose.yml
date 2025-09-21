@@ -1,0 +1,123 @@
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: amame-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: amame_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - amame-network
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: amame-backend
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    networks:
+      - amame-network
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8080/api/health || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: amame-frontend
+    restart: unless-stopped
+    networks:
+      - amame-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "ls /app/dist/index.html > /dev/null 2>&1 || exit 0"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: amame-caddy
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+      - "443:443"
+    networks:
+      - amame-network
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./frontend/dist:/usr/share/caddy/dist
+      - ./frontend/uploads:/usr/share/caddy/uploads
+      - ./backend/uploads:/usr/share/caddy/uploads
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]  # Toujours healthy
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Services de scraping - seulement lancés manuellement
+  scraper-etablissement:
+    build:
+      context: ./scraper
+    container_name: amame-scraper-etablissement
+    networks:
+      - amame-network
+    depends_on:
+      database:
+        condition: service_healthy
+    profiles: ["tools"]
+    volumes:
+      - ./scraper:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database:5432/amame_db
+
+  scraper-opportunity:
+    build:
+      context: ./scraper
+    container_name: amame-scraper-opportunity
+    networks:
+      - amame-network
+    depends_on:
+      database:
+        condition: service_healthy
+    profiles: ["tools"]
+    volumes:
+      - ./scraper:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database:5432/amame_db
+
+networks:
+  amame-network:
+    driver: bridge
+
+volumes:
+  database_data:
