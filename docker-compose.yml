@@ -28,7 +28,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATASource_PASSWORD=postgres
     networks:
       - amame-network
     depends_on:
@@ -37,7 +37,11 @@ services:
     volumes:
       - ./backend/uploads:/app/uploads
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8080/api/health || exit 0"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --spider -q http://127.0.0.1:8080/api/health || exit 0",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -69,20 +73,34 @@ services:
     networks:
       - amame-network
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
       - ./frontend/dist:/usr/share/caddy/dist
-      - ./frontend/uploads:/usr/share/caddy/uploads
       - ./backend/uploads:/usr/share/caddy/uploads
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
+    command: |
+      caddy run --config /etc/caddy/Caddyfile --adapter caddyfile <<EOF
+      {
+          auto_https off
+          admin off
+      }
+      
+      http://:80 {
+          # Route API
+          handle /api/* {
+              reverse_proxy http://backend:8080
+          }
+          
+          # Serveur de fichiers statiques
+          handle /* {
+              root * /usr/share/caddy/dist
+              file_server
+              try_files {path} /index.html
+          }
+      }
+      EOF
     healthcheck:
-      test: ["CMD-SHELL", "exit 0"]  # Toujours healthy
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 30s
 
   # Services de scraping - seulement lancés manuellement
