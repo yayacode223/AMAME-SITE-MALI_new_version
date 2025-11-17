@@ -4,10 +4,12 @@ package com.example.siteamame.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
 @AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @Entity

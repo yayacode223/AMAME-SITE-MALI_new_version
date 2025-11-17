@@ -3,127 +3,180 @@ import Footer from '../components/Footer';
 import Hero from '../components/Hero';
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+
+// Composant d'animation
+type AnimatedSectionProps = {
+  children: React.ReactNode;
+  className?: string;
+  transition?: object;
+};
+
+const AnimatedSection = ({ children, className = "", transition }: AnimatedSectionProps) => {
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={transition ?? { duration: 0.6 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const Index = () => {
-  
-  const stats = [
-    { number: '100+', label: 'Concours référencés' },
-    { number: '50+', label: 'Bourses disponibles' },
-    { number: '1000+', label: 'Étudiants accompagnés' },
-    { number: '20+', label: 'Séries et filières détaillées' }
-  ];
-
   const features = [
     {
-      title: 'Concours',
-      description: 'Informations sur les concours nationaux et internationaux, dates, critères, et processus d\'inscription.',
+      title: 'Concours & Actualités',
+      description: 'Informations complètes sur les concours nationaux et internationaux, dates limites, critères d\'éligibilité et processus d\'inscription détaillés.',
       icon: (
-        <svg className="h-10 w-10 text-amame-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14" />
-        </svg>
+        <div className="p-3 bg-blue-100 rounded-xl">
+          <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14" />
+          </svg>
+        </div>
       ),
-      link: '/concours'
+      link: '/concours',
+      gradient: 'from-blue-500 to-blue-600'
     },
     {
-      title: 'Séries et Filières',
-      description: 'Découvrez les différentes séries et filières disponibles, leurs matières, débouchés et opportunités.',
+      title: 'Orientation & Filières',
+      description: 'Découvrez les différentes séries et filières disponibles, leurs débouchés professionnels et les opportunités de carrière.',
       icon: (
-        <svg className="h-10 w-10 text-amame-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
+        <div className="p-3 bg-green-100 rounded-xl">
+          <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
       ),
-      link: '/filieres'
+      link: '/orientation',
+      gradient: 'from-green-500 to-green-600'
     },
     {
       title: 'Bourses d\'études',
-      description: 'Accédez aux informations sur les bourses nationales et internationales, les critères et les procédures.',
+      description: 'Accédez aux informations sur les bourses nationales et internationales, les critères d\'attribution et les procédures de candidature.',
       icon: (
-        <svg className="h-10 w-10 text-amame-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <div className="p-3 bg-amber-100 rounded-xl">
+          <svg className="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
       ),
-      link: '/bourses'
+      link: '/bourses',
+      gradient: 'from-amber-500 to-amber-600'
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Fatoumata Diallo",
+      role: "Étudiante en Médecine",
+      content: "Grâce à AMAME, j'ai pu décrocher une bourse d'études en France. L'accompagnement personnalisé a été déterminant pour ma réussite.",
+      avatar: "👩‍⚕️"
     },
     {
-      title: 'Ressources',
-      description: 'Téléchargez des supports de concours, des lettres de motivation, des formulaires et bien plus.',
-      icon: (
-        <svg className="h-10 w-10 text-amame-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-        </svg>
-      ),
-      link: '/ressources'
+      name: "Moussa Keita",
+      role: "Étudiant en Informatique",
+      content: "Les ressources et conseils d'orientation m'ont permis de choisir la filière qui me correspond vraiment. Merci AMAME !",
+      avatar: "👨‍💻"
+    },
+    {
+      name: "Aïcha Traoré",
+      role: "Étudiante en Droit",
+      content: "La plateforme m'a fourni toutes les informations nécessaires pour réussir les concours d'entrée en faculté de droit.",
+      avatar: "👩‍⚖️"
     }
   ];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
       <main className="flex-grow">
         <Hero />
 
-        {/* Stats Section */}
-        <section className="bg-slate-50 py-16">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-              {stats.map((stat, index) => (
-                <div 
-                  key={index} 
-                  className="flex flex-col items-center p-6 bg-white rounded-lg shadow-sm border border-gray-100"
-                >
-                  <p className="text-3xl md:text-4xl font-bold text-amame-blue mb-2">{stat.number}</p>
-                  <p className="text-gray-600 text-sm md:text-base text-center">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Features Section */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Nos Services</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                L'AMAME vous accompagne tout au long de votre parcours académique avec des services adaptés à vos besoins.
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedSection className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+                Tout pour votre <span className="text-blue-600">réussite académique</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                L'AMAME vous aide <span className="text-amber-600 text-2xl font-bold">BÉNÉVOLEMENT</span> à choisir vos filières, accéder à des informations de bourses, et des ressources académiques pour exceller.
               </p>
-            </div>
+            </AnimatedSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {features.map((feature, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col items-center text-center card-hover">
-                  <div className="mb-4">
-                    {feature.icon}
+                <AnimatedSection 
+                  key={index}
+                  className="group"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div className="bg-white h-full rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-500 group-hover:-translate-y-2 flex flex-col">
+                    <div className="mb-6">
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed flex-grow">
+                      {feature.description}
+                    </p>
+                    <Button 
+                      className={`w-full bg-gradient-to-r ${feature.gradient} hover:shadow-lg transition-all duration-300 group-hover:scale-105`}
+                      asChild
+                    >
+                      <Link to={feature.link}>
+                        <span>Découvrir</span>
+                        <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 mb-4">{feature.description}</p>
-                  <Button className="mt-auto" variant="outline" asChild>
-                    <Link to={feature.link}>
-                      En savoir plus
-                    </Link>
-                  </Button>
-                </div>
+                </AnimatedSection>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Call to Action */}
-        <section className="bg-gradient-to-r from-amame-blue to-blue-900 py-16">
-          <div className="container mx-auto px-4 text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Prêt à commencer votre parcours vers l'excellence ?</h2>
-            <p className="text-xl opacity-90 mb-8 max-w-3xl mx-auto">
-              Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves dès aujourd'hui et bénéficiez de notre accompagnement pour atteindre vos objectifs académiques.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-white text-amame-blue hover:bg-white/90" asChild>
-                <Link to="/auth">
-                  Créer un compte
-                </Link>
-              </Button>
-              <Button size="lg" variant="secondary" className="border-white text-white hover:bg-white/10">
-                En savoir plus sur l'AMAME
-              </Button>
+        {/* Testimonials Section */}
+        <section className="py-10 bg-gradient-to-br from-gray-50 to-blue-50/50">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedSection className="text-center mb-16">
+              <h2 className="text-3xl text-gray-600 max-w-3xl mx-auto">
+                Quelques témoignages de membres <span className="text-amber-600">accompagnés par l'AMAME</span>
+              </h2>
+            </AnimatedSection>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <AnimatedSection 
+                  key={index}
+                  className="group"
+                  transition={{ delay: index * 0.2 }}
+                >
+                  <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-500 group-hover:-translate-y-2 h-full">
+                    <div className="text-4xl mb-4">{testimonial.avatar}</div>
+                    <p className="text-gray-600 italic mb-6 leading-relaxed">
+                      "{testimonial.content}"
+                    </p>
+                    <div className="border-t border-gray-100 pt-4">
+                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                      <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              ))}
             </div>
           </div>
         </section>

@@ -1,44 +1,42 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route} from "react-router-dom";
 
 import Index from "./pages/Index";
-// import Concours from "./pages/Concours";
-import Filieres from "./pages/Filieres";
 import Bourses from "./pages/Bourses";
-// import Ressources from "./pages/Ressources";
-// import NotFound from "./pages/NotFound";
-// import Admin from "./pages/Admin";
-// import ConcoursDetail from "./pages/details/ConcoursDetail";
-// import FiliereDetail from "./pages/details/FiliereDetail";
-// import BourseDetail from "./pages/details/BourseDetail";
-// import RessourceDetail from "./pages/details/RessourceDetail";
+import BoursesDetail from "./pages/BoursesDetail";
 import Register from "@/pages/Register";
-import Login from "@/pages/Authentication"; 
-// import AppLayout from "./layout/AppLayout";
-// import Home from "./pages/Dashboard/Home";
-// import UserProfiles from "./pages/UserProfiles";
-// import Calendar from "./pages/Calendar";
-// import Blank from "./pages/Blank";
-// import FormElements from "./pages/Forms/FormElements";
-// import BasicTables from "./pages/Tables/BasicTables";
-// import Alerts from "./pages/UiElements/Alerts";
-// import Avatars from "./pages/UiElements/Avatars";
-// import Badges from "./pages/UiElements/Badges";
-// import Buttons from "./pages/UiElements/Buttons";
-// import Images from "./pages/UiElements/Images";
-// import Videos from "./pages/UiElements/Videos";
-// import LineChart from "./pages/Charts/LineChart";
-// import BarChart from "./pages/Charts/BarChart";
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
-import EtablissementsList from "./pages/EtablissementsList"; 
+import Login from "@/pages/Authentication";
+import About from "./pages/About";
+import Orientation from "./pages/Orientation";
+import News from "./pages/News";
+import OrientationDetail from "./pages/OrientationDetail";
+import NewDetail from "./pages/NewDetail";
+import Concours from "./pages/Concours";
+import ConcoursDetail from "./pages/ConcoursDetail";
+import AdminLayout from "@/components/admin/LayoutAdmin";
+import Dashboard from "@/pages/admin/Dashboard";
+import ArticlesManagement from "@/pages/admin/ArticlesManagement";
+import BoursesManagement from "@/pages/admin/BoursesManagement";
+import FilieresManagement from "@/pages/admin/FilieresManagement";
+import ConcoursManagement from "@/pages/admin/ConcoursManagement";
+import BourseForm from "./pages/admin/BourseForm";
+import ArticleForm from "./pages/admin/ArticleForm";
+import FiliereForm from "./pages/admin/FiliereForm";
+import ConcoursForm from "./pages/admin/ConcoursForm";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import NotFound from "@/pages/NotFound";
+import Forbidden from "@/pages/Forbidden";
+import UsersManagement from "@/pages/admin/UsersManagement";
+import UserForm from "@/pages/admin/UserForm";
+import UserDetail from "./pages/admin/UserDetail";
 
 
 const queryClient = new QueryClient();
+
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -47,55 +45,57 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          //Routes publiques
           <Route path="/" element={<Index />} />
-          {/* <Route path="/concours" element={<Concours />} />
-          <Route path="/concours/:id" element={<ConcoursDetail />} />
-          
-          <Route path="/filieres/:id" element={<FiliereDetail />} />
-          
-          <Route path="/bourses/:id" element={<BourseDetail />} />
-          <Route path="/ressources" element={<Ressources />} />
-          <Route path="/ressources/:id" element={<RessourceDetail />} />
-          <Route path="/admin" element={<Admin />} /> */}
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          {/* <Route path="*" element={<NotFound />} /> */}
-
-          
-           {/* <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
-
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
-
-           
-            <Route path="/form-elements" element={<FormElements />} />
-
-           
-            <Route path="/basic-tables" element={<BasicTables />} />
-
-            
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
-
-            
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
-          </Route>  */}
-          <Route path="/filieres" element={<Filieres />} />
           <Route path="/bourses" element={<Bourses />} />
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/ " element={<EtablissementsList />} />
+          <Route path="/bourses/:id" element={<BoursesDetail />} />
+          <Route path="/a-propos" element={<About />} />
+          <Route path="/orientation" element={<Orientation />} />
+          <Route path="/actualites" element={<News />} />
+          <Route path="/orientation/:id" element={<OrientationDetail />} />
+          <Route path="/actualites/:slug" element={<NewDetail />} />
+          <Route path="/concours" element={<Concours />} />
+          <Route path="/concours/:id" element={<ConcoursDetail />} />
+          <Route path="*" element={<NotFound />} />
+          <Route path="/forbidden" element={<Forbidden />} />
 
-          {/* Fallback Route */}
-          {/* <Route path="*" element={<NotFound />} /> */}
+
+          //Routes admin
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="articles" element={<ArticlesManagement />} />
+            <Route path="articles/new" element={<ArticleForm />} />
+            <Route path="articles/edit/:id" element={<ArticleForm />} />
+
+            <Route path="bourses" element={<BoursesManagement />} />
+            <Route path="bourses/new" element={<BourseForm />} />
+            <Route path="bourses/edit/:id" element={<BourseForm />} />
+
+
+            <Route path="concours" element={<ConcoursManagement />} />
+            <Route path="concours/new" element={<ConcoursForm />} />
+            <Route path="concours/edit/:id" element={<ConcoursForm />} />
+
+
+            <Route path="filieres" element={<FilieresManagement />} />
+            <Route path="filieres/new" element={<FiliereForm />} />
+            <Route path="filieres/edit/:id" element={<FiliereForm />} />
+
+            <Route path="users" element={<UsersManagement />} />
+            <Route path="users/new" element={<UserForm />} />
+            <Route path="users/edit/:id" element={<UserForm />} />
+            <Route path="users/:id" element={<UserDetail />} />
+            
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

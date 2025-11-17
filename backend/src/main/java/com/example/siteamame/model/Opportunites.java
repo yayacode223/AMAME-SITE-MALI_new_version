@@ -1,28 +1,31 @@
 package com.example.siteamame.model;
 
+import com.example.siteamame.enumeration.NiveauType;
+import com.example.siteamame.enumeration.StatusType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "opportunites") // Assurez-vous que le nom de la table est correct
+@Table(name = "opportunites")
 public class Opportunites {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT") // PERMET DES TITRES LONGS
+    @Column(columnDefinition = "TEXT")
     private String titre;
 
-    @Column(columnDefinition = "TEXT") // PERMET DES DESCRIPTIONS TRÈS LONGUES
+    @Column(columnDefinition = "TEXT")
     private String descriptionComplete;
 
-    @Column(columnDefinition = "TEXT") // LES URL PEUVENT ÊTRE LONGUES
+    @Column(columnDefinition = "TEXT")
     private String urlSource;
 
     @Column(columnDefinition = "TEXT")
@@ -33,13 +36,18 @@ public class Opportunites {
 
     private String sourceSite;
 
-    // Pour l'année, Integer est bien
     private Integer anneePertinence;
 
     private String paysOffrant;
     private String urlDrapeau;
+    @Enumerated(EnumType.STRING)
+    private NiveauType niveau;
+    @Enumerated(EnumType.STRING)
+    private StatusType status;
+    private Boolean isAvalable;
+    private LocalDateTime dateLimite;
 
-    @Temporal(TemporalType.TIMESTAMP) // Spécifie que c'est une date + heure
+    @Temporal(TemporalType.TIMESTAMP)
     private Date dateScraping;
 
 }

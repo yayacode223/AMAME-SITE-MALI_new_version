@@ -16,8 +16,8 @@ DB_CONFIG = {
     'dbname': 'amame_db',   # <-- AJOUTEZ
     'user': 'postgres',      # <-- AJOUTEZ
     'password': 'postgres',    # <-- AJOUTEZ
-    'host': 'database',
-    'port': '5432'
+    'host': 'localhost',
+    'port': '5454'
 }
 
 # 3. FONCTIONS UTILES

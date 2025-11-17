@@ -3,16 +3,17 @@ export interface RegisterResponse {
     nom : string; 
     prenom: string; 
     email: string;  
-    etablissement? : string; 
-    filiere_serie? : string; 
     birthDay? : string; 
     ville? : string; 
     sexe : Sexe; 
     adresse? : string, 
     imagePath ? : string; 
-    numero? : string; 
+    phone? : string; 
     cvPath? : string;
-    roles : Role [];
+    role? : Role;
+    pays?: string; 
+    niveauEtude?: string; 
+    codePostal? : number; 
 }
 
 export interface RegisterType {
@@ -20,8 +21,6 @@ export interface RegisterType {
     prenom :string; 
     email: string; 
     password: string; 
-    etablissement?:string; 
-    filierId?: number; 
     birthDay? : string; 
     ville?: string; 
     sexe?: Sexe; 
@@ -38,11 +37,19 @@ export interface RegisterPayload {
     image: File; 
 }
 
+export interface RegisterUpdatePayload extends RegisterPayload {
+    id : number
+}
+
 export interface LoginType {
     email:string; 
     password: string; 
 }
 
-export type  Role = "USER" | "MEMBER" | "ADMIN" | "EDITOR"; 
-export type Sexe = "MASCULIN" | "FEMININ"; 
+export type  Role = "USER" | "ADMIN" ; 
+export type Sexe = "HOMME" | "FEMME" ; 
 
+export const UserRole = {
+  USER: "USER" as Role,
+  ADMIN: "ADMIN" as Role
+};

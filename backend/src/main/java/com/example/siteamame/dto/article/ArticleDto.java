@@ -1,0 +1,28 @@
+package com.example.siteamame.dto.article;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ArticleDto {
+    private Long id;
+    private String titre;
+    private String slug;
+    private String contenu;
+    private String auteur;
+    private String categorie;
+    private String imagePath;
+    private Integer vues;
+    private Integer tempsLecture;
+    private LocalDateTime datePublication;
+    private LocalDateTime dateModification;
+    private List<String> tags;
+    private String metaDescription;
+    private String metaKeywords;
+}

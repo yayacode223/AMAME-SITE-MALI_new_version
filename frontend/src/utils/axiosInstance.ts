@@ -27,6 +27,6 @@ Api.interceptors.response.use(
             window.location.href = '/login';
             console.error("Non autorisé (401). Redirection potentielle vers la connexion.");
         } 
-        return Promise.reject(error); 
+        return Promise.reject(error);  
     }
 )

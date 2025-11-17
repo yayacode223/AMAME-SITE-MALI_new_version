@@ -1,0 +1,82 @@
+package com.example.siteamame.controller;
+
+import com.example.siteamame.dto.filiere.FiliereDto;
+import com.example.siteamame.dto.filiere.FiliereRequestDto;
+import com.example.siteamame.dto.filiere.FiliereSummaryDto;
+import com.example.siteamame.enumeration.DomaineFiliereSerieType;
+import com.example.siteamame.service.FiliereService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class FiliereController {
+
+    private final FiliereService filiereService;
+
+    @GetMapping("/visitor/filieres")
+    public ResponseEntity<List<FiliereSummaryDto>> getAllFilieres() {
+        return ResponseEntity.ok(filiereService.getAllFilieres());
+    }
+
+    @GetMapping("/visitor/filieres/{id}")
+    public ResponseEntity<FiliereDto> getFiliereById(@PathVariable Long id) {
+        return ResponseEntity.ok(filiereService.getFiliereById(id));
+    }
+
+    @GetMapping("/visitor/filieres/search")
+    public ResponseEntity<List<FiliereSummaryDto>> searchFilieres(@RequestParam(required = false) String search) {
+        return ResponseEntity.ok(filiereService.getFiliereBySearchTerm(search));
+    }
+
+    @GetMapping("/visitor/filieres/domaine/{domaine}")
+    public ResponseEntity<List<FiliereSummaryDto>> getFilieresByDomaine(
+            @PathVariable DomaineFiliereSerieType domaine) {
+
+        return ResponseEntity.ok(filiereService.getFilieresByDomaine(domaine));
+    }
+
+    @GetMapping("/visitor/filieres/domaines")
+    public ResponseEntity<List<String>> getAvailableDomaines() {
+        List<String> domaines = List.of(
+                "SCIENCES_ET_TECHNOLOGIES",
+                "SCIENCES_DE_LA_SANTE",
+                "SCIENCES_ECONOMIQUES_ET_GESTION",
+                "DROIT_POLITIQUE",
+                "LETTRES_ET_SCIENCES_HUMAINES",
+                "ARTS_ET_COMMUNICATION"
+        );
+        return ResponseEntity.ok(domaines);
+    }
+
+    @PostMapping("/admin/filieres")
+    public ResponseEntity<FiliereDto> ajouterFiliere(
+            @RequestParam(value = "filiere") @Valid FiliereRequestDto filiereRequestDto,
+            @RequestPart(value = "file", required = false)MultipartFile file
+            ) throws IOException {
+        return ResponseEntity.ok(filiereService.ajouterFiliere(filiereRequestDto, file));
+    }
+
+    @PutMapping("/admin/filieres/{id}")
+    public ResponseEntity<FiliereDto> modifierFiliere(
+            @PathVariable Long id,
+            @RequestPart(value = "filiere") FiliereRequestDto filiereRequestDto,
+            @RequestPart(value = "file", required = false)MultipartFile file
+    ) throws IOException {
+        return ResponseEntity.ok(filiereService.modifierFiliere(id, filiereRequestDto, file));
+    }
+
+    @DeleteMapping("/admin/filieres/{id}")
+    public ResponseEntity<Void> deleteFiliere(@PathVariable Long id){
+        filiereService.deleteFiliere(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+}

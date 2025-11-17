@@ -1,6 +1,6 @@
 package com.example.siteamame.service;
 
-import com.example.siteamame.dto.EtablissementDto;
+import com.example.siteamame.dto.etablissement.EtablissementDto;
 import com.example.siteamame.repository.EtablissementRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

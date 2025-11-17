@@ -1,6 +1,6 @@
 package com.example.siteamame.repository;
 
-import com.example.siteamame.dto.EtablissementDto;
+import com.example.siteamame.dto.etablissement.EtablissementDto;
 import com.example.siteamame.model.Etablissement;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface EtablissementRepository extends JpaRepository<Etablissement, Long> {
-    @Query("SELECT new com.example.siteamame.dto.EtablissementDto(" +
+    @Query("SELECT new com.example.siteamame.dto.etablissement.EtablissementDto(" +
             "e.id, " +
             "e.nom, " +
             "e.typeEtablissement, " +

@@ -1,8 +1,8 @@
 package com.example.siteamame.controller;
 
-import com.example.siteamame.dto.UserReqDto;
-import com.example.siteamame.dto.UserResDto;
-import com.example.siteamame.service.UserService;
+import com.example.siteamame.dto.user.UserRequestDto;
+import com.example.siteamame.dto.user.UserReponseDto;
+import com.example.siteamame.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,20 +15,45 @@ import java.util.List;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 public class UserController {
-    private final UserService userSer;
-    @GetMapping()
-    public ResponseEntity<List<UserResDto>> getAllUsers(){
-        return new ResponseEntity<>(userSer.getAllUser(), HttpStatus.OK);
+    private final UserService userService;
+
+    //Get All Users
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<UserReponseDto>> getAllUsers(){
+        return new ResponseEntity<>(userService.getAllUser(), HttpStatus.OK);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<UserResDto> register(
-            @Valid @RequestPart(value = "user") UserReqDto userReq,
+    //Get User by Id
+    @GetMapping("/user/{id}")
+    public ResponseEntity<UserReponseDto> getUserById(@PathVariable Long id){
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    //Create User
+    @PostMapping("/visitor/register")
+    public ResponseEntity<UserReponseDto> register(
+            @Valid @RequestPart(value = "user") UserRequestDto requestDto,
             @RequestPart(value = "cv", required = false) MultipartFile cv,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
-        return new ResponseEntity<>(userSer.register(userReq, cv, image), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.register(requestDto, cv, image), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/user/update/{id}")
+    public ResponseEntity<UserReponseDto> update(
+            @PathVariable Long id,
+            @RequestParam("user") @Valid UserRequestDto requestDto,
+            @RequestParam(required = false) MultipartFile cv,
+            @RequestPart(required = false) MultipartFile image
+    ) throws IOException {
+        return ResponseEntity.ok(userService.update(id, requestDto, cv,image ));
+    }
+
+    @DeleteMapping("/admin/user/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id){
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

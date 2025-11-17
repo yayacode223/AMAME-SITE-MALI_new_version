@@ -1,7 +1,7 @@
 package com.example.siteamame.model;
 
-import com.example.siteamame.model.enumeration.RoleType;
-import com.example.siteamame.model.enumeration.SexeType;
+import com.example.siteamame.enumeration.RoleType;
+import com.example.siteamame.enumeration.SexeType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -31,9 +31,7 @@ public class User {
     private String email;
     private String password;
     private LocalDate birthDate;
-    private String etablissement;
     private String ville;
-
     @Enumerated(EnumType.STRING)
     private SexeType sexe;
     private String adresse;
@@ -45,12 +43,7 @@ public class User {
     private RoleType role;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<FileEntity> files = new ArrayList<>();  // Photo(Image) Ou Cv(Document)
+    private List<File> files = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(
-            name = "filiere_id"
-    )
-    private Filiere filiere;
 }
 

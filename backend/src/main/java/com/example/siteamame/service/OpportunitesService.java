@@ -1,8 +1,7 @@
 package com.example.siteamame.service;
 
 
-import com.example.siteamame.dto.OpportunitesDto;
-import com.example.siteamame.model.Opportunites;
+import com.example.siteamame.dto.opportunites.OpportunitesDto;
 import com.example.siteamame.repository.OpportunitesRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

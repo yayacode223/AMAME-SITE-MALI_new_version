@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
@@ -13,12 +13,26 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import {Role, UserRole} from "@/types/userType";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } =
-    useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -36,22 +50,33 @@ const Navbar = () => {
     }
   };
 
-  
   const getUserInitials = () => {
     if (!user) return "";
     if (user.prenom && user.nom) {
       return `${user.prenom.charAt(0)}${user.nom.charAt(0)}`.toUpperCase();
     }
+    return user?.email?.charAt(0).toUpperCase() || "U";
   };
 
-  
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navLinks = useMemo(() => [
+    { path: "/", label: "Accueil" },
+    { path: "/bourses", label: "Bourses" },
+    { path: "/concours", label: "Concours" },
+    { path: "/orientation", label: "Orientations" },
+    { path: "/actualites", label: "Actualités" },
+    { path: "/a-propos", label: "À Propos" },
+  ],[location.pathname]);
 
   const renderAuthSection = () => {
     if (isUserLoading) {
       return (
         <div className="flex items-center space-x-2">
-          <Skeleton className="h-10 w-24 rounded-md" />
-          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-9 w-20 rounded-md" />
+          <Skeleton className="h-9 w-9 rounded-full" />
         </div>
       );
     }
@@ -60,14 +85,18 @@ const Navbar = () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10">
+            <Button 
+              variant="ghost" 
+              className="relative h-9 w-9 rounded-full hover:bg-purple-50 transition-colors"
+            >
+              <Avatar className="h-9 w-9 border-2 border-purple-100">
                 <AvatarImage
-                  src={user.imagePath ?? undefined}
-                  alt={user.email}
+                  src={user?.imagePath ?? undefined}
+                  alt={`${user?.prenom} ${user?.nom}`}
+                  className="object-cover"
                 />
-                <AvatarFallback className="bg-purple-600 text-white font-bold">
-                  { getUserInitials()}
+                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white font-semibold">
+                  {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -75,23 +104,27 @@ const Navbar = () => {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="font-medium leading-none">
-                  {user.prenom} {user.nom}
+                <p className="font-medium leading-none text-gray-900">
+                  {user?.prenom} {user?.nom}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
+                <p className="text-xs leading-none text-gray-500">
+                  {user?.email}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/profil" className="cursor-pointer">
-                Mon Profil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {user?.role === UserRole.ADMIN && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/admin" className="cursor-pointer w-full">
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
-              className="text-red-500 cursor-pointer"
+              className="text-red-600 cursor-pointer focus:text-red-700 focus:bg-red-50"
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
@@ -103,146 +136,135 @@ const Navbar = () => {
     }
 
     return (
-      <div className="flex items-center space-x-2">
-        <Button asChild variant="ghost">
+      <div className="flex items-center gap-2">
+        <Button asChild variant="ghost" size="sm" className="text-gray-700 hover:text-purple-700">
           <Link to="/login">Connexion</Link>
         </Button>
-        <Button asChild className="bg-purple-600 hover:bg-purple-700">
+        <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-sm">
           <Link to="/register">S'inscrire</Link>
         </Button>
       </div>
     );
   };
 
+  const NavLink = ({ path, label }: { path: string; label: string }) => (
+    <Link
+      to={path}
+      className={`relative px-3 py-2 font-medium transition-colors duration-200 ${
+        isActiveRoute(path)
+          ? "text-purple-700"
+          : "text-gray-700 hover:text-purple-600"
+      }`}
+    >
+      {label}
+      {isActiveRoute(path) && (
+        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600 rounded-full" />
+      )}
+    </Link>
+  );
+
   return (
-    <nav className="bg-white shadow-md py-4 sticky top-0 z-50">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* --- Logo --- */}
-        <Link to="/" className="flex items-center space-x-2">
-          <img
-            src="/lovable-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
-            alt="AMAME Logo"
-            className="h-12 w-12 rounded-full"
-          />
-          <span className="font-nunito font-bold text-xl text-purple-700">
-            AMAME
-          </span>
-        </Link>
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-lg py-3 border-b border-gray-100"
+          : "bg-white py-4 shadow-sm"
+      }`}
+    >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="flex items-center space-x-3 hover:opacity-90 transition-opacity"
+          >
+            <img
+              src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
+              alt="AMAME Logo"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover"
+            />
+            <span className="font-nunito font-bold text-xl sm:text-2xl text-purple-700">
+              AMAME
+            </span>
+          </Link>
 
-        {/* --- Navigation Desktop --- */}
-        <div className="hidden md:flex space-x-6 items-center">
-          <Link
-            to="/"
-            className="text-gray-700 hover:text-purple-600 font-medium"
-          >
-            Accueil
-          </Link>
-          <Link
-            to="/concours"
-            className="text-gray-700 hover:text-purple-600 font-medium"
-          >
-            Concours
-          </Link>
-          <Link
-            to="/filieres"
-            className="text-gray-700 hover:text-purple-600 font-medium"
-          >
-            Séries et Filières
-          </Link>
-          <Link
-            to="/bourses"
-            className="text-gray-700 hover:text-purple-600 font-medium"
-          >
-            Bourses d'études
-          </Link>
-          <Link
-            to="/ressources"
-            className="text-gray-700 hover:text-purple-600 font-medium"
-          >
-            Ressources
-          </Link>
-        </div>
+          {/* Navigation Desktop */}
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+            {navLinks.map((link) => (
+              <NavLink key={link.path} {...link} />
+            ))}
+          </div>
 
-        {/* --- Section d'authentification (desktop) --- */}
-        <div className="hidden md:flex items-center">{renderAuthSection()}</div>
+          {/* Section d'authentification (desktop) */}
+          <div className="hidden lg:flex items-center">
+            {renderAuthSection()}
+          </div>
 
-        {/* --- Bouton du menu mobile --- */}
-        <div className="md:hidden">
-          <button
-            onClick={toggleMenu}
-            className="p-2 focus:outline-none"
-            aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          >
-            <svg
-              className="w-6 h-6 text-purple-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Bouton du menu mobile */}
+          <div className="flex lg:hidden items-center gap-2">
+            {renderAuthSection()}
+            <button
+              onClick={toggleMenu}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
-              {isOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+              <div className="w-6 h-6 flex flex-col justify-center items-center">
+                <span
+                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
+                    isOpen ? "rotate-45 translate-y-1" : "-translate-y-1"
+                  }`}
                 />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
+                <span
+                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
+                    isOpen ? "opacity-0" : "opacity-100"
+                  }`}
                 />
-              )}
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* --- Menu Mobile --- */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t animate-fade-in">
-          <div className="container mx-auto px-4 py-4 flex flex-col space-y-3">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-purple-600 font-medium py-2"
-              onClick={toggleMenu}
-            >
-              Accueil
-            </Link>
-            <Link
-              to="/concours"
-              className="text-gray-700 hover:text-purple-600 font-medium py-2"
-              onClick={toggleMenu}
-            >
-              Concours
-            </Link>
-            <Link
-              to="/filieres"
-              className="text-gray-700 hover:text-purple-600 font-medium py-2"
-              onClick={toggleMenu}
-            >
-              Séries et Filières
-            </Link>
-            <Link
-              to="/bourses"
-              className="text-gray-700 hover:text-purple-600 font-medium py-2"
-              onClick={toggleMenu}
-            >
-              Bourses d'études
-            </Link>
-            <Link
-              to="/ressources"
-              className="text-gray-700 hover:text-purple-600 font-medium py-2"
-              onClick={toggleMenu}
-            >
-              Ressources
-            </Link>
-
-            <div className="border-t pt-4 mt-4">{renderAuthSection()}</div>
+                <span
+                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
+                    isOpen ? "-rotate-45 -translate-y-1" : "translate-y-1"
+                  }`}
+                />
+              </div>
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Menu Mobile */}
+        <div
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="bg-white border-t border-gray-200 py-4 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`block px-4 py-3 font-medium transition-colors rounded-lg mx-2 ${
+                  isActiveRoute(link.path)
+                    ? "text-purple-700 bg-purple-50"
+                    : "text-gray-700 hover:text-purple-600 hover:bg-gray-50"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+            
+            {/* Section auth pour mobile (seulement si non connecté) */}
+            {!isAuthenticated && (
+              <div className="border-t border-gray-200 mt-4 pt-4 px-4 space-y-2">
+                <Button asChild variant="outline" className="w-full justify-center">
+                  <Link to="/login">Connexion</Link>
+                </Button>
+                <Button asChild className="w-full justify-center bg-purple-600 hover:bg-purple-700">
+                  <Link to="/register">S'inscrire</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </nav>
   );
 };

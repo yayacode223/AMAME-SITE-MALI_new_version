@@ -1,6 +1,6 @@
 package com.example.siteamame.repository;
 
-import com.example.siteamame.dto.OpportunitesDto;
+import com.example.siteamame.dto.opportunites.OpportunitesDto;
 import com.example.siteamame.model.Opportunites;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +17,7 @@ public interface OpportunitesRepository extends JpaRepository<Opportunites, Long
      * Récupère les opportunités actives et les retourne directement sous forme de DTO.
      * Utilise une "Constructor Expression" de JPQL.
      */
-    @Query("SELECT new com.example.siteamame.dto.OpportunitesDto(" + // <-- La magie est ici
+    @Query("SELECT new com.example.siteamame.dto.opportunites.OpportunitesDto(" + // <-- La magie est ici
             "   o.id," +
             "   o.titre," +
             "   o.descriptionComplete, " + // Assurez-vous d'avoir une colonne 'description' et non 'descriptionComplete'

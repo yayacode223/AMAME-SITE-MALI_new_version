@@ -1,7 +1,7 @@
 package com.example.siteamame.controller;
 
 
-import com.example.siteamame.dto.OpportunitesDto;
+import com.example.siteamame.dto.opportunites.OpportunitesDto;
 import com.example.siteamame.service.OpportunitesService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

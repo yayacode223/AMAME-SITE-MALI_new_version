@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode } from "react";
-import * as authService from "@/service/authService";
+import * as authService from "@/service/userService";
 import * as Type from "@/types/userType";
 
 
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Le hook d'accès reste le même, c'est la beauté de l'abstraction !
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

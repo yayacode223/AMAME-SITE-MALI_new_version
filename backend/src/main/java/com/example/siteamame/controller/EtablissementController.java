@@ -1,6 +1,6 @@
 package com.example.siteamame.controller;
 
-import com.example.siteamame.dto.EtablissementDto;
+import com.example.siteamame.dto.etablissement.EtablissementDto;
 import com.example.siteamame.service.EtablissementService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

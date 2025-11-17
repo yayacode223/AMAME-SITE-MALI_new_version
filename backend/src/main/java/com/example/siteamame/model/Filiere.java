@@ -1,6 +1,9 @@
 package com.example.siteamame.model;
 
-import com.example.siteamame.model.enumeration.DomaineFiliereSerieType;
+import com.example.siteamame.enumeration.DomaineFiliereSerieType;
+import com.example.siteamame.enumeration.DifficulteType;
+import com.example.siteamame.enumeration.DemandeType;
+import com.example.siteamame.enumeration.SalaireType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,9 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -23,26 +24,52 @@ public class Filiere {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nom_filiere")
+    @Column(nullable = false)
     private String nom;
 
-    @Column(name = "description_filiere")
-    private String description;
+    @Column(length = 500)
+    private String descriptionCourte;
 
-    @Column(name = "domaine_filiere")
+    @Column(columnDefinition = "TEXT")
+    private String descriptionLongue;
+
     @Enumerated(EnumType.STRING)
     private DomaineFiliereSerieType domaine;
 
-    @Column(name = "etablissement_filiere")
-    private String etablissement;
+    @Enumerated(EnumType.STRING)
+    private DifficulteType difficulte;
+
+    @Enumerated(EnumType.STRING)
+    private DemandeType demande;
+
+    @Enumerated(EnumType.STRING)
+    private SalaireType salaire;
+    private String dureeEtudes;
+    private String tauxEmploi;
+    private String salaireDebut;
+    private String salaireExperience;
+
+    @Column(columnDefinition = "TEXT")
+    private String perspectives;
+
+    // Collections
+    @ElementCollection
+    @CollectionTable(name = "filiere_debouches", joinColumns = @JoinColumn(name = "filiere_id"))
+    private List<String> debouches = new ArrayList<>();
 
     @ElementCollection
-    private List<String> modules = new ArrayList<>();
+    @CollectionTable(name = "filiere_competences", joinColumns = @JoinColumn(name = "filiere_id"))
+    private List<String> competences = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "filieres", cascade = CascadeType.ALL)
-    private List<Concours> concours = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "filiere_universites", joinColumns = @JoinColumn(name = "filiere_id"))
+    private List<String> universites = new ArrayList<>();
 
-    @OneToMany(mappedBy = "filiere")
-    private List<User> users = new ArrayList<>();
-    
+    @ElementCollection
+    @CollectionTable(name = "filiere_prerequis", joinColumns = @JoinColumn(name = "filiere_id"))
+    private List<String> prerequis = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private File file;
+
 }

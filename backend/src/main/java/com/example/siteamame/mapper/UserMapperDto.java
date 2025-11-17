@@ -1,12 +1,12 @@
 package com.example.siteamame.mapper;
 
-import com.example.siteamame.dto.UserReqDto;
-import com.example.siteamame.dto.UserResDto;
+import com.example.siteamame.dto.user.UserRequestDto;
+import com.example.siteamame.dto.user.UserReponseDto;
 import com.example.siteamame.model.Filiere;
 import com.example.siteamame.model.User;
-import com.example.siteamame.model.enumeration.FileType;
-import com.example.siteamame.model.enumeration.RoleType;
-import com.example.siteamame.repository.FiliereRepo;
+import com.example.siteamame.enumeration.FileType;
+import com.example.siteamame.enumeration.RoleType;
+import com.example.siteamame.repository.FiliereRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -19,67 +19,75 @@ import java.util.Optional;
 @Component
 public class UserMapperDto {
     private final PasswordEncoder passwordEncoder;
-    private final FiliereRepo filiereRepo;
+    private final FiliereRepository filiereRepo;
 
-    public UserResDto UserToDto(User user) {
-        UserResDto userResDto = new UserResDto();
-        userResDto.setId(user.getId());
-        userResDto.setNom(user.getNom());
-        userResDto.setPrenom(user.getPrenom());
-        userResDto.setEmail(user.getEmail());
-        userResDto.setEtablissement(user.getEtablissement());
+    public UserReponseDto UserToDto(User user) {
+        UserReponseDto userReponseDto = new UserReponseDto();
+        userReponseDto.setId(user.getId());
+        userReponseDto.setNom(user.getNom());
+        userReponseDto.setPrenom(user.getPrenom());
+        userReponseDto.setEmail(user.getEmail());
 
-        if (user.getFiliere() != null) {
-            userResDto.setFiliere_serie(user.getFiliere().getNom());
-        }
-
-        userResDto.setBirthDate(user.getBirthDate());
-        userResDto.setVille(user.getVille());
-        userResDto.setSexe(user.getSexe());
-        userResDto.setAdresse(user.getAdresse());
-        userResDto.setPhone(user.getPhone());
-        userResDto.setPays(user.getPays());
-        userResDto.setNiveauEtude(user.getNiveauEtude());
-        userResDto.setCodePostal(user.getCodePostal());
-
-        // Mapping des rôles
-        userResDto.setRole(RoleType.USER);
+        userReponseDto.setBirthDate(user.getBirthDate());
+        userReponseDto.setVille(user.getVille());
+        userReponseDto.setSexe(user.getSexe());
+        userReponseDto.setAdresse(user.getAdresse());
+        userReponseDto.setPhone(user.getPhone());
+        userReponseDto.setPays(user.getPays());
+        userReponseDto.setNiveauEtude(user.getNiveauEtude());
+        userReponseDto.setCodePostal(user.getCodePostal());
+        userReponseDto.setRole(user.getRole());
 
         //Filtrage des fichiers
         if (user.getFiles() != null) {
             user.getFiles().forEach(file -> {
                 if (file.getFileType() == FileType.IMAGE) {
-                    userResDto.setImagePath(file.getFilePath());
+                    userReponseDto.setImagePath(file.getFilePath());
                 } else if (file.getFileType() == FileType.DOCUMENT) {
-                    userResDto.setCvPath(file.getFilePath());
+                    userReponseDto.setCvPath(file.getFilePath());
                 }
             });
         }
-        return userResDto;
+        return userReponseDto;
     }
 
-    public User DtoToUser(UserReqDto userReqDto) {
+    public User DtoToUser(UserRequestDto userRequestDto) {
         User user = new User();
 
-        user.setNom(userReqDto.getNom());
-        user.setPrenom(userReqDto.getPrenom());
-        user.setEmail((userReqDto.getEmail()));
-        user.setPassword(passwordEncoder.encode(userReqDto.getPassword()));
-        user.setEtablissement(userReqDto.getEtablissement());
-        user.setBirthDate(userReqDto.getBirthDate());
-        user.setVille(userReqDto.getVille());
-        user.setAdresse(userReqDto.getAdresse());
-        user.setPhone(userReqDto.getPhone());
-        user.setSexe(userReqDto.getSexe());
-        user.setRole(RoleType.USER);
-        user.setPays(userReqDto.getPays());
-        user.setNiveauEtude(userReqDto.getNiveauEtude());
-        user.setCodePostal(userReqDto.getCodePostal());
-
-        if(userReqDto.getFiliereId()!= null) {
-            Optional<Filiere> filiere = filiereRepo.findById(userReqDto.getFiliereId());
-            filiere.ifPresent(user::setFiliere);
+        user.setNom(userRequestDto.getNom());
+        user.setPrenom(userRequestDto.getPrenom());
+        user.setEmail((userRequestDto.getEmail()));
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        user.setBirthDate(userRequestDto.getBirthDate());
+        user.setVille(userRequestDto.getVille());
+        user.setAdresse(userRequestDto.getAdresse());
+        user.setPhone(userRequestDto.getPhone());
+        if(userRequestDto.getRole() != null) {
+            user.setRole(userRequestDto.getRole());
         }
+        user.setSexe(userRequestDto.getSexe());
+        user.setPays(userRequestDto.getPays());
+        user.setNiveauEtude(userRequestDto.getNiveauEtude());
+        user.setCodePostal(userRequestDto.getCodePostal());
+
+        return user;
+    }
+
+    public User updateUser(User user, UserRequestDto userRequestDto) {
+
+        user.setNom(userRequestDto.getNom());
+        user.setPrenom(userRequestDto.getPrenom());
+        user.setEmail((userRequestDto.getEmail()));
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        user.setBirthDate(userRequestDto.getBirthDate());
+        user.setVille(userRequestDto.getVille());
+        user.setAdresse(userRequestDto.getAdresse());
+        user.setPhone(userRequestDto.getPhone());
+        user.setSexe(userRequestDto.getSexe());
+        user.setPays(userRequestDto.getPays());
+        user.setNiveauEtude(userRequestDto.getNiveauEtude());
+        user.setCodePostal(userRequestDto.getCodePostal());
+
         return user;
     }
 
