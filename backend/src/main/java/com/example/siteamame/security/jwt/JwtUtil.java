@@ -6,19 +6,25 @@ import java.util.Date;
 
 import io.jsonwebtoken.security.Keys;
 
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 public class JwtUtil {
 
-    private final String secretKey;
-    private final long expirationTime;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    public JwtUtil(@Value("${jwt.secret}")String secretKey, @Value("${jwt.expiration}")long expirationTime) {
-        this.secretKey = secretKey;
-        this.expirationTime = expirationTime;
-    }
+    @Value("${jwt.expiration}")
+    private long expirationTime;
+
+//    public JwtUtil(@Value("${jwt.secret}")String secretKey, @Value("${jwt.expiration}")long expirationTime) {
+//        this.secretKey = secretKey;
+//        this.expirationTime = expirationTime;
+//    }
 
     // Génération du JWT
     public String generateToken(String email, RoleType role) {

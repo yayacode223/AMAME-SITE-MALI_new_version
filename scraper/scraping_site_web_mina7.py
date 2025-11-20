@@ -1,4 +1,3 @@
-# scraper_avec_html5lib.py    
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
@@ -614,7 +613,7 @@ if __name__ == "__main__":
             logger.info(f"{'='*50}")
             
             scraper = Mina7Scraper(parser=parser)
-            scraper.run_scraping(max_bourses_par_categorie=25)  # Test avec 25 bourses
+            scraper.run_scraping(max_bourses_par_categorie=50)  # Test avec 50 bourses
             
             # Si ça marche, on arrête
             break

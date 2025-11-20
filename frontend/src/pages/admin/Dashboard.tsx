@@ -21,11 +21,11 @@ const Dashboard: React.FC = () => {
   const {data: userData, isLoading: userIsLoading } = useGetAllUsers();
   
   const stats = [
-    {name: 'Utilisateurs inscrits', value: userIsLoading ? "En cours" : userData?.length, icon: UserGroupIcon, href: '/admin/users' },
-    { name: 'Articles publiés', value: articleIsLoading ? "En cours" : articleData?.length, icon: NewspaperIcon, href: '/admin/articles' },
-    { name: 'Bourses actives', value: bourseIsLoading ? "En cours" : bourseData?.totalElements, icon: AcademicCapIcon, href: '/admin/bourses' },
-    { name: 'Concours en cours', value: concoursIsLoading ? "En cours" : concoursData?.totalElements, icon: TrophyIcon, href: '/admin/concours' },
-    { name: 'Filières disponibles', value: filiereIsLoading ? "En cours" : filiereData?.length, icon: FolderIcon, href: '/admin/filieres' },
+    {name: 'Utilisateurs inscrits', value: userIsLoading ? "Aucun" : userData?.length, icon: UserGroupIcon, href: '/admin/users' },
+    { name: 'Articles publiés', value: articleIsLoading ? "Aucun" : articleData?.length, icon: NewspaperIcon, href: '/admin/articles' },
+    { name: 'Bourses actives', value: bourseIsLoading ? "Aucun" : bourseData?.totalElements, icon: AcademicCapIcon, href: '/admin/bourses' },
+    { name: 'Concours en cours', value: concoursIsLoading ? "Aucun" : concoursData?.totalElements, icon: TrophyIcon, href: '/admin/concours' },
+    { name: 'Filières disponibles', value: filiereIsLoading ? "Aucun" : filiereData?.length, icon: FolderIcon, href: '/admin/filieres' },
   ];
 
   return (

@@ -5,6 +5,9 @@ import DataTable from '@/components/admin/DataTable';
 import { useGetAllUsers, useDeleteUserMutation } from '@/service/userService';
 import { RegisterResponse, Sexe, Role } from '@/types/userType';
 
+
+const url = import.meta.env.VITE_API_BASE_URL
+
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: users, isLoading } = useGetAllUsers({ enabled: true });
@@ -30,7 +33,7 @@ const UsersManagement: React.FC = () => {
             {row.imagePath ? (
               <img
                 className="h-10 w-10 rounded-full"
-                src={row.imagePath}
+                src={`${url}/${row.imagePath}`}
                 alt={`${row.prenom} ${row.nom}`}
               />
             ) : (
@@ -147,7 +150,7 @@ const UsersManagement: React.FC = () => {
           </div>
           
           {/* Filtres */}
-          <div className="flex gap-2">
+           {/* <div className="flex gap-2">
             <select
               title="Filtrer par rôle"
               aria-label="Filtrer par rôle"
@@ -173,7 +176,7 @@ const UsersManagement: React.FC = () => {
               <option value="MASCULIN">Masculin</option>
               <option value="FEMININ">Féminin</option>
             </select>
-          </div>
+          </div>  */}
         </div>
       </div>
 

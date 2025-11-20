@@ -1,4 +1,4 @@
-export type NiveauType = "BACHELIER" | "LICENCE" | "MASTER" | "DOCTORAT"; 
+export type NiveauType = "PRIMAIRE" | "SECONDAIRE" | "LYCEE" | "BACHELIER" | "LICENCE" | "MASTER" | "DOCTORAT" | "BAC_2" |"AUTRE"; 
 export type StatusType = "NATIONAL" | "INTERNATIONAL";
 
 export interface ConcoursRequest {

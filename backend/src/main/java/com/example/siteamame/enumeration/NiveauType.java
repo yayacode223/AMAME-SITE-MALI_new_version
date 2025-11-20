@@ -2,12 +2,16 @@ package com.example.siteamame.enumeration;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+
+
 @AllArgsConstructor
 @Getter
 public enum NiveauType {
+    PRIMAIRE("Primaire"),
+    SECONDAIRE("Secondaire"),
+    LYCEE("Lycee"),
     BACHELIER("Bachelier(e)"),
-    BAC_2("BTS, DUT"),
+    BAC_2("BTS, DUT, DEUG"),
     LICENCE("Licence"),
     MASTER("Master"),
     DOCTORAT("Doctorat"),

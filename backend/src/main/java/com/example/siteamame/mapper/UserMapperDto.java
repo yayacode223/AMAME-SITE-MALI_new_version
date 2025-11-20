@@ -78,7 +78,6 @@ public class UserMapperDto {
         user.setNom(userRequestDto.getNom());
         user.setPrenom(userRequestDto.getPrenom());
         user.setEmail((userRequestDto.getEmail()));
-        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setBirthDate(userRequestDto.getBirthDate());
         user.setVille(userRequestDto.getVille());
         user.setAdresse(userRequestDto.getAdresse());

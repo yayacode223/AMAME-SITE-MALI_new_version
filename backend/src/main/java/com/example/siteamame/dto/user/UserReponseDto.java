@@ -1,5 +1,6 @@
 package com.example.siteamame.dto.user;
 
+import com.example.siteamame.enumeration.NiveauType;
 import com.example.siteamame.enumeration.RoleType;
 import com.example.siteamame.enumeration.SexeType;
 import jakarta.persistence.EnumType;
@@ -32,6 +33,7 @@ public class UserReponseDto {
     @Enumerated(EnumType.STRING)
     private RoleType role;
     private String pays;
-    private String niveauEtude;
+    @Enumerated(EnumType.STRING)
+    private NiveauType niveauEtude;
     private Integer codePostal;
 }

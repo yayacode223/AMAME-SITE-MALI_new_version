@@ -56,7 +56,7 @@ public class UserService {
 
     @Transactional
     public UserReponseDto register(UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
-//
+
         Optional<User> existingUser = userRepository.findByEmailIgnoreCase(userRequestDto.getEmail());
         if(existingUser.isPresent())
             throw new RuntimeException("L'utilisateur existe deja");
@@ -92,41 +92,67 @@ public class UserService {
     public UserReponseDto update(Long id, UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
 
         User userToUpdate = userRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Cet User n'existe pas avec Id : " + id));
+                .orElseThrow(() -> new RuntimeException("Cet User n'existe pas avec Id : " + id));
+
         User user = userMapper.updateUser(userToUpdate, userRequestDto);
         List<File> files = new ArrayList<>();
 
-        if(cv != null){
+        // Récupérer les fichiers existants
+        List<File> existingFiles = user.getFiles() != null ?
+                new ArrayList<>(user.getFiles()) : new ArrayList<>();
+
+        // Gérer le CV
+        if (cv != null && !cv.isEmpty()) {
+            // Trouver et supprimer l'ancien CV s'il existe
+            Optional<File> oldCv = existingFiles.stream()
+                    .filter(file -> file.getFileType().equals(FileType.DOCUMENT))
+                    .findFirst();
+
+            if (oldCv.isPresent()) {
+                // Supprimer physiquement le fichier
+                fileStorageService.deleteFile(oldCv.get().getFileName(), "utilisateur");
+                // Supprimer de la liste
+                existingFiles.remove(oldCv.get());
+            }
+
+            // Ajouter le nouveau CV
             FileDto fileDto = fileStorageService.storeFile(cv, "utilisateur", FileType.DOCUMENT);
             File file = fileMapper.convertDtoToFile(fileDto);
             File savedFile = fileRepository.save(file);
             files.add(savedFile);
         }
 
-        if(image != null) {
+        // Gérer l'image
+        if (image != null && !image.isEmpty()) {
+            // Trouver et supprimer l'ancienne image si elle existe
+            Optional<File> oldImage = existingFiles.stream()
+                    .filter(file -> file.getFileType().equals(FileType.IMAGE))
+                    .findFirst();
+
+            if (oldImage.isPresent()) {
+                // Supprimer physiquement le fichier
+                fileStorageService.deleteFile(oldImage.get().getFileName(), "utilisateur");
+                // Supprimer de la liste
+                existingFiles.remove(oldImage.get());
+            }
+
+            // Ajouter la nouvelle image
             FileDto fileDto = fileStorageService.storeFile(image, "utilisateur", FileType.IMAGE);
             File file = fileMapper.convertDtoToFile(fileDto);
             File savedFile = fileRepository.save(file);
             files.add(savedFile);
         }
 
-        if(user.getFiles() != null) {
-                user.getFiles()
-                        .forEach(file -> {
-                            try {
-                                fileStorageService.deleteFile(file.getFileName(), "utilisateur");
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-        }
+        // Ajouter les fichiers existants non modifiés
+        files.addAll(existingFiles);
 
-        if(!files.isEmpty()) {
+        if (!files.isEmpty()) {
             user.setFiles(files);
+        } else {
+            user.setFiles(null);
         }
 
         User savedUser = userRepository.save(user);
-
         return userMapper.UserToDto(savedUser);
     }
 

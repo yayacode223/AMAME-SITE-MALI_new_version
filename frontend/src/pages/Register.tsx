@@ -66,7 +66,8 @@ const addressInfoSchema = z.object({
 });
 
 const profileSchema = z.object({
-  niveauEtude: z.string().min(1, "Veuillez sélectionner votre niveau d'études"),
+  niveauEtude: z.enum(["PRIMAIRE", "SECONDAIRE", "LYCEE", "BACHELIER", "BAC_2", "LICENCE", "MASTER", "DOCTORAT"], {
+    required_error: "Veuillez sélectionner votre genre"}),
   image: z
     .any()
     .refine(
@@ -99,14 +100,15 @@ const inscriptionFormSchema = personalInfoSchema
 type InscriptionFormValues = z.infer<typeof inscriptionFormSchema>;
 
 const educationLevels = [
-  { value: "primaire", label: "Primaire" },
-  { value: "college", label: "Collège" },
-  { value: "lycee", label: "Lycée" },
-  { value: "bac", label: "Baccalauréat" },
-  { value: "licence", label: "Licence" },
-  { value: "master", label: "Master" },
-  { value: "doctorat", label: "Doctorat" },
-  { value: "autre", label: "Autre" },
+  { value: "PRIMAIRE", label: "Primaire" },
+  { value: "SECONDAIRE", label: "Sécondaire" },
+  { value: "LYCEE", label: "Lycée" },
+  { value: "BACHELIER", label: "Baccalauréat" },
+  { value: "BAC_2", label: "BTS, DUT, DEUG" },
+  { value: "LICENCE", label: "Licence" },
+  { value: "MASTER", label: "Master" },
+  { value: "DOCTORAT", label: "Doctorat" },
+  { value: "AUTRE", label: "Autre" },
 ];
 
 const countries = [

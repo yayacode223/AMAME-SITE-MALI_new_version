@@ -1,9 +1,9 @@
-// pages/admin/UserForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormWrapper from '@/components/admin/FormWrapper';
 import { useRegisterMutation, useUpdateMutation, useGetUserById } from '@/service/userService';
 import { RegisterType, RegisterPayload, RegisterUpdatePayload, Sexe, Role } from '@/types/userType';
+import { NiveauType } from '@/types/concoursType';
 import { useAuth } from "@/context/AuthContext";
 
 interface UserFormData extends Omit<RegisterType, 'password'> {
@@ -23,14 +23,14 @@ const UserForm: React.FC = () => {
     nom: '',
     prenom: '',
     email: '',
-    birthDay: '',
+    birthDate: '',
     ville: '',
     sexe: 'HOMME',
     adresse: '',
     phone: '',
     pays: '',
     codePostal: 0,
-    niveauEtude: '',
+    niveauEtude: 'BACHELIER',
     role: 'USER'
   });
 
@@ -46,14 +46,14 @@ const UserForm: React.FC = () => {
         nom: existingUser.nom,
         prenom: existingUser.prenom,
         email: existingUser.email,
-        birthDay: existingUser.birthDay || '',
+        birthDate: existingUser.birthDate || '',
         ville: existingUser.ville || '',
         sexe: existingUser.sexe,
         adresse: existingUser.adresse || '',
         phone: existingUser.phone || '',
         pays: existingUser.pays || '',
         codePostal: existingUser.codePostal || 0,
-        niveauEtude: existingUser.niveauEtude || '',
+        niveauEtude: existingUser.niveauEtude as NiveauType || 'BACHELIER',
         role: existingUser.role || 'USER'
       });
     }
@@ -188,14 +188,14 @@ const UserForm: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="birthDay" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">
               Date de naissance
             </label>
             <input
               type="date"
-              id="birthDay"
-              value={formData.birthDay}
-              onChange={(e) => setFormData(prev => ({ ...prev, birthDay: e.target.value }))}
+              id="birthDate"
+              value={formData.birthDate}
+              onChange={(e) => setFormData(prev => ({ ...prev, birthDate: e.target.value }))}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
@@ -297,10 +297,13 @@ const UserForm: React.FC = () => {
               id="niveauEtude"
               required
               value={formData.niveauEtude}
-              onChange={(e) => setFormData(prev => ({ ...prev, niveauEtude: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, niveauEtude: e.target.value as NiveauType }))}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
-              <option value="">Sélectionnez un niveau</option>
+              {/* <option value="">Sélectionnez un niveau</option> */}
+              <option value="PRIMAIRE">Primaire</option>
+              <option value="SECONDAIRE">Secondaire</option>
+              <option value="LYCEE">Lyceé</option>
               <option value="BACHELIER">Baccalauréat</option>
               <option value="BAC_2">Bac+2 (BTS, DUT)</option>
               <option value="LICENCE">Licence (Bac+3)</option>

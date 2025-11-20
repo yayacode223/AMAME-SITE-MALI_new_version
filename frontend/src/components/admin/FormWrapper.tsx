@@ -1,4 +1,3 @@
-// components/admin/FormWrapper.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';

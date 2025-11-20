@@ -1,6 +1,7 @@
 package com.example.siteamame.dto.user;
 
 
+import com.example.siteamame.enumeration.NiveauType;
 import com.example.siteamame.enumeration.RoleType;
 import com.example.siteamame.enumeration.SexeType;
 import jakarta.persistence.EnumType;
@@ -26,8 +27,6 @@ public class UserRequestDto {
     private String prenom;
     @Email(message = "Veuillez mettre votre email")
     private String email;
-    @Size(min = 8, message = "Le mot de pass doit etre au minimun 8 carateres")
-    @NotBlank(message = "Ce champ ne peut pas etre vide")
     private String password;
     private LocalDate birthDate;
     private String ville;
@@ -38,6 +37,7 @@ public class UserRequestDto {
     private String adresse;
     private String phone;
     private String pays;
-    private String niveauEtude;
+    @Enumerated(EnumType.STRING)
+    private NiveauType niveauEtude;
     private Integer codePostal;
 }

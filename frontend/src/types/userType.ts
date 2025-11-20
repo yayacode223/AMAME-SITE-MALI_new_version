@@ -1,9 +1,10 @@
+import { NiveauType } from '@/types/concoursType';
 export interface RegisterResponse {
     id: number; 
     nom : string; 
     prenom: string; 
     email: string;  
-    birthDay? : string; 
+    birthDate? : string; 
     ville? : string; 
     sexe : Sexe; 
     adresse? : string, 
@@ -12,7 +13,7 @@ export interface RegisterResponse {
     cvPath? : string;
     role? : Role;
     pays?: string; 
-    niveauEtude?: string; 
+    niveauEtude?: NiveauType; 
     codePostal? : number; 
 }
 
@@ -21,14 +22,14 @@ export interface RegisterType {
     prenom :string; 
     email: string; 
     password: string; 
-    birthDay? : string; 
+    birthDate? : string; 
     ville?: string; 
     sexe?: Sexe; 
     adresse?: string; 
     phone?: string; 
-    pays : string; 
-    codePostal: number;
-    niveauEtude : string;       
+    pays?: string; 
+    codePostal?: number;
+    niveauEtude? : NiveauType;       
 }
 
 export interface RegisterPayload {

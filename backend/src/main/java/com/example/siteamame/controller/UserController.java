@@ -35,8 +35,8 @@ public class UserController {
     @PostMapping("/visitor/register")
     public ResponseEntity<UserReponseDto> register(
             @Valid @RequestPart(value = "user") UserRequestDto requestDto,
-            @RequestPart(value = "cv", required = false) MultipartFile cv,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value ="cv", required = false) MultipartFile cv,
+            @RequestPart(value ="image", required = false) MultipartFile image
     ) throws IOException {
         return new ResponseEntity<>(userService.register(requestDto, cv, image), HttpStatus.CREATED);
     }
@@ -44,11 +44,11 @@ public class UserController {
     @PutMapping("/user/update/{id}")
     public ResponseEntity<UserReponseDto> update(
             @PathVariable Long id,
-            @RequestParam("user") @Valid UserRequestDto requestDto,
-            @RequestParam(required = false) MultipartFile cv,
-            @RequestPart(required = false) MultipartFile image
+            @RequestPart("user") @Valid UserRequestDto requestDto,
+            @RequestPart(value="cv", required = false) MultipartFile cv,
+            @RequestPart(value="image", required = false) MultipartFile image
     ) throws IOException {
-        return ResponseEntity.ok(userService.update(id, requestDto, cv,image ));
+        return ResponseEntity.ok(userService.update(id, requestDto, cv, image ));
     }
 
     @DeleteMapping("/admin/user/{id}")

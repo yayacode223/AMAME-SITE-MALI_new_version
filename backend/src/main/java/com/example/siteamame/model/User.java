@@ -1,5 +1,6 @@
 package com.example.siteamame.model;
 
+import com.example.siteamame.enumeration.NiveauType;
 import com.example.siteamame.enumeration.RoleType;
 import com.example.siteamame.enumeration.SexeType;
 import jakarta.persistence.*;
@@ -38,7 +39,8 @@ public class User {
     private String phone;
     private String pays;
     private Integer codePostal;
-    private String niveauEtude;
+    @Enumerated(EnumType.STRING)
+    private NiveauType niveauEtude;
     @Enumerated(EnumType.STRING)
     private RoleType role;
 

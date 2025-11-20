@@ -5,6 +5,8 @@ import { ArrowLeftIcon, UserIcon, DocumentIcon, EnvelopeIcon, PhoneIcon, MapPinI
 import { useGetUserById } from '@/service/userService';
 import {Sexe} from '@/types/userType';
 
+const url = import.meta.env.VITE_API_BASE_URL; 
+
 const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: user, isLoading } = useGetUserById(parseInt(id || '0'));
@@ -73,7 +75,7 @@ const UserDetail: React.FC = () => {
               {user.imagePath ? (
                 <img
                   className="h-20 w-20 rounded-full"
-                  src={user.imagePath}
+                  src={`${url}/${user.imagePath}`}
                   alt={`${user.prenom} ${user.nom}`}
                 />
               ) : (
@@ -143,7 +145,7 @@ const UserDetail: React.FC = () => {
                 <>
                   <dt className="text-sm font-medium text-gray-500">Date de naissance</dt>
                   <dd className="text-sm text-gray-900">
-                    {user.birthDay ? new Date(user.birthDay).toLocaleDateString('fr-FR') : 'Non renseignée'}
+                    {user.birthDate ? new Date(user.birthDate).toLocaleDateString('fr-FR') : 'Non renseignée'}
                   </dd>
                 </>
               </dl>
@@ -181,7 +183,7 @@ const UserDetail: React.FC = () => {
                 <div className="space-y-2">
                   {user.cvPath ? (
                     <a
-                      href={user.cvPath}
+                      href={`${url}/${user.cvPath}`}    
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
