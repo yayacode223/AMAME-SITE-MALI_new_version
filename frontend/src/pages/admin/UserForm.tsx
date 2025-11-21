@@ -182,8 +182,8 @@ const UserForm: React.FC = () => {
               onChange={(e) => setFormData(prev => ({ ...prev, sexe: e.target.value as Sexe }))}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
-              <option value="MASCULIN">Masculin</option>
-              <option value="FEMININ">Féminin</option>
+              <option value="HOMME">Masculin</option>
+              <option value="FEMME">Féminin</option>
             </select>
           </div>
 

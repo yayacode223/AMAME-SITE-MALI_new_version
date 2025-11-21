@@ -15,13 +15,17 @@ public class ArticleMapper {
                 ? article.getContenu().substring(0, 150) + "..."
                 : article.getContenu();
 
+        String filePath = article.getFile()!= null
+                ? article.getFile().getFilePath()
+                : null;
+
         return new ArticleSummaryDto(
                 article.getId(),
                 article.getTitre(),
                 article.getSlug(),
                 article.getAuteur(),
                 article.getCategorie(),
-                article.getImageUrl(),
+                filePath,
                 article.getVues(),
                 article.getTempsLecture(),
                 article.getDatePublication(),
@@ -30,6 +34,10 @@ public class ArticleMapper {
     }
 
     public ArticleDto convertToDTO(Article article) {
+
+        String filePath = article.getFile()!= null
+                ? article.getFile().getFilePath()
+                : null;
         return new ArticleDto(
                 article.getId(),
                 article.getTitre(),
@@ -37,8 +45,7 @@ public class ArticleMapper {
                 article.getContenu(),
                 article.getAuteur(),
                 article.getCategorie(),
-                article.getImageUrl(),
-//                article.getFile().getFilePath(),
+                filePath,
                 article.getVues(),
                 article.getTempsLecture(),
                 article.getDatePublication(),

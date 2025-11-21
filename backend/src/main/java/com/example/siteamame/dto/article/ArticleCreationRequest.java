@@ -23,7 +23,7 @@ public class ArticleCreationRequest {
     @NotBlank(message = "La catégorie est obligatoire")
     private String categorie;
 
-    private String imageUrl;
+    private String filePath;
     private Integer tempsLecture;
     private List<String> tags;
     private String metaDescription;

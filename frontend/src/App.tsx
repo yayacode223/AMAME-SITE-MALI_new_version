@@ -11,9 +11,9 @@ import Register from "@/pages/Register";
 import Login from "@/pages/Authentication";
 import About from "./pages/About";
 import Orientation from "./pages/Orientation";
-import News from "./pages/News";
+import Articles from "./pages/Articles";
 import OrientationDetail from "./pages/OrientationDetail";
-import NewDetail from "./pages/NewDetail";
+import ArticleDetail from "./pages/ArticleDetail";
 import Concours from "./pages/Concours";
 import ConcoursDetail from "./pages/ConcoursDetail";
 import AdminLayout from "@/components/admin/LayoutAdmin";
@@ -53,9 +53,9 @@ const App = () => (
           <Route path="/bourses/:id" element={<BoursesDetail />} />
           <Route path="/a-propos" element={<About />} />
           <Route path="/orientation" element={<Orientation />} />
-          <Route path="/actualites" element={<News />} />
+          <Route path="/articles" element={<Articles />} />
           <Route path="/orientation/:id" element={<OrientationDetail />} />
-          <Route path="/actualites/:slug" element={<NewDetail />} />
+          <Route path="/articles/:slug" element={<ArticleDetail />} />
           <Route path="/concours" element={<Concours />} />
           <Route path="/concours/:id" element={<ConcoursDetail />} />
           <Route path="*" element={<NotFound />} />

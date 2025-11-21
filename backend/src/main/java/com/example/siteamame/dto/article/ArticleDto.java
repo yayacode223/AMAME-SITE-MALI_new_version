@@ -17,7 +17,7 @@ public class ArticleDto {
     private String contenu;
     private String auteur;
     private String categorie;
-    private String imagePath;
+    private String filePath;
     private Integer vues;
     private Integer tempsLecture;
     private LocalDateTime datePublication;

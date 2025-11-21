@@ -24,7 +24,7 @@ public class ArticleDataInitializer implements CommandLineRunner {
             article1.setContenu("La lettre de motivation est un élément crucial de votre candidature...");
             article1.setAuteur("Équipe AMAME");
             article1.setCategorie("Conseils");
-            article1.setImageUrl("https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg");
+//            article1.setImageUrl("https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg");
             article1.setVues(1247);
             article1.setTempsLecture(8);
             article1.setTags(Arrays.asList("lettre motivation", "conseils", "candidature"));
@@ -41,7 +41,7 @@ public class ArticleDataInitializer implements CommandLineRunner {
             article2.setContenu("Choisir sa destination d'études est une décision importante...");
             article2.setAuteur("Équipe AMAME");
             article2.setCategorie("Orientation");
-            article2.setImageUrl("https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg");
+//            article2.setImageUrl("https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg");
             article2.setVues(892);
             article2.setTempsLecture(6);
             article2.setTags(Arrays.asList("orientation", "études", "international"));
@@ -58,7 +58,7 @@ public class ArticleDataInitializer implements CommandLineRunner {
             article3.setContenu("Un dossier de candidature complet et bien préparé augmente considérablement vos chances...");
             article3.setAuteur("Équipe AMAME");
             article3.setCategorie("Conseils");
-            article3.setImageUrl("https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg");
+//            article3.setImageUrl("https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg");
             article3.setVues(756);
             article3.setTempsLecture(5);
             article3.setTags(Arrays.asList("dossier", "candidature", "conseils"));

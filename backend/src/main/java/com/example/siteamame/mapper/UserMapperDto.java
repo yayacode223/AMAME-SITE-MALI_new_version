@@ -86,7 +86,9 @@ public class UserMapperDto {
         user.setPays(userRequestDto.getPays());
         user.setNiveauEtude(userRequestDto.getNiveauEtude());
         user.setCodePostal(userRequestDto.getCodePostal());
-
+        if(userRequestDto.getRole() != null) {
+            user.setRole(userRequestDto.getRole());
+        }
         return user;
     }
 

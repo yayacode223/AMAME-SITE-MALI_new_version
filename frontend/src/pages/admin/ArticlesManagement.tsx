@@ -1,14 +1,15 @@
 // pages/admin/ArticlesManagement.tsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import DataTable from '@/components/admin/DataTable';
-import { useGetAllArticles, useDeleteArticle, ArticleSummaryResponse } from '../../service/articleService';
-
+import { useGetAllArticles, useDeleteArticle} from '../../service/articleService';
+import {ArticleSummaryResponse } from "@/types/articleType"; 
 const ArticlesManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: articles, isLoading } = useGetAllArticles();
   const deleteArticleMutation = useDeleteArticle();
+  const navigate = useNavigate(); 
 
   const filteredArticles = articles?.filter(article =>
     article.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||

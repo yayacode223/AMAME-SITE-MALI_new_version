@@ -12,7 +12,9 @@ import { motion } from 'framer-motion';
 import { useSearchArticles, useGetCategoriesWithCount, useGetPopularArticles, useGetArticlesByCategorie } from '../service/articleService';
 import { adaptArticleForNews, generateCategoriesFromData } from '@/utils/articleAdapter';
 
-export function News() {
+const url = import.meta.env.VITE_API_BASE_URL; 
+
+export function Articles() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -90,6 +92,17 @@ export function News() {
       }
     }
   };
+
+  if (articlesLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -202,10 +215,10 @@ export function News() {
                       <motion.div key={article.id} variants={itemVariants}>
                         <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                           <div className="md:flex">
-                            {article.image && (
+                            {article.filePath && (
                               <div className="md:w-80 md:flex-shrink-0 relative overflow-hidden">
                                 <img
-                                  src={article.image}
+                                  src={`${url}/${article.filePath}`}
                                   alt={article.titre}
                                   className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
@@ -256,7 +269,7 @@ export function News() {
                               
                               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                 <Link
-                                  to={`/actualites/${article.slug}`}
+                                  to={`/articles/${article.slug}`}
                                   className="text-purple-600 hover:text-purple-700 font-semibold inline-flex items-center gap-2 group/link"
                                 >
                                   Lire l'article
@@ -320,9 +333,9 @@ export function News() {
                         className="block group p-3 rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start space-x-3">
-                          {article.image && (
+                          {article.filePath && (
                             <img
-                              src={article.image}
+                              src={`${url}/${article.filePath}`}
                               alt={article.titre}
                               className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                             />
@@ -354,4 +367,4 @@ export function News() {
   );
 }
 
-export default News;
+export default Articles;

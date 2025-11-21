@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormWrapper from '@/components/admin/FormWrapper';
 import { useCreateConcours, useUpdateConcours, useConcoursDetail } from '@/service/concoursService';
-import { ConcoursCreationRequest, ConcoursUpdateRequest, NiveauType, StatusType } from '@/service/concoursService';
+import { ConcoursCreationRequest, ConcoursUpdateRequest, NiveauType, StatusType } from '@/types/concoursType';
 
 const ConcoursForm: React.FC = () => {
   const navigate = useNavigate();

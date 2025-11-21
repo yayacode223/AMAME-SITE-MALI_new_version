@@ -69,7 +69,7 @@ public class Filiere {
     @CollectionTable(name = "filiere_prerequis", joinColumns = @JoinColumn(name = "filiere_id"))
     private List<String> prerequis = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private File file;
 
 }

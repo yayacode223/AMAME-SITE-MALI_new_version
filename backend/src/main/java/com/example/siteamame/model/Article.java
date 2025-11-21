@@ -37,9 +37,6 @@ public class Article {
 
     private String categorie;
 
-    @Column(name = "image_url", length = 1000)
-    private String imageUrl;
-
     @Column(name = "vues")
     private Integer vues = 0;
 
@@ -68,6 +65,6 @@ public class Article {
     @Column(name = "meta_keywords", length = 500)
     private String metaKeywords;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private File file;
 }

@@ -15,7 +15,7 @@ public class ArticleSummaryDto {
     private String slug;
     private String auteur;
     private String categorie;
-    private String imageUrl;
+    private String filePath;
     private Integer vues;
     private Integer tempsLecture;
     private LocalDateTime datePublication;

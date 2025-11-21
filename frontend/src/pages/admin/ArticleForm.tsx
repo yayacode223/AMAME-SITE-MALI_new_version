@@ -1,16 +1,15 @@
-// pages/admin/ArticleForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormWrapper from '@/components/admin/FormWrapper';
-import { useCreateArticle, useUpdateArticle, useGetArticleById, ArticleCreationRequest, ArticleUpdateRequest } from '@/service/articleService';
-
+import { useCreateArticle, useUpdateArticle, useGetArticleById } from '@/service/articleService';
+import { ArticleCreationRequest, ArticleUpdateRequest} from "@/types/articleType"; 
 const ArticleForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
   const { data: existingArticle, isLoading: isLoadingArticle } = useGetArticleById(
-    parseInt(id || '0'), 
+    parseInt(id|| '0'), 
     { enabled: isEditing }
   );
   

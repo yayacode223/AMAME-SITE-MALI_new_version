@@ -44,6 +44,6 @@ public class Concours {
 
     private String lienOfficiel;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private File file;
 }

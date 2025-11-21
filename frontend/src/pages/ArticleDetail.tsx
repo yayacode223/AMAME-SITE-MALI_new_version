@@ -1,7 +1,7 @@
 // ArticleDetail.tsx
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, User, Clock, Eye, Share2, Bookmark, ArrowLeft, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Calendar, User, Clock, Eye, ArrowLeft} from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -11,11 +11,12 @@ import { motion } from 'framer-motion';
 import { useGetArticleBySlug, useGetPopularArticles, useGetSimilarArticles } from '@/service/articleService';
 import { adaptArticleForDetail, adaptArticleForNews } from '@/utils/articleAdapter';
 
+const url = import.meta.env.VITE_API_BASE_URL; 
 
 
-export function NewDetail() {
+export function ArticleDetail() {
   const { slug } = useParams();
-  const { data: articleData } = useGetArticleBySlug(slug || '');
+  const { data: articleData, isLoading } = useGetArticleBySlug(slug || '');
   const { data: popularArticlesData } = useGetPopularArticles();
   const { data: similarArticlesData } = useGetSimilarArticles(articleData ? articleData.id : 0, articleData ? articleData.categorie : '');
   
@@ -42,20 +43,16 @@ export function NewDetail() {
     });
   };
 
-  const handleShare = (platform: string) => {
-    const url = window.location.href;
-    const title = article?.titre || '';
-    
-    const shareUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-    };
-
-    if (shareUrls[platform as keyof typeof shareUrls]) {
-      window.open(shareUrls[platform as keyof typeof shareUrls], '_blank', 'width=600,height=400');
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!article) {
     return (
@@ -71,7 +68,7 @@ export function NewDetail() {
               L'article que vous recherchez n'existe pas ou a été déplacé.
             </p>
             <Button asChild>
-              <Link to="/actualites">
+              <Link to="/articles">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour aux actualités
               </Link>
@@ -91,7 +88,7 @@ export function NewDetail() {
         <section className="bg-white border-b">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Button variant="ghost" asChild className="mb-6">
-              <Link to="/actualites">
+              <Link to="/articles">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour aux actualités
               </Link>
@@ -149,10 +146,10 @@ export function NewDetail() {
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
                 <Card className="p-8 border-0 shadow-lg">
-                  {article.image && (
+                  {article?.filePath && (
                     <div className="mb-8 rounded-2xl overflow-hidden">
                       <img
-                        src={article.image}
+                        src={`${url}/${article.filePath}`}
                         alt={article.titre}
                         className="w-full h-96 object-cover"
                       />
@@ -170,7 +167,7 @@ export function NewDetail() {
                     </div>
 
                     {/* Section conseils (exemple de contenu enrichi) */}
-                    {(article.categorie === 'Conseils' || article.slug.includes('conseil')) && (
+                    {/* {(article.categorie === 'Conseils' || article.slug.includes('conseil')) && (
                       <div className="mt-12 p-6 bg-blue-50 rounded-2xl border border-blue-200">
                         <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                           💡 Points Clés à Retenir
@@ -194,7 +191,7 @@ export function NewDetail() {
                           </li>
                         </ul>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </Card>
 
@@ -231,13 +228,13 @@ export function NewDetail() {
                       {similarArticles.map((similarArticle) => (
                         <Link
                           key={similarArticle.id}
-                          to={`/actualites/${similarArticle.slug}`}
+                          to={`/articles/${similarArticle.slug}`}
                           className="block group p-3 rounded-xl hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-start space-x-3">
-                            {similarArticle.image && (
+                            {similarArticle.filePath && (
                               <img
-                                src={similarArticle.image}
+                                src={`${url}/${similarArticle.filePath}`}
                                 alt={similarArticle.titre}
                                 className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                               />
@@ -268,13 +265,13 @@ export function NewDetail() {
                     {popularArticles.map((popularArticle) => (
                       <Link
                         key={popularArticle.id}
-                        to={`/actualites/${popularArticle.slug}`}
+                        to={`/articles/${popularArticle.slug}`}
                         className="block group p-3 rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start space-x-3">
-                          {popularArticle.image && (
+                          {popularArticle.filePath && (
                             <img
-                              src={popularArticle.image}
+                              src={`${url}/${popularArticle.filePath}`}
                               alt={popularArticle.titre}
                               className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                             />
@@ -304,4 +301,4 @@ export function NewDetail() {
   );
 }
 
-export default NewDetail;
+export default ArticleDetail;

@@ -166,15 +166,13 @@ export const useGetAllArticles = () =>
   useQuery({
     queryKey: articleKeys.lists(),
     queryFn: getAllArticles,
-    staleTime: 5 * 60 * 1000,
   });
 
-export const useGetArticleBySlug = (slug: string) =>
+export const useGetArticleBySlug = (slug: string, options?: {enabled?: boolean}) =>
   useQuery({
     queryKey: articleKeys.detail(slug),
     queryFn: () => getArticleBySlug(slug),
-    enabled: !!slug,
-    staleTime: 5 * 60 * 1000,
+    enabled: options?.enabled ?? !!slug,
   });
 
 export const useGetArticleById = (id: number, options?: { enabled?: boolean }) =>
@@ -182,7 +180,6 @@ export const useGetArticleById = (id: number, options?: { enabled?: boolean }) =
     queryKey: articleKeys.detailById(id),
     queryFn: () => getArticleById(id),
     enabled: options?.enabled ?? !!id,
-    staleTime: 5 * 60 * 1000,
   });
 
 export const useSearchArticles = (params: SearchArticlesParams) =>

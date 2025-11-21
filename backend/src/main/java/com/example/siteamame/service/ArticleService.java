@@ -124,7 +124,7 @@ public class ArticleService {
 
     //Methode pour la creation d'article
     @Transactional
-    public ArticleDto createArticle(ArticleCreationRequest request, MultipartFile file) {
+    public ArticleDto createArticle(ArticleCreationRequest request, MultipartFile file) throws IOException {
         // Générer le slug à partir du titre
         String slug = generateSlug(request.getTitre());
 
@@ -142,14 +142,10 @@ public class ArticleService {
         article.setVues(0);
 
         if(file != null){
-            try {
                 FileDto fileDto = fileStorageService.storeFile(file, "actualite", FileType.IMAGE);
                 File fileToSave = fileMapper.convertDtoToFile(fileDto);
                 File savedFile = fileRepository.save(fileToSave);
                 article.setFile(savedFile);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         Article savedArticle = articleRepository.save(article);
@@ -158,13 +154,9 @@ public class ArticleService {
 
     //Methode pour mettre un article
     @Transactional
-    public ArticleDto updateArticle( Long id, ArticleDto articleDto, MultipartFile file) {
+    public ArticleDto updateArticle( Long id, ArticleDto articleDto, MultipartFile file) throws IOException {
         Article articleToUpdate = articleRepository.findById(id).
                     orElseThrow(()-> new RuntimeException("Article avec cet Id:"+ articleDto.getId() +"n'existe pas"));
-
-        if(articleToUpdate.getEstPublie() == true) {
-            throw new RuntimeException("L'article est deja publie, vous ne pourrez plus la supprimer");
-        }
 
         if(!articleDto.getTitre().isEmpty()) articleToUpdate.setTitre(articleDto.getTitre());
         if(!articleDto.getContenu().isEmpty()) articleToUpdate.setContenu(articleDto.getContenu());
@@ -181,21 +173,12 @@ public class ArticleService {
 
         if(file != null){
             if(articleToUpdate.getFile() != null){
-                try {
                     fileStorageService.deleteFile(articleToUpdate.getFile().getFileName(), "actualite");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
             }
-
-            try {
-                FileDto fileDto = fileStorageService.storeFile(file, "actulite", FileType.IMAGE);
-                File fileToSave = fileMapper.convertDtoToFile(fileDto);
-                File savedFile = fileRepository.save(fileToSave);
-                articleToUpdate.setFile(savedFile);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            FileDto fileDto = fileStorageService.storeFile(file, "actualite", FileType.IMAGE);
+            File fileToSave = fileMapper.convertDtoToFile(fileDto);
+            File savedFile = fileRepository.save(fileToSave);
+            articleToUpdate.setFile(savedFile);
         }
 
         Article savedArticle = articleRepository.save(articleToUpdate);

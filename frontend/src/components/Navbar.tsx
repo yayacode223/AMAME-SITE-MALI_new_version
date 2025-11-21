@@ -67,7 +67,7 @@ const Navbar = () => {
     { path: "/bourses", label: "Bourses" },
     { path: "/concours", label: "Concours" },
     { path: "/orientation", label: "Orientations" },
-    { path: "/actualites", label: "Actualités" },
+    { path: "/articles", label: "Actualités" },
     { path: "/a-propos", label: "À Propos" },
   ],[location.pathname]);
 

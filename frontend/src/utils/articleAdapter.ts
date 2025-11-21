@@ -1,5 +1,5 @@
 // src/utils/articleAdapter.ts
-import { ArticleSummaryResponse, ArticleDetailResponse } from  '../service/articleService';
+import { ArticleSummaryResponse, ArticleDetailResponse } from  '@/types/articleType';
 
 // Adapter les données du backend pour le composant News
 export const adaptArticleForNews = (article: ArticleSummaryResponse) => ({
@@ -10,7 +10,7 @@ export const adaptArticleForNews = (article: ArticleSummaryResponse) => ({
   auteur: article.auteur,
   categorie: article.categorie,
   date_publication: article.datePublication,
-  image: article.imageUrl,
+  filePath: article.filePath,
   vues: article.vues,
   temps_lecture: article.tempsLecture
 });
@@ -24,7 +24,7 @@ export const adaptArticleForDetail = (article: ArticleDetailResponse) => ({
   auteur: article.auteur,
   categorie: article.categorie,
   date_publication: article.datePublication,
-  image: article.imageUrl,
+  filePath: article.filePath,
   vues: article.vues,
   temps_lecture: article.tempsLecture,
   tags: article.tags,

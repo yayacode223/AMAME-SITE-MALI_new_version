@@ -150,7 +150,7 @@ export function About() {
               className="text-center mb-12"
             >
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                Notre <span className="text-purple-600">Histoire</span>
+                <span className="text-purple-600">Presentation</span>
               </h2>
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Fondée en 2023, l'AMAME est une association bénévole dédiée à l'accompagnement 
