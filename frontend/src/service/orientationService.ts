@@ -1,4 +1,4 @@
-// orientationService.ts
+// service/orientationService.ts - VERSION OPTIMISÉE
 import { Api } from "@/utils/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   SearchFilieresParams
 } from "@/types/orientationType"; 
 
+// Fonction pour récupérer TOUTES les filières
 const getAllFilieres = async (): Promise<FiliereSummaryResponse[]> => {
   const response = await Api.get<FiliereSummaryResponse[]>("/visitor/filieres");
   return response.data;
@@ -17,16 +18,6 @@ const getAllFilieres = async (): Promise<FiliereSummaryResponse[]> => {
 
 const getFiliereById = async (id: number): Promise<FiliereDetailResponse> => {
   const response = await Api.get<FiliereDetailResponse>(`/visitor/filieres/${id}`);
-  return response.data;
-};
-
-const searchFilieresBySearchTerm = async (search: string): Promise<FiliereSummaryResponse[]> => {
-  const response = await Api.get<FiliereSummaryResponse[]>(`/visitor/filieres/search?search=${encodeURIComponent(search)}`);
-  return response.data;
-}
-
-const getFilieresByDomaine = async (domaine: DomaineFiliereType): Promise<FiliereSummaryResponse[]> => {
-  const response = await Api.get<FiliereSummaryResponse[]>(`/visitor/filieres/domaine/${domaine}`);
   return response.data;
 };
 
@@ -119,23 +110,23 @@ export const downloadFiliereFile = async (filePath: string, filiereName: string)
   }
 };
 
-
 // Query keys
 export const orientationKeys = {
   all: ["orientation"] as const,
   lists: () => [...orientationKeys.all, "list"] as const,
-  list: (filters: SearchFilieresParams) => [...orientationKeys.lists(), filters] as const,
   details: () => [...orientationKeys.all, "detail"] as const,
   detail: (id: number) => [...orientationKeys.details(), id] as const,
   domaines: () => [...orientationKeys.all, "domaines"] as const,
 };
 
-// React Query hooks - GET
+// UN SEUL HOOK PRINCIPAL - OPTIMISÉ
 export const useGetAllFilieres = () =>
   useQuery({
     queryKey: orientationKeys.lists(),
     queryFn: getAllFilieres,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000,    // 30 minutes en cache
+    retry: 1,                  // Une seule retry
   });
 
 export const useGetFiliereById = (id: number, options?: { enabled: boolean }) =>
@@ -143,30 +134,31 @@ export const useGetFiliereById = (id: number, options?: { enabled: boolean }) =>
     queryKey: orientationKeys.detail(id),
     queryFn: () => getFiliereById(id),
     enabled: options?.enabled ?? !!id,
-    staleTime: 5 * 60 * 1000,
-  });
-
-export const useSearchFilieresBySearchTerm = (search: string) =>
-  useQuery({
-    queryKey: [...orientationKeys.lists(), { search }],
-    queryFn: () => searchFilieresBySearchTerm(search),
-    enabled: !!search,
-    staleTime: 5 * 60 * 1000,
-  });
-
-export const useGetFilieresByDomaine = (domaine: DomaineFiliereType) =>
-  useQuery({
-    queryKey: [...orientationKeys.lists(), { domaine }],
-    queryFn: () => getFilieresByDomaine(domaine),
-    enabled: !!domaine,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000,
   });
 
 export const useGetAvailableDomaines = () =>
   useQuery({
     queryKey: orientationKeys.domaines(),
     queryFn: getAvailableDomaines,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000,
+  });
+
+// HOOKS DÉSACTIVÉS (pour compatibilité)
+export const useSearchFilieresBySearchTerm = (search: string) =>
+  useQuery({
+    queryKey: [...orientationKeys.lists(), { search }],
+    queryFn: () => Promise.resolve([]), // Fonction vide
+    enabled: false, // DÉSACTIVÉ
+  });
+
+export const useGetFilieresByDomaine = (domaine: DomaineFiliereType) =>
+  useQuery({
+    queryKey: [...orientationKeys.lists(), { domaine }],
+    queryFn: () => Promise.resolve([]), // Fonction vide
+    enabled: false, // DÉSACTIVÉ
   });
 
 // React Query hooks - MUTATIONS

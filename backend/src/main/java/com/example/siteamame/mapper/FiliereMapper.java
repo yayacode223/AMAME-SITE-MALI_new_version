@@ -14,12 +14,14 @@ public class FiliereMapper {
 
     // Méthodes de conversion
     public FiliereSummaryDto convertToSummaryDTO(Filiere filiere) {
+        String filePath = filiere.getFile()!= null
+                ? filiere.getFile().getFilePath()
+                : null;
         return new FiliereSummaryDto(
                 filiere.getId(),
                 filiere.getNom(),
                 filiere.getDescriptionCourte(),
-                "",
-//                filiere.getFile().getFilePath(),
+                filePath,
                 filiere.getDomaine(),
                 filiere.getDifficulte(),
                 filiere.getDemande(),
@@ -30,13 +32,15 @@ public class FiliereMapper {
     }
 
     public FiliereDto convertToDTO(Filiere filiere) {
+        String filePath = filiere.getFile()!= null
+                ? filiere.getFile().getFilePath()
+                : null;
         return new FiliereDto(
                 filiere.getId(),
                 filiere.getNom(),
                 filiere.getDescriptionCourte(),
                 filiere.getDescriptionLongue(),
-                "",
-//                filiere.getFile().getFilePath(),
+                filePath,
                 filiere.getDomaine(),
                 filiere.getDifficulte(),
                 filiere.getDemande(),

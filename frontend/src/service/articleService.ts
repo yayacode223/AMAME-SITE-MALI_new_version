@@ -1,21 +1,21 @@
-// articleService.ts
+// articleService.ts - VERSION OPTIMISÉE
 import { Api } from "@/utils/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import 
-{
+import {
   ArticleCreationRequest, 
   ArticleDetailResponse, 
   ArticleSummaryResponse, 
   SearchArticlesParams,
   ArticleUpdateRequest
-} 
-from "@/types/articleType"; 
+} from "@/types/articleType"; 
 
+// Fonction principale pour récupérer TOUS les articles
 const getAllArticles = async (): Promise<ArticleSummaryResponse[]> => {
   const response = await Api.get<ArticleSummaryResponse[]>("/visitor/articles");
   return response.data;
 };
 
+// Autres fonctions pour les pages de détail
 const getArticleBySlug = async (slug: string): Promise<ArticleDetailResponse> => {
   const response = await Api.get<ArticleDetailResponse>(`/visitor/articles/slug/${slug}`);
   return response.data;
@@ -26,50 +26,20 @@ const getArticleById = async (id: number): Promise<ArticleDetailResponse> => {
   return response.data;
 };
 
-const searchArticles = async (params: SearchArticlesParams): Promise<ArticleSummaryResponse[]> => {
-  const { search, categorie = "all", sortBy = "newest" } = params;
-  
-  const queryParams = new URLSearchParams();
-  if (search) queryParams.append("search", search);
-  if (categorie && categorie !== "all") queryParams.append("categorie", categorie);
-  queryParams.append("sortBy", sortBy);
-
-  const url = `/visitor/articles/search?${queryParams.toString()}`;
-  const response = await Api.get<ArticleSummaryResponse[]>(url);
+const getAvailableCategories = async (): Promise<string[]> => {
+  const response = await Api.get<string[]>("/visitor/articles/categories");
   return response.data;
 };
 
-const getPopularArticles = async (): Promise<ArticleSummaryResponse[]> => {
-  const response = await Api.get<ArticleSummaryResponse[]>("/visitor/articles/popular");
-  return response.data;
-};
-
-const getArticlesByCategorie = async (categorie: string): Promise<ArticleSummaryResponse[]> => {
-  const response = await Api.get<ArticleSummaryResponse[]>(`/visitor/articles/categorie/${categorie}`);
-  return response.data;
-};
-
-const getSimilarArticles = async (id: number, categorie: string): Promise<ArticleSummaryResponse[]> => {
-  const response = await Api.get<ArticleSummaryResponse[]>(`/visitor/articles/${id}/similar?categorie=${categorie}`);
-  return response.data;
-};
-
-const getCategoriesWithCount = async (): Promise<Record<string, number>> => {
-  const response = await Api.get<Record<string, number>>("/visitor/articles/categories");
-  return response.data;
-};
-
+// Mutations (identiques)
 const createArticle = async (
   request: ArticleCreationRequest, 
   file?: File
 ): Promise<ArticleDetailResponse> => {
   const formData = new FormData();
-  
-  // Ajouter l'article comme JSON
   const articleBlob = new Blob([JSON.stringify(request)], { type: 'application/json' });
   formData.append('article', articleBlob);
   
-  // Ajouter le fichier si présent
   if (file) {
     formData.append('image', file);
   }
@@ -88,12 +58,9 @@ const updateArticle = async (
   file?: File
 ): Promise<ArticleDetailResponse> => {
   const formData = new FormData();
-  
-  // Ajouter l'article comme JSON
   const articleBlob = new Blob([JSON.stringify(request)], { type: 'application/json' });
   formData.append('article', articleBlob);
   
-  // Ajouter le fichier si présent
   if (file) {
     formData.append('image', file);
   }
@@ -110,13 +77,12 @@ const deleteArticle = async (id: number): Promise<void> => {
   await Api.delete(`/admin/articles/${id}`);
 };
 
-// Fonctions utilitaires pour les fichiers
+// Fonctions utilitaires (identiques)
 export const openArticleFile = (filePath: string) => {
   if (!filePath) return;
 
   let fileUrl = filePath;
   
-  // Construire l'URL complète si nécessaire
   if (!filePath.startsWith('http')) {
     const baseUrl = process.env.REACT_APP_API_URL || '';
     fileUrl = `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
@@ -148,31 +114,41 @@ export const downloadArticleFile = async (filePath: string, articleTitle: string
   }
 };
 
-// Query keys
+// Query keys SIMPLIFIÉES
 export const articleKeys = {
   all: ["articles"] as const,
   lists: () => [...articleKeys.all, "list"] as const,
-  list: (filters: SearchArticlesParams) => [...articleKeys.lists(), filters] as const,
   details: () => [...articleKeys.all, "detail"] as const,
   detail: (slug: string) => [...articleKeys.details(), slug] as const,
   detailById: (id: number) => [...articleKeys.details(), id] as const,
-  popular: () => [...articleKeys.all, "popular"] as const,
   categories: () => [...articleKeys.all, "categories"] as const,
-  similar: (id: number, categorie: string) => [...articleKeys.all, "similar", id, categorie] as const,
 };
 
-// React Query hooks - GET (déjà existants)
+// UN SEUL HOOK PRINCIPAL
 export const useGetAllArticles = () =>
   useQuery({
     queryKey: articleKeys.lists(),
     queryFn: getAllArticles,
+    staleTime: 60 * 60 * 1000, 
+    gcTime: 30 * 60 * 1000, 
+    retry: 1,
   });
 
+// Hook pour récupérer les catégories disponibles
+export const useGetAvailableCategories = () =>
+  useQuery({
+    queryKey: articleKeys.categories(),
+    queryFn: getAvailableCategories,
+    staleTime: 60 * 60 * 1000,
+  });
+
+// Hooks pour les pages de détail
 export const useGetArticleBySlug = (slug: string, options?: {enabled?: boolean}) =>
   useQuery({
     queryKey: articleKeys.detail(slug),
     queryFn: () => getArticleBySlug(slug),
     enabled: options?.enabled ?? !!slug,
+    staleTime: 10 * 60 * 1000,
   });
 
 export const useGetArticleById = (id: number, options?: { enabled?: boolean }) =>
@@ -180,45 +156,39 @@ export const useGetArticleById = (id: number, options?: { enabled?: boolean }) =
     queryKey: articleKeys.detailById(id),
     queryFn: () => getArticleById(id),
     enabled: options?.enabled ?? !!id,
+    staleTime:  10* 60 * 1000,
   });
 
+// HOOKS DÉSACTIVÉS pour compatibilité
 export const useSearchArticles = (params: SearchArticlesParams) =>
   useQuery({
-    queryKey: articleKeys.list(params),
-    queryFn: () => searchArticles(params),
-    staleTime: 5 * 60 * 1000,
+    queryKey: articleKeys.lists(),
+    queryFn: () => Promise.resolve([]),
+    enabled: false, // DÉSACTIVÉ
   });
 
 export const useGetPopularArticles = () =>
   useQuery({
-    queryKey: articleKeys.popular(),
-    queryFn: getPopularArticles,
-    staleTime: 5 * 60 * 1000,
+    queryKey: [...articleKeys.lists(), "popular"],
+    queryFn: () => Promise.resolve([]),
+    enabled: false, // DÉSACTIVÉ
   });
 
 export const useGetArticlesByCategorie = (categorie: string) =>
   useQuery({
     queryKey: [...articleKeys.lists(), { categorie }],
-    queryFn: () => getArticlesByCategorie(categorie),
-    enabled: !!categorie,
-    staleTime: 5 * 60 * 1000,
-  });
-
-export const useGetSimilarArticles = (id: number, categorie: string) =>
-  useQuery({
-    queryKey: articleKeys.similar(id, categorie),
-    queryFn: () => getSimilarArticles(id, categorie),
-    enabled: !!id && !!categorie,
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => Promise.resolve([]),
+    enabled: false, // DÉSACTIVÉ
   });
 
 export const useGetCategoriesWithCount = () =>
   useQuery({
-    queryKey: articleKeys.categories(),
-    queryFn: getCategoriesWithCount,
+    queryKey: [...articleKeys.lists(), "categoriesWithCount"],
+    queryFn: () => Promise.resolve({}),
+    enabled: false, // DÉSACTIVÉ
   });
 
-// React Query hooks - MUTATIONS (NOUVEAUX)
+// Mutations (restent identiques)
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();
   
@@ -226,7 +196,6 @@ export const useCreateArticle = () => {
     mutationFn: ({ request, file }: { request: ArticleCreationRequest; file?: File }) =>
       createArticle(request, file),
     onSuccess: () => {
-      // Invalider les queries pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
     },
   });
@@ -239,9 +208,7 @@ export const useUpdateArticle = () => {
     mutationFn: ({ id, request, file }: { id: number; request: ArticleUpdateRequest; file?: File }) =>
       updateArticle(id, request, file),
     onSuccess: (data, variables) => {
-      // Invalider les queries pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
-      // Invalider spécifiquement l'article modifié
       queryClient.invalidateQueries({ queryKey: articleKeys.detail(data.slug) });
       queryClient.invalidateQueries({ queryKey: articleKeys.detailById(variables.id) });
     },
@@ -254,10 +221,7 @@ export const useDeleteArticle = () => {
   return useMutation({
     mutationFn: deleteArticle,
     onSuccess: () => {
-      // Invalider les queries pour rafraîchir les données
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
     },
   });
 };
-
-

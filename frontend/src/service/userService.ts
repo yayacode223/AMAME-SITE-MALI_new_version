@@ -183,7 +183,7 @@ export const useGetAllUsers = (options?: { enabled: boolean }) => {
   return useQuery({
     queryKey: [...authKeys.all, "users"],
     queryFn: getAllUsers,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 60 * 1000,
     ...options,
   });
 };

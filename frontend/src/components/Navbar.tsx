@@ -13,12 +13,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
-import {Role, UserRole} from "@/types/userType";
+import { UserRole } from "@/types/userType";
+const url = "https://amame.ml";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } = useAuth();
+  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } =
+    useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,20 +64,23 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
-  const navLinks = useMemo(() => [
-    { path: "/", label: "Accueil" },
-    { path: "/bourses", label: "Bourses" },
-    { path: "/concours", label: "Concours" },
-    { path: "/orientation", label: "Orientations" },
-    { path: "/articles", label: "Actualités" },
-    { path: "/a-propos", label: "À Propos" },
-  ],[location.pathname]);
+  const navLinks = useMemo(
+    () => [
+      { path: "/", label: "Accueil" },
+      { path: "/bourses", label: "Bourses" },
+      { path: "/concours", label: "Concours" },
+      { path: "/orientation", label: "Orientations" },
+      { path: "/articles", label: "Actualités" },
+      { path: "/a-propos", label: "À Propos" },
+    ],
+    []
+  );
 
-  const renderAuthSection = () => {
+  // Composant pour l'avatar avec dropdown (desktop seulement)
+  const UserAvatarDropdown = () => {
     if (isUserLoading) {
       return (
         <div className="flex items-center space-x-2">
-          <Skeleton className="h-9 w-20 rounded-md" />
           <Skeleton className="h-9 w-9 rounded-full" />
         </div>
       );
@@ -85,13 +90,13 @@ const Navbar = () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="relative h-9 w-9 rounded-full hover:bg-purple-50 transition-colors"
             >
               <Avatar className="h-9 w-9 border-2 border-purple-100">
                 <AvatarImage
-                  src={user?.imagePath ?? undefined}
+                  src={user?.imagePath ? `${url}/${user.imagePath}` : undefined}
                   alt={`${user?.prenom} ${user?.nom}`}
                   className="object-cover"
                 />
@@ -135,12 +140,28 @@ const Navbar = () => {
       );
     }
 
+    return null;
+  };
+
+  // Composant pour les boutons auth (desktop seulement)
+  const AuthButtonsDesktop = () => {
+    if (isAuthenticated) return null;
+
     return (
-      <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="sm" className="text-gray-700 hover:text-purple-700">
+      <div className="hidden lg:flex items-center gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="text-gray-700 hover:text-purple-700"
+        >
           <Link to="/login">Connexion</Link>
         </Button>
-        <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-sm">
+        <Button
+          asChild
+          size="sm"
+          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-sm"
+        >
           <Link to="/register">S'inscrire</Link>
         </Button>
       </div>
@@ -174,8 +195,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-3 hover:opacity-90 transition-opacity"
           >
             <img
@@ -195,14 +216,72 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Section d'authentification (desktop) */}
-          <div className="hidden lg:flex items-center">
-            {renderAuthSection()}
+          {/* Section d'authentification desktop */}
+          <div className="flex items-center gap-2">
+            {/* Avatar pour desktop (connecté) */}
+            <div className="hidden lg:block">
+              <UserAvatarDropdown />
+            </div>
+
+            {/* Boutons auth pour desktop (non connecté) */}
+            <AuthButtonsDesktop />
           </div>
 
           {/* Bouton du menu mobile */}
           <div className="flex lg:hidden items-center gap-2">
-            {renderAuthSection()}
+            {/* Avatar pour mobile (connecté) - AVEC DROPDOWN CLICABLE */}
+            {isAuthenticated && user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="p-1 mr-2 rounded-full hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    aria-label="Menu utilisateur"
+                  >
+                    <Avatar className="h-8 w-8 border-2 border-purple-100">
+                      <AvatarImage
+                        src={user?.imagePath ?? undefined}
+                        alt={`${user?.prenom} ${user?.nom}`}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white text-xs">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 lg:hidden">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="font-medium leading-none text-gray-900">
+                        {user?.prenom} {user?.nom}
+                      </p>
+                      <p className="text-xs leading-none text-gray-500">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {user?.role === UserRole.ADMIN && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer w-full">
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem
+                    className="text-red-600 cursor-pointer focus:text-red-700 focus:bg-red-50"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                  >
+                    {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             <button
               onClick={toggleMenu}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
@@ -250,16 +329,64 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            
-            {/* Section auth pour mobile (seulement si non connecté) */}
+
+            {/* Section auth pour mobile - UNIQUEMENT si NON connecté */}
             {!isAuthenticated && (
               <div className="border-t border-gray-200 mt-4 pt-4 px-4 space-y-2">
-                <Button asChild variant="outline" className="w-full justify-center">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full justify-center text-gray-700 hover:text-purple-700 border-gray-300"
+                >
                   <Link to="/login">Connexion</Link>
                 </Button>
-                <Button asChild className="w-full justify-center bg-purple-600 hover:bg-purple-700">
+                <Button
+                  asChild
+                  className="w-full justify-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                >
                   <Link to="/register">S'inscrire</Link>
                 </Button>
+              </div>
+            )}
+
+            {/* Section utilisateur pour mobile si connecté */}
+            {isAuthenticated && user && (
+              <div className="border-t border-gray-200 mt-4 pt-4 px-4 space-y-3">
+                <div className="flex items-center gap-3 px-2">
+                  <Avatar className="h-10 w-10 border-2 border-purple-100">
+                    <AvatarImage
+                      src={user?.imagePath ?? undefined}
+                      alt={`${user?.prenom} ${user?.nom}`}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {user?.prenom} {user?.nom}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+                {user?.role === UserRole.ADMIN && (
+                  <Link
+                    to="/admin"
+                    className="block px-4 py-3 font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg mx-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard Admin
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full px-4 py-3 font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg mx-2 text-left transition-colors"
+                >
+                  {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
+                </button>
               </div>
             )}
           </div>

@@ -1,5 +1,5 @@
-// ConcoursDetail.tsx
-import { useState } from 'react';
+// ConcoursDetail.tsx - VERSION LÉGÈREMENT OPTIMISÉE
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -26,21 +26,29 @@ import { useConcoursDetail } from '@/service/concoursService';
 const ConcoursDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [imageError, setImageError] = useState(false);
-
   const { data: concours, isLoading, error } = useConcoursDetail(Number(id));
 
-  // Formater les dates
-  const formatDate = (dateString: string) => {
+  // Utiliser useMemo pour éviter les recalculs
+  const formattedOpenDate = useMemo(() => {
+    if (!concours?.dateOuverture) return '';
     try {
-      return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
+      return format(new Date(concours.dateOuverture), 'dd MMMM yyyy', { locale: fr });
     } catch {
-      return dateString;
+      return concours.dateOuverture;
     }
-  };
+  }, [concours?.dateOuverture]);
 
-  // Obtenir le statut du concours
-  const getConcoursStatus = () => {
+  const formattedLimitDate = useMemo(() => {
+    if (!concours?.dateLimite) return '';
+    try {
+      return format(new Date(concours.dateLimite), 'dd MMMM yyyy', { locale: fr });
+    } catch {
+      return concours.dateLimite;
+    }
+  }, [concours?.dateLimite]);
+
+  // Obtenir le statut du concours avec useMemo
+  const statusInfo = useMemo(() => {
     if (!concours) return null;
     
     const now = new Date();
@@ -54,7 +62,7 @@ const ConcoursDetail = () => {
     } else {
       return { status: 'closed', label: 'Terminé', color: 'bg-red-100 text-red-800' };
     }
-  };
+  }, [concours]);
 
   // Ouvrir le fichier dans un nouvel onglet
   const handleOpenFile = () => {
@@ -97,8 +105,6 @@ const ConcoursDetail = () => {
       }
     }
   };
-
-  const statusInfo = getConcoursStatus();
 
   if (error) {
     return (
@@ -144,21 +150,27 @@ const ConcoursDetail = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Sidebar Skeleton */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
-                  <Skeleton className="h-8 w-3/4 mb-4 rounded-lg" />
-                  <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                  <Skeleton className="h-4 w-2/3 mb-6 rounded-lg" />
-                  <Skeleton className="h-12 w-full mb-4 rounded-xl" />
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <Skeleton className="h-6 w-32 mb-4 rounded-full" />
+                  <div className="space-y-4 mb-6">
+                    <Skeleton className="h-5 w-24 rounded-lg" />
+                    <Skeleton className="h-4 w-36 rounded-lg" />
+                    <Skeleton className="h-5 w-24 rounded-lg" />
+                    <Skeleton className="h-4 w-36 rounded-lg" />
+                  </div>
+                  <Skeleton className="h-12 w-full mb-3 rounded-xl" />
                   <Skeleton className="h-12 w-full rounded-xl" />
                 </div>
               </div>
               
               {/* Content Skeleton */}
               <div className="lg:col-span-2">
-                <Skeleton className="h-10 w-3/4 mb-6 rounded-lg" />
-                <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                <Skeleton className="h-4 w-2/3 mb-8 rounded-lg" />
+                <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                  <Skeleton className="h-8 w-48 mb-3 rounded-full" />
+                  <Skeleton className="h-10 w-3/4 mb-4 rounded-lg" />
+                  <Skeleton className="h-5 w-full mb-2 rounded-lg" />
+                  <Skeleton className="h-5 w-2/3 rounded-lg" />
+                </div>
                 <Skeleton className="h-64 w-full rounded-2xl mb-8" />
                 <Skeleton className="h-32 w-full rounded-2xl" />
               </div>
@@ -190,8 +202,8 @@ const ConcoursDetail = () => {
                         <Calendar className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Date debut de Concours </p>
-                        <p className="font-semibold text-gray-900">{formatDate(concours.dateOuverture)}</p>
+                        <p className="text-sm text-gray-600">Date début de Concours </p>
+                        <p className="font-semibold text-gray-900">{formattedOpenDate}</p>
                       </div>
                     </div>
 
@@ -201,7 +213,7 @@ const ConcoursDetail = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Clôture des inscriptions</p>
-                        <p className="font-semibold text-gray-900">{formatDate(concours.dateLimite)}</p>
+                        <p className="font-semibold text-gray-900">{formattedLimitDate}</p>
                       </div>
                     </div>
                   </div>
@@ -244,22 +256,22 @@ const ConcoursDetail = () => {
 
                   {/* Actions */}
                   <div className="space-y-3">
-                    {(concours.lienOfficiel) && (
-                    <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl"
-                      onClick={() => window.open(concours.lienOfficiel, '_blank')}
-                    >
-                      <Globe className="mr-2 h-5 w-5" />
-                      Site officiel
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </Button>
+                    {concours.lienOfficiel && (
+                      <Button 
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        onClick={() => window.open(concours.lienOfficiel, '_blank')}
+                      >
+                        <Globe className="mr-2 h-5 w-5" />
+                        Site officiel
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </Button>
                     )}
 
-                    {/* {concours.filePath && (
+                    {concours.filePath && (
                       <>
                         <Button 
                           variant="outline"
-                          className="w-full border-2 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold py-3 rounded-xl"
+                          className="w-full border-2 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                           onClick={handleOpenFile}
                         >
                           <FileText className="mr-2 h-5 w-5" />
@@ -268,14 +280,14 @@ const ConcoursDetail = () => {
 
                         <Button 
                           variant="outline"
-                          className="w-full border-2 border-green-200 text-green-700 hover:bg-green-50 font-semibold py-3 rounded-xl"
+                          className="w-full border-2 border-green-200 text-green-700 hover:bg-green-50 font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                           onClick={handleDownloadFile}
                         >
                           <Download className="mr-2 h-5 w-5" />
                           Télécharger
                         </Button>
                       </>
-                    )} */}
+                    )}
                   </div>
                 </div>
               </div>
@@ -310,15 +322,6 @@ const ConcoursDetail = () => {
                   </p>
                 </div>
 
-                {/* Image illustrative (optionnelle) */}
-                {/* {!imageError && (
-                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-                    <div className="h-48 lg:h-64 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                      <GraduationCap className="h-16 w-16 text-white opacity-80" />
-                    </div>
-                  </div>
-                )} */}
-
                 {/* Détails supplémentaires */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Détails du concours</h2>
@@ -334,8 +337,8 @@ const ConcoursDetail = () => {
                       <div className="bg-gray-50 rounded-xl p-4">
                         <h3 className="font-semibold text-gray-900 mb-2">Période d'inscription</h3>
                         <p className="text-gray-600">
-                          Du <strong>{formatDate(concours.dateOuverture)}</strong> au{' '}
-                          <strong>{formatDate(concours.dateLimite)}</strong>
+                          Du <strong>{formattedOpenDate}</strong> au{' '}
+                          <strong>{formattedLimitDate}</strong>
                         </p>
                       </div>
 

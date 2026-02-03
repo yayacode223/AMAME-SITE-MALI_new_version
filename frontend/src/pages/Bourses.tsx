@@ -1,4 +1,4 @@
-// Bourses.tsx - VERSION FINALE CORRIGÉE
+// Bourses.tsx - VERSION COMPLÈTE OPTIMISÉE
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
@@ -196,11 +196,11 @@ const Bourses = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6">
               Trouvez Votre
               <span className="block text-yellow-300">Bourse Idéale</span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed px-4">
               Des milliers d'opportunités de bourses internationales vous attendent. 
               Filtrez par pays, niveau d'études et trouvez la bourse parfaite.
             </p>
@@ -209,18 +209,18 @@ const Bourses = () => {
       </section>
 
       {/* Search & Filters Section */}
-      <section className="py-8 lg:py-12 bg-white border-b border-gray-200">
+      <section className="py-6 sm:py-8 lg:py-12 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border border-gray-100"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
               {/* Recherche */}
-              <div className="lg:col-span-1">
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                   <Search className="h-4 w-4 mr-2 text-purple-600" />
                   Rechercher une bourse
                 </label>
@@ -230,7 +230,7 @@ const Bourses = () => {
                     placeholder="Titre, description..."
                     value={searchTerm.titre || ''}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="h-12 pl-11 border-2 border-gray-200 focus:border-purple-500 rounded-xl"
+                    className="h-12 pl-11 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl"
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 </div>
@@ -243,7 +243,7 @@ const Bourses = () => {
                   Niveau d'études
                 </label>
                 <Select value={getSelectValue(filter.niveau)} onValueChange={handleNiveauChange}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-xl">
+                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
                   <SelectContent>
@@ -263,7 +263,7 @@ const Bourses = () => {
                   Pays
                 </label>
                 <Select value={getSelectValue(filter.pays)} onValueChange={handlePaysChange}>
-                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-xl">
+                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les pays" />
                   </SelectTrigger>
                   <SelectContent>
@@ -281,7 +281,7 @@ const Bourses = () => {
               <Button
                 variant="outline"
                 onClick={resetFilters}
-                className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 rounded-xl font-medium px-8"
+                className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg sm:rounded-xl font-medium px-6 sm:px-8 py-2 text-sm sm:text-base"
               >
                 <Filter className="mr-2 h-4 w-4" />
                 Réinitialiser les filtres
@@ -292,11 +292,11 @@ const Bourses = () => {
       </section>
 
       {/* Content Section */}
-      <section className="py-8 lg:py-16 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-6 sm:py-8 lg:py-16 bg-gradient-to-b from-white to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {[...Array(6)].map((_, index) => (
                   <motion.div
                     key={index}
@@ -304,18 +304,18 @@ const Bourses = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <div className="border-0 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                      <div className="p-6">
-                        <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
-                        <Skeleton className="h-4 w-1/2 mb-4 rounded-lg" />
-                        <div className="flex gap-2 mb-4">
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                          <Skeleton className="h-6 w-16 rounded-full" />
+                    <div className="border-0 rounded-xl sm:rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                      <div className="p-4 sm:p-6">
+                        <Skeleton className="h-6 sm:h-7 w-3/4 mb-2 sm:mb-3 rounded-lg" />
+                        <Skeleton className="h-4 w-1/2 mb-3 sm:mb-4 rounded-lg" />
+                        <div className="flex gap-2 mb-3 sm:mb-4">
+                          <Skeleton className="h-5 sm:h-6 w-16 sm:w-20 rounded-full" />
+                          <Skeleton className="h-5 sm:h-6 w-12 sm:w-16 rounded-full" />
                         </div>
                         <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                        <Skeleton className="h-4 w-2/3 mb-4 rounded-lg" />
-                        <Skeleton className="h-20 w-full rounded-lg mb-4" />
-                        <Skeleton className="h-12 w-full rounded-xl" />
+                        <Skeleton className="h-4 w-2/3 mb-3 sm:mb-4 rounded-lg" />
+                        <Skeleton className="h-16 sm:h-20 w-full rounded-lg mb-3 sm:mb-4" />
+                        <Skeleton className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl" />
                       </div>
                     </div>
                   </motion.div>
@@ -327,21 +327,21 @@ const Bourses = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="text-center py-12 lg:py-16"
+                className="text-center py-8 sm:py-12 lg:py-16"
               >
-                <div className="inline-flex items-center justify-center w-20 h-20 lg:w-24 lg:h-24 bg-purple-100 rounded-3xl mb-6">
-                  <SearchX className="h-10 w-10 lg:h-12 lg:w-12 text-purple-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-purple-100 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6">
+                  <SearchX className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-purple-600" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
                   Aucune bourse trouvée
                 </h3>
-                <p className="text-gray-600 text-base lg:text-lg max-w-md mx-auto mb-8">
+                <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-md mx-auto mb-6 sm:mb-8 px-4">
                   Aucune bourse ne correspond à vos critères de recherche. 
                   Essayez de modifier vos filtres.
                 </p>
                 <Button 
                   onClick={resetFilters}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base"
                 >
                   Voir toutes les bourses
                 </Button>
@@ -353,18 +353,18 @@ const Bourses = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-8">
-                  <div className="mb-4 lg:mb-0">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 sm:mb-6 lg:mb-8">
+                  <div className="mb-3 sm:mb-4 lg:mb-0">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                       Bourses Disponibles
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm sm:text-base">
                       {filteredBourses.totalElements} bourse{filteredBourses.totalElements > 1 ? 's' : ''} 
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                   {filteredBourses.bourseSummaryDtos.map((bourse, index) => (
                     <motion.div
                       key={bourse.id}
@@ -394,29 +394,58 @@ const Bourses = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex flex-col items-center gap-4 mt-12"
+                    className="flex flex-col items-center gap-3 sm:gap-4 mt-8 sm:mt-12"
                   >
-                    <div className="text-sm text-gray-600 mb-4">
-                      Page {filteredBourses.currentPage + 1} sur {filteredBourses.totalPages} • 
-                      {filteredBourses.totalElements} résultat{filteredBourses.totalElements > 1 ? 's' : ''}
+                    <div className="text-xs sm:text-sm text-gray-600 text-center">
+                      Page {filteredBourses.currentPage + 1} sur {filteredBourses.totalPages}
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    {/* Version mobile simple */}
+                    <div className="sm:hidden flex items-center justify-between w-full gap-3">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={!filteredBourses.hasPrevious}
                         onClick={handlePreviousPage}
-                        className="flex items-center gap-2 px-4"
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         Précédent
+                      </Button>
+                      
+                      <div className="text-sm font-medium text-gray-700 px-3">
+                        {filteredBourses.currentPage + 1}/{filteredBourses.totalPages}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!filteredBourses.hasNext}
+                        onClick={handleNextPage}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm"
+                      >
+                        Suivant
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    {/* Version desktop complète */}
+                    <div className="hidden sm:flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!filteredBourses.hasPrevious}
+                        onClick={handlePreviousPage}
+                        className="flex items-center gap-2 px-3 sm:px-4"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Précédent</span>
                       </Button>
 
                       <div className="flex items-center gap-1">
                         {getPageNumbers().map((page, index) => (
                           page === '...' ? (
-                            <span key={`dots-${index}`} className="px-3 py-2 text-gray-500">
+                            <span key={`dots-${index}`} className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm">
                               ...
                             </span>
                           ) : (
@@ -424,7 +453,7 @@ const Bourses = () => {
                               key={page}
                               variant={filteredBourses.currentPage + 1 === page ? "default" : "outline"}
                               size="sm"
-                              className={`w-10 h-10 ${
+                              className={`w-8 h-8 sm:w-10 sm:h-10 px-0 ${
                                 filteredBourses.currentPage + 1 === page 
                                   ? 'bg-purple-600 text-white' 
                                   : 'hover:bg-gray-100'
@@ -442,9 +471,9 @@ const Bourses = () => {
                         size="sm"
                         disabled={!filteredBourses.hasNext}
                         onClick={handleNextPage}
-                        className="flex items-center gap-2 px-4"
+                        className="flex items-center gap-2 px-3 sm:px-4"
                       >
-                        Suivant
+                        <span className="hidden sm:inline">Suivant</span>
                         <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>

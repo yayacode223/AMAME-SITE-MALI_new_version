@@ -167,7 +167,7 @@ export const useConcoursLists = (params: ConcoursDefaultSearchParams, options?: 
         queryKey: concoursKeys.lists(params),
         queryFn: () => concoursLists(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 60 * 60 * 1000,
         placeholderData: (previousData) => previousData,
     });
 }
@@ -177,7 +177,8 @@ export const useConcoursDetail = (id: number, options?: { enabled?: boolean }) =
         queryKey: concoursKeys.detail(id),
         queryFn: () => concoursDetail(id),
         enabled: options?.enabled ?? !!id,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
     });
 }
 
@@ -186,7 +187,8 @@ export const useConcoursFilter = (params: ConcoursFilterParams, options?: { enab
         queryKey: concoursKeys.filter(params),
         queryFn: () => concoursFilter(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
         placeholderData: (previousData) => previousData,
     });
 }
@@ -196,7 +198,8 @@ export const useConcoursSearch = (params: ConcoursFilterParams, options?: { enab
         queryKey: concoursKeys.search(params),
         queryFn: () => concoursSearch(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
         placeholderData: (previousData) => previousData,
     });
 }

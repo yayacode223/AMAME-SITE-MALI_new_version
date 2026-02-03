@@ -48,11 +48,12 @@ public class AuthentificationService {
 
         // Créer cookie
         ResponseCookie cookie = ResponseCookie.from("token", token)
+                .domain(".amame.ml")
                 .httpOnly(true)
-                .secure(false) // false pour le dev en HTTP, true pour la prod en HTTPS
+                .secure(true) // false pour le dev en HTTP, true pour la prod en HTTPS
                 .path("/")
                 .maxAge(30 * 24 * 60 * 60) // en secondes
-                .sameSite("Lax") // <-- LA LIGNE MAGIQUE !
+                .sameSite("Strict")
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
@@ -71,11 +72,12 @@ public class AuthentificationService {
     // Logout User
     public String logout(HttpServletRequest request, HttpServletResponse response) {
     ResponseCookie cookie = ResponseCookie.from("token", "") // Valeur vide
+            .domain(".amame.ml")
             .httpOnly(true)
-            .secure(false) // Doit correspondre à la config du cookie de login
+            .secure(true) // Doit correspondre à la config du cookie de login
             .path("/")
             .maxAge(0) // Expire immédiatement
-            .sameSite("Lax")
+            .sameSite("Strict")
             .build();
     
     response.addHeader("Set-Cookie", cookie.toString());

@@ -17,13 +17,13 @@ export function Footer() {
               Association Malienne d'Appui aux Meilleurs Élèves. Votre partenaire pour l'orientation et les opportunités de bourses d'études.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="hover:text-emerald-400 transition-colors">
+              <a href="https://www.facebook.com/profile.php?id=100095651374352" className="hover:text-emerald-400 transition-colors" title="Visit our Facebook page">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="hover:text-emerald-400 transition-colors">
+              <a href="#" className="hover:text-emerald-400 transition-colors" title="Visit our Twitter page">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="hover:text-emerald-400 transition-colors">
+              <a href="#" className="hover:text-emerald-400 transition-colors" title="Visit our LinkedIn page">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
@@ -48,7 +48,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/actualites" className="hover:text-emerald-400 transition-colors">
+                <Link to="/articles" className="hover:text-emerald-400 transition-colors">
                   Actualités
                 </Link>
               </li>
@@ -64,11 +64,11 @@ export function Footer() {
                   contact@amame.ml
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/contact" className="hover:text-emerald-400 transition-colors">
                   Formulaire de contact
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/a-propos" className="hover:text-emerald-400 transition-colors">
                   À propos

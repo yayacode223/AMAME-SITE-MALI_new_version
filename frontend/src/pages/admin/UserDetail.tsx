@@ -5,7 +5,7 @@ import { ArrowLeftIcon, UserIcon, DocumentIcon, EnvelopeIcon, PhoneIcon, MapPinI
 import { useGetUserById } from '@/service/userService';
 import {Sexe} from '@/types/userType';
 
-const url = import.meta.env.VITE_API_BASE_URL; 
+const url = 'https://amame.ml'; 
 
 const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

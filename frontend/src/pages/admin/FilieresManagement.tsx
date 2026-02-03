@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import DataTable from '@/components/admin/DataTable';
-import { useGetAllFilieres, useDeleteFiliere, FiliereSummaryResponse, DomaineFiliereType  } from '@/service/orientationService';
+import { useGetAllFilieres, useDeleteFiliere} from '@/service/orientationService';
+import {FiliereSummaryResponse, DomaineFiliereType} from '@/types/orientationType'; 
 
 const FilieresManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

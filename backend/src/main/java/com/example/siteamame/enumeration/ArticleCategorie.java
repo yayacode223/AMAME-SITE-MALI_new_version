@@ -1,5 +1,10 @@
 package com.example.siteamame.enumeration;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum ArticleCategorie {
     CONSEILS("Conseils"),
     ORIENTATION("Orientation"),
@@ -10,11 +15,4 @@ public enum ArticleCategorie {
 
     private final String label;
 
-    ArticleCategorie(String label) {
-        this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
-    }
 }

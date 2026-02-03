@@ -2,9 +2,10 @@ package com.example.siteamame.enumeration;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum DomaineFiliereSerieType {
 
     SCIENCES_ET_TECHNOLOGIES("Sciences et Technologies"),
@@ -16,6 +17,5 @@ public enum DomaineFiliereSerieType {
     DROIT_ET_SCIENCES_POLITIQUES("Droit et Sciences Politiques"),
     ALL("Tous les domaines");
 
-    DomaineFiliereSerieType(String s) {
-    }
+    private final String label;
 }

@@ -1,186 +1,91 @@
-version: '3.8'
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: amame-database
+    environment:
+      POSTGRES_DB: amame_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - common_net
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"  # Ajouté pour accès externe si besoin
+    healthcheck:  # Ajout d'un healthcheck
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  backend:
+    image: yaya236/amame-web-site:backend-v2
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: amame-backend
+    # ports:
+    #   - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - JWT_SECRET=ejoVb48DypZtTiMbitoRSVitYSnrICP+ARo1zwg9S/E=
+      - JWT_EXPIRATION=2592000000
+      - FRONTEND=https://preprod.amame.ml
+    # env_file:
+    #   - ./backend/.env  # Chemin corrigé
+    networks:
+      - common_net
+    depends_on:
+      database:
+        condition: service_healthy  # Attend que la base soit prête
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped  # Ajouté pour résilience
 
-services: 
-    database:
-        image: postgres:15-alpine
-        container_name: amame-database
-        environment:
-            POSTGRES_DB: amame_db
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-        networks:
-            - common_net
-        volumes:
-            - database_data:/var/lib/postgresql/data
-    
-    backend:
-        build: ./backend
-        container_name: amame-backend
-        ports:
-            - "8080:8080"
-        environment:
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
-            - SPRING_DATASOURCE_USERNAME=postgres
-            - SPRING_DATASOURCE_PASSWORD=postgres
-        networks:
-            - common_net
-        depends_on:
-            - database
-        volumes:
-            - ./backend/uploads:/app/uploads
+  frontend:
+    image: yaya236/amame-web-site:frontend-v2
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: amame-frontend
+    ports:
+      - "80:80"
+    networks:
+      - common_net
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/dist:/app/dist
+      - ./backend/uploads:/app/uploads
+    environment:
+      - VITE_API_URL=
+    restart: unless-stopped
 
-    frontend:
-        build: ./frontend
-        container_name: amame-frontend
-        ports:
-            - "3000:3000" 
-        networks:
-            - common_net
-        depends_on:
-            - backend
-        volumes:
-            - ./frontend/dist:/app/dist
-            - ./backend/uploads:/app/uploads
+  scraper:
+    image: yaya236/amame-web-site:scraper-v2
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    container_name: amame-scraper
+    networks:
+      - common_net
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=amame_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    restart: "no"  # Le scraper ne tourne pas en continu
+
 networks:
-    common_net:
-        driver: bridge
+  common_net:
+    driver: bridge
+
 volumes:
-    database_data:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# version: '3.8'
-
-# services:
-#   database:
-#     image: postgres:15-alpine
-#     container_name: amame-database
-#     restart: unless-stopped
-#     environment:
-#       POSTGRES_DB: amame_db
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#     networks:
-#       - common_net
-#     volumes:
-#       - database_data:/var/lib/postgresql/data
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U postgres"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-#       start_period: 10s
-
-#   backend:
-#     build:
-#       context: ./backend
-#       dockerfile: Dockerfile
-#     container_name: amame-backend
-#     restart: unless-stopped
-#     ports:
-#       - "8080:8080"
-#     environment:
-#       - SPRING_PROFILES_ACTIVE=prod
-#       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
-#       - SPRING_DATASOURCE_USERNAME=postgres
-#       - SPRING_DATASOURCE_PASSWORD=postgres
-#     networks:
-#       - common_net
-#     depends_on:
-#       database:
-#         condition: service_healthy
-#     volumes:
-#       - ./backend/uploads:/app/uploads
-#     healthcheck:
-#       test:
-#         [
-#           "CMD-SHELL",
-#           "wget --spider -q http://127.0.0.1:8080/api/health || exit 0",
-#         ]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 5
-#       start_period: 60s
-
-#   frontend:
-#     build:
-#       context: ./frontend
-#       dockerfile: Dockerfile
-#     container_name: amame-frontend
-#     restart: unless-stopped
-#     ports:
-#       - "3000:3000" 
-#     networks:
-#       - common_net
-#     depends_on:
-#       - backend
-#     volumes:
-#       - ./frontend/dist:/app/dist
-#       - ./backend/uploads:/app/uploads
-#     healthcheck:
-#       test: ["CMD-SHELL", "ls /app/dist/index.html > /dev/null 2>&1 || exit 0"]
-#       interval: 30s
-#       timeout: 5s
-#       retries: 3
-#       start_period: 10s
-
-#   # Services de scraping - seulement lancés manuellement
-#   scraper-etablissement:
-#     build:
-#       context: ./scraper
-#     container_name: amame-scraper-etablissement
-#     networks:
-#       - common_net
-#     depends_on:
-#       database:
-#         condition: service_healthy
-#     profiles: ["tools"]
-#     volumes:
-#       - ./scraper:/app
-#     environment:
-#       - DATABASE_URL=postgresql://postgres:postgres@database:5432/amame_db
-
-#   scraper-opportunity:
-#     build:
-#       context: ./scraper
-#     container_name: amame-scraper-opportunity
-#     networks:
-#       - common_net
-#     depends_on:
-#       database:
-#         condition: service_healthy
-#     profiles: ["tools"]
-#     volumes:
-#       - ./scraper:/app
-#     environment:
-#       - DATABASE_URL=postgresql://postgres:postgres@database:5432/amame_db
-
-# networks:
-#   common_net:
-#     driver: bridge
-
-# volumes:
-#   database_data:
+  database_data:

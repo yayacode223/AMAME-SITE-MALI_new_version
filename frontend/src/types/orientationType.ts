@@ -37,7 +37,6 @@ export interface FiliereSummaryResponse {
   id: number;
   nom: string;
   descriptionCourte: string;
-  icone: string;
   domaine: DomaineFiliereType;
   difficulte: DifficulteType;
   demande: DemandeType;
@@ -52,7 +51,6 @@ export interface FiliereDetailResponse {
   nom: string;
   descriptionCourte: string;
   descriptionLongue: string;
-  icone: string;
   domaine: DomaineFiliereType;
   difficulte: DifficulteType;
   demande: DemandeType;

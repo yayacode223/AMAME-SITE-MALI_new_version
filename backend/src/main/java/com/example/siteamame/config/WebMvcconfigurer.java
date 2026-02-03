@@ -9,7 +9,7 @@ public class WebMvcconfigurer implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //Expose le dossier uploads (images, documents)
-        registry.addResourceHandler("uploads/**")
-                .addResourceLocations("file:uploads/");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:/app/uploads/");
     }
 }

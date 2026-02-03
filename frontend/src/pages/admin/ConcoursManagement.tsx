@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import DataTable from '@/components/admin/DataTable';
-import { useConcoursLists, useDeleteConcours, ConcoursResponse } from '../../service/concoursService';
+import { useConcoursLists, useDeleteConcours} from '@/service/concoursService';
+import {ConcoursResponse} from '@/types/concoursType'; 
 
 const ConcoursManagement: React.FC = () => {
   const [searchParams, setSearchParams] = useState({

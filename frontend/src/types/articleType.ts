@@ -1,4 +1,3 @@
-// Types pour la création et modification d'articles
 export interface ArticleCreationRequest {
   titre: string;
   contenu: string;

@@ -20,8 +20,8 @@ DB_CONFIG = {
     'dbname': 'amame_db',
     'user': 'postgres',
     'password': 'postgres',
-    'host': 'localhost',
-    'port': '5454'
+    'host': 'database',
+    'port': '5432'
 }
 
 class Mina7Scraper:

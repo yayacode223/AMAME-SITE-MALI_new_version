@@ -25,7 +25,7 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
+import { Eye, EyeOff, LogIn, Loader2, ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -111,20 +111,35 @@ const Login = () => {
         />
       </Helmet>
 
-      <div className=" bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-2">
+      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-2">
         <div className="container mx-auto px-4 sm:px-6 lg:px-6">
           {/* En-tête */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-12 bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
-              <img
-                src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
-                alt="AMAME Logo"
-                className="w-10 h-6 rounded-full"
-              />
+            {/* Bouton Retour et Logo */}
+            <div className="flex justify-between items-center mb-4">
+              <Button variant="ghost" asChild className="text-sm">
+                <Link to="/">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Retour à l'accueil
+                </Link>
+              </Button>
+              
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                <img
+                  src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
+                  alt="AMAME Logo"
+                  className="w-6 h-6 sm:w-8 sm:h-8"
+                />
+              </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 ">
+
+            {/* Titre et description */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
               Connectez-vous à l'<span className="text-purple-600">AMAME</span>
             </h1>
+            <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+              Accédez à votre espace membre et aux ressources exclusives
+            </p>
           </div>
 
           <div className="max-w-md mx-auto">

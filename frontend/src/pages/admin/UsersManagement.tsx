@@ -6,7 +6,8 @@ import { useGetAllUsers, useDeleteUserMutation } from '@/service/userService';
 import { RegisterResponse, Sexe, Role } from '@/types/userType';
 
 
-const url = import.meta.env.VITE_API_BASE_URL
+// const url = import.meta.env.BASE; 
+const url = 'https://amame.ml';
 
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,8 +1,8 @@
-// pages/admin/BourseForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormWrapper from '@/components/admin/FormWrapper';
-import { useCreateBourse, useUpdateBourse, useGetBourseDetail, BourseCreationRequest, BourseUpdateRequest } from '@/service/bourseService';
+import { useCreateBourse, useUpdateBourse, useGetBourseDetail } from '@/service/bourseService';
+import {BourseCreationRequest, BourseUpdateRequest} from "@/types/bourseType"; 
 
 const BourseForm: React.FC = () => {
   const navigate = useNavigate();

@@ -24,34 +24,49 @@ public class JwtFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = getTokenFromRequest(request);
+        String path = request.getServletPath();
 
-        if (request.getServletPath().startsWith("/api/auth/**") || request.getServletPath().startsWith("/api/visitor/**")) {
+        //  Routes publiques UNIQUEMENT
+        if (path.equals("/api/auth/login")
+                || path.equals("/api/auth/logout")
+                || path.startsWith("/api/visitor/")) {
+
             filterChain.doFilter(request, response);
-            return; // Très important de retourner ici pour ne pas exécuter le reste du filtre
+            return;
         }
 
-        if (token != null) {
+        // Toutes les autres routes DOIVENT être authentifiées
+        String token = getTokenFromRequest(request);
+
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
             String username = jwtUtil.extractUsername(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (jwtUtil.validateToken(token, username)) {
-                    // Charger l'utilisateur depuis la base de données
-                    CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
+            if (username != null && jwtUtil.validateToken(token, username)) {
 
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+                CustomUserDetails userDetails =
+                        (CustomUserDetails) customUserDetailsService
+                                .loadUserByUsername(username);
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 
     private String getTokenFromRequest(HttpServletRequest request) {
         // Chercher le token dans les cookies

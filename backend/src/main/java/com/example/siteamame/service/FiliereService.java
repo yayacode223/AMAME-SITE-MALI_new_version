@@ -13,9 +13,10 @@ import com.example.siteamame.enumeration.DomaineFiliereSerieType;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.FiliereRepository;
 import com.example.siteamame.service.file.FileStorageServiceImpl;
-import lombok.AllArgsConstructor;
 
 
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FiliereService {
 
     private final FiliereRepository filiereRepository;

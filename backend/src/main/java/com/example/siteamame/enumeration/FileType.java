@@ -1,11 +1,11 @@
 package com.example.siteamame.enumeration;
 
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum FileType {
     IMAGE("Image"),
     DOCUMENT("Document");

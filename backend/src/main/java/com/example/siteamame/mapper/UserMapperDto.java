@@ -65,6 +65,7 @@ public class UserMapperDto {
         if(userRequestDto.getRole() != null) {
             user.setRole(userRequestDto.getRole());
         }
+
         user.setSexe(userRequestDto.getSexe());
         user.setPays(userRequestDto.getPays());
         user.setNiveauEtude(userRequestDto.getNiveauEtude());

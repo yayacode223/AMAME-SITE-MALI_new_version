@@ -1,52 +1,1 @@
-package com.example.siteamame.repository;
-
-import com.example.siteamame.model.Article;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
-
-@Repository
-public interface ArticleRepository extends JpaRepository<Article, Long> {
-
-    Optional<Article> findBySlug(String slug);
-
-    List<Article> findByCategorieAndEstPublieTrue(String categorie);
-
-    List<Article> findByEstPublieTrueOrderByDatePublicationDesc();
-
-    List<Article> findByEstPublieTrueOrderByVuesDesc();
-
-    @Query("SELECT a FROM Article a WHERE " +
-            "a.estPublie = true AND (" +
-            "LOWER(a.titre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(a.contenu) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(a.auteur) LIKE LOWER(CONCAT('%', :search, '%')))")
-    List<Article> searchArticles(@Param("search") String search);
-
-    @Query("SELECT a FROM Article a WHERE " +
-            "a.estPublie = true AND (" +
-            "LOWER(a.titre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(a.contenu) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(a.auteur) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "AND a.categorie = :categorie")
-    List<Article> searchArticlesByCategorie(@Param("search") String search,
-                                            @Param("categorie") String categorie);
-
-
-    @Query("SELECT DISTINCT a.categorie FROM Article a WHERE a.estPublie = true")
-    List<String> findDistinctCategories();
-
-    @Query("SELECT COUNT(a) FROM Article a WHERE a.estPublie = true AND a.categorie = :categorie")
-    Long countByCategorie(@Param("categorie") String categorie);
-
-    @Modifying
-    @Query("UPDATE Article a SET a.vues = a.vues + 1 WHERE a.id = :id")
-    void incrementViews(@Param("id") Long id);
-}
+package com.example.siteamame.repository;import com.example.siteamame.model.Article;import org.springframework.data.domain.Page;import org.springframework.data.domain.Pageable;import org.springframework.data.jpa.repository.JpaRepository;import org.springframework.data.jpa.repository.Modifying;import org.springframework.data.jpa.repository.Query;import org.springframework.data.repository.query.Param;import org.springframework.stereotype.Repository;import java.util.List;import java.util.Optional;@Repositorypublic interface ArticleRepository extends JpaRepository<Article, Long> {    Optional<Article> findBySlug(String slug);    List<Article> findByCategorieAndEstPublieTrue(String categorie);    List<Article> findByEstPublieTrueOrderByDatePublicationDesc();    List<Article> findByEstPublieTrueOrderByVuesDesc();    @Query("SELECT a FROM Article a WHERE " +            "a.estPublie = true AND (" +            "LOWER(a.titre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +            "LOWER(a.contenu) LIKE LOWER(CONCAT('%', :search, '%')) OR " +            "LOWER(a.auteur) LIKE LOWER(CONCAT('%', :search, '%')))")    List<Article> searchArticles(@Param("search") String search);    @Query("SELECT a FROM Article a WHERE " +            "a.estPublie = true AND (" +            "LOWER(a.titre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +            "LOWER(a.contenu) LIKE LOWER(CONCAT('%', :search, '%')) OR " +            "LOWER(a.auteur) LIKE LOWER(CONCAT('%', :search, '%'))) " +            "AND a.categorie = :categorie")    List<Article> searchArticlesByCategorie(@Param("search") String search,                                            @Param("categorie") String categorie);    @Query("SELECT DISTINCT a.categorie FROM Article a WHERE a.estPublie = true")    List<String> findDistinctCategories();    @Query("SELECT COUNT(a) FROM Article a WHERE a.estPublie = true AND a.categorie = :categorie")    Long countByCategorie(@Param("categorie") String categorie);    @Modifying    @Query("UPDATE Article a SET a.vues = a.vues + 1 WHERE a.id = :id")    void incrementViews(@Param("id") Long id);}

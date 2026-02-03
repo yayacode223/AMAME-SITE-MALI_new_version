@@ -21,8 +21,6 @@ public class FiliereRequestDto {
     private String nom;
     private String descriptionCourte;
     private String descriptionLongue;
-    private String filePath;
-    @NotBlank(message = "Le domaine est obligatoire")
     private DomaineFiliereSerieType domaine;
     private DifficulteType difficulte;
     private DemandeType demande;

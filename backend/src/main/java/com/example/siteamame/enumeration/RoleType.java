@@ -1,16 +1,16 @@
 package com.example.siteamame.enumeration;
 
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum RoleType {
-    ADMIN("Admin"),
-    EDITOR("Editor"),
-    MEMBER("Member"),
-    USER("User");
+    ADMIN("Administrateur"),
+    EDITOR("Editeur"),
+    MEMBER("Membre"),
+    USER("Utilisateur");
 
     private final String label;
 }

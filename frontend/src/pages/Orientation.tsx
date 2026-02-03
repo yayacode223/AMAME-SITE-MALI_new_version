@@ -1,4 +1,5 @@
-import { useState } from "react";
+// Orientation.tsx - VERSION OPTIMISÉE
+import { useState, useMemo } from "react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -10,7 +11,6 @@ import {
   TrendingUp,
   Search,
   Filter,
-  Star,
   Users,
   ArrowRight,
   BookOpen,
@@ -19,12 +19,10 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
-import {
-  useGetAllFilieres,
-  useGetFilieresByDomaine,
-  useSearchFilieresBySearchTerm,
-} from "../service/orientationService";
+import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
+
+const url = import.meta.env.BASE; 
 
 export function Orientation() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,16 +30,34 @@ export function Orientation() {
     DomaineFiliereType.ALL
   );
 
-  //Recuperer toutes les filieres
-  const { data: allFilieresData, isLoading: isLoadingAll } =
-    useGetAllFilieres();
+  // UN SEUL APPEL API
+  const { data: allFilieresData, isLoading: isLoadingAll } = useGetAllFilieres();
 
-  //Recuperer les filieres par domaine
-  const { data: FilieresDataByDomaine } =
-    useGetFilieresByDomaine(selectedDomain);
-  // Récupérer les filières avec recherche/filtre
-  const { data: filieresDataBySearch } =
-    useSearchFilieresBySearchTerm(searchTerm);
+  // FILTRAGE COTÉ CLIENT
+  const filteredFilieres = useMemo(() => {
+    if (!allFilieresData) return [];
+    
+    let filtered = allFilieresData;
+    
+    // Filtre par domaine
+    if (selectedDomain !== DomaineFiliereType.ALL) {
+      filtered = filtered.filter(filiere => 
+        filiere.domaine === selectedDomain
+      );
+    }
+    
+    // Filtre par recherche
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(filiere =>
+        filiere.nom.toLowerCase().includes(term) ||
+        filiere.descriptionCourte?.toLowerCase().includes(term) ||
+        filiere.debouches?.some(d => d.toLowerCase().includes(term))
+      );
+    }
+    
+    return filtered;
+  }, [allFilieresData, selectedDomain, searchTerm]);
 
   const domains: DomaineFiliereType[] = [
     DomaineFiliereType.ALL,
@@ -53,28 +69,70 @@ export function Orientation() {
     DomaineFiliereType.ARTS_ET_COMMUNICATION,
   ];
 
-  const filieresDataToShow = searchTerm
-    ? filieresDataBySearch
-    : selectedDomain === DomaineFiliereType.ALL
-    ? allFilieresData
-    : FilieresDataByDomaine;
-
+  // Amélioration du skeleton pour toute la page
   if (isLoadingAll) {
     return (
-      <div className="border-0 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-        <div className="p-6">
-          <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
-          <Skeleton className="h-4 w-1/2 mb-4 rounded-lg" />
-          <div className="flex gap-2 mb-4">
-            <Skeleton className="h-6 w-20 rounded-full" />
-            <Skeleton className="h-6 w-16 rounded-full" />
-          </div>
-          <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-          <Skeleton className="h-4 w-2/3 mb-4 rounded-lg" />
-          <Skeleton className="h-20 w-full rounded-lg mb-4" />
-          <Skeleton className="h-12 w-full rounded-xl" />
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
+          {/* Hero skeleton */}
+          <section className="bg-gradient-to-r from-purple-500 to-blue-500 py-16">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <Skeleton className="h-12 w-3/4 max-w-2xl mx-auto mb-4" />
+              <Skeleton className="h-6 w-1/2 max-w-xl mx-auto mb-2" />
+              <Skeleton className="h-5 w-2/3 max-w-lg mx-auto" />
+            </div>
+          </section>
+
+          {/* Stats Section skeleton */}
+          <section className="py-12 bg-white">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <Skeleton className="h-80 w-full rounded-xl" />
+            </div>
+          </section>
+
+          {/* Search and Filter skeleton */}
+          <section className="py-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                  <Skeleton className="h-12 flex-1 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-64 rounded-lg" />
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mb-8">
+                <Skeleton className="h-8 w-48 rounded-lg" />
+                <Skeleton className="h-8 w-24 rounded-full" />
+              </div>
+              
+              {/* Grid skeleton - 6 cartes seulement */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="border-0 rounded-2xl bg-white shadow-lg overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <Skeleton className="h-12 w-12 rounded-md" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </div>
+                      <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
+                      <Skeleton className="h-4 w-full mb-2 rounded-lg" />
+                      <Skeleton className="h-4 w-2/3 mb-4 rounded-lg" />
+                      <div className="space-y-3 mb-6">
+                        <Skeleton className="h-4 w-full rounded-lg" />
+                        <Skeleton className="h-4 w-full rounded-lg" />
+                        <Skeleton className="h-4 w-full rounded-lg" />
+                      </div>
+                      <Skeleton className="h-12 w-full rounded-xl" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
@@ -83,8 +141,8 @@ export function Orientation() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-20">
-          <div className="max-w-6xl mx-dauto px-4 sm:px-6 lg:px-8 text-center">
+        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-16">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               Guide d'<span className="text-yellow-300">Orientation</span>
             </h1>
@@ -247,13 +305,13 @@ export function Orientation() {
                   Filières Disponibles
                 </h2>
                 <Badge variant="secondary" className="text-lg px-4 py-2">
-                  {filieresDataToShow?.length} filière
-                  {filieresDataToShow?.length > 1 ? "s" : ""} trouvée
-                  {filieresDataToShow?.length > 1 ? "s" : ""}
+                  {filteredFilieres.length} filière
+                  {filteredFilieres.length > 1 ? "s" : ""} trouvée
+                  {filteredFilieres.length > 1 ? "s" : ""}
                 </Badge>
               </div>
 
-              {filieresDataToShow?.length === 0 ? (
+              {filteredFilieres.length === 0 ? (
                 <Card className="p-12 text-center">
                   <div className="text-6xl mb-4">🔍</div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -275,21 +333,38 @@ export function Orientation() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {filieresDataToShow?.map((filiere) => (
+                  {filteredFilieres.map((filiere) => (
                     <Card
                       key={filiere.id}
                       className="p-6 group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white"
                     >
                       <div className="flex items-start justify-between mb-4">
-                        <div className="text-4xl">{filiere.icone}</div>
+                        {filiere.filePath ? (
+                          <div className="">
+                            <img 
+                              className="w-12 h-12 object-cover rounded-md"  
+                              src={`${url}/${filiere.filePath}`} 
+                              alt={filiere.nom}
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                // Optionnel: afficher un fallback
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
+                            <Briefcase className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
                         <Badge
                           className={`${
                             filiere.difficulte === "TRES_ELEVEE"
-                              ? "bg-red-100 text-red-800"
+                              ? "bg-red-100 text-red-800 hover:bg-red-200"
                               : filiere.difficulte === "ELEVEE"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
+                              ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+                              : "bg-green-100 text-green-800 hover:bg-green-200"
+                          } transition-colors`}
                         >
                           {filiere.difficulte === "TRES_ELEVEE"
                             ? "Très élevée"
@@ -302,24 +377,28 @@ export function Orientation() {
                       <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
                         {filiere.nom}
                       </h3>
-                      <p className="text-gray-600 mb-4 leading-relaxed">
+                      <p className="text-gray-600 mb-4 leading-relaxed line-clamp-2">
                         {filiere.descriptionCourte}
                       </p>
 
-                      <div className="space-y-4 mb-6">
-                        <div className="flex justify-between text-sm">
+                      <div className="space-y-3 mb-6">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-500">Durée:</span>
-                          <span className="font-medium">
+                          <span className="font-medium bg-blue-50 px-2 py-1 rounded">
                             {filiere.dureeEtudes}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-500">Demande:</span>
-                          <span className="font-medium">{filiere.demande}</span>
+                          <span className="font-medium bg-amber-50 px-2 py-1 rounded">
+                            {filiere.demande}
+                          </span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Salaire:</span>
-                          <span className="font-medium">{filiere.salaire}</span>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500">Salaire moyen:</span>
+                          <span className="font-medium bg-emerald-50 px-2 py-1 rounded">
+                            {filiere.salaire}
+                          </span>
                         </div>
                       </div>
 
@@ -329,17 +408,17 @@ export function Orientation() {
                         </p>
                         <div className="flex flex-wrap gap-2 mb-4">
                           {filiere.debouches
-                            .slice(0, 3)
+                            ?.slice(0, 3)
                             .map((debouche, index) => (
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="text-xs"
+                                className="text-xs bg-gray-50"
                               >
                                 {debouche}
                               </Badge>
                             ))}
-                          {filiere.debouches.length > 3 && (
+                          {filiere.debouches && filiere.debouches.length > 3 && (
                             <Badge variant="secondary" className="text-xs">
                               +{filiere.debouches.length - 3}
                             </Badge>
@@ -348,11 +427,11 @@ export function Orientation() {
 
                         <Button
                           variant="outline"
-                          className="w-full group/btn"
+                          className="w-full group/btn border-2 hover:border-purple-500 hover:bg-purple-50"
                           asChild
                         >
                           <Link to={`/orientation/${filiere.id}`}>
-                            <span>En savoir plus</span>
+                            <span className="font-medium">En savoir plus</span>
                             <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                           </Link>
                         </Button>

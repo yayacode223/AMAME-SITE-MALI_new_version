@@ -1,7 +1,7 @@
-import React from 'react';
-import { useState } from 'react';
+// Articles.tsx - VERSION OPTIMISÉE
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, User, Search, Filter, Clock, Eye} from 'lucide-react';
+import { Calendar, User, Search, Filter, Clock, Eye } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -9,68 +9,91 @@ import { Input } from '../components/ui/input';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { motion } from 'framer-motion';
-import { useSearchArticles, useGetCategoriesWithCount, useGetPopularArticles, useGetArticlesByCategorie } from '../service/articleService';
-import { adaptArticleForNews, generateCategoriesFromData } from '@/utils/articleAdapter';
+import { useGetAllArticles, useGetAvailableCategories } from '../service/articleService';
+import { adaptArticleForNews } from '@/utils/articleAdapter';
+import { Skeleton } from "@/components/ui/skeleton";
 
-const url = import.meta.env.VITE_API_BASE_URL; 
+const url = 'https://amame.ml'; 
+
+// Catégories prédéfinies avec couleurs
+const PREDEFINED_CATEGORIES = [
+  { id: 'all', label: 'Toutes les catégories', color: 'gray' },
+  { id: 'Conseils', label: 'Conseils', color: 'emerald' },
+  { id: 'Orientation', label: 'Orientation', color: 'blue' },
+  // { id: 'Bourses', label: 'Bourses', color: 'amber' },
+  // { id: 'Concours', label: 'Concours', color: 'purple' },
+  // { id: 'Témoignages', label: 'Témoignages', color: 'pink' }
+];
 
 export function Articles() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
 
-  // Récupérer les articles avec recherche/filtre
-  const { 
-    data: articlesData, 
-    isLoading: articlesLoading, 
-    error: articlesError 
-  } = useSearchArticles({
-    search: searchTerm,
-    categorie: selectedCategory === 'all' ? undefined : selectedCategory,
-    sortBy
-  });
+  // UN SEUL APPEL API
+  const { data: allArticlesData, isLoading: isLoadingAll } = useGetAllArticles();
+  
+  // Catégories disponibles
+  // const { data: availableCategoriesData } = useGetAvailableCategories();
 
-  // Récupérer les articles par catégorie
-  const { 
-    data: articlesByCategorieData, 
-    isLoading: articlesByCategorieLoading 
-  } = useGetArticlesByCategorie(selectedCategory === 'all' ? undefined : selectedCategory);
+  // Adapter les données
+  const adaptedArticles = useMemo(() => {
+    if (!allArticlesData) return [];
+    return allArticlesData.map(adaptArticleForNews);
+  }, [allArticlesData]);
 
-  // Récupérer les catégories avec comptes
-  const { 
-    data: categoriesData, 
-    isLoading: categoriesLoading 
-  } = useGetCategoriesWithCount();
+  // Filtrer côté client
+  const filteredArticles = useMemo(() => {
+    if (!adaptedArticles) return [];
+    
+    let filtered = adaptedArticles;
+    
+    // Filtrer par catégorie
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(article => 
+        article.categorie === selectedCategory
+      );
+    }
+    
+    // Filtrer par recherche
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(article =>
+        article.titre.toLowerCase().includes(term) ||
+        article.contenu?.toLowerCase().includes(term) ||
+        article.auteur?.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  }, [adaptedArticles, selectedCategory, searchTerm]);
 
-  // Récupérer les articles populaires
-  const { 
-    data: popularArticlesData 
-  } = useGetPopularArticles();
+  // Articles populaires (les 5 plus récents)
+  const popularArticles = useMemo(() => {
+    if (!adaptedArticles) return [];
+    return [...adaptedArticles]
+      .sort((a, b) => new Date(b.date_publication).getTime() - new Date(a.date_publication).getTime())
+      .slice(0, 5);
+  }, [adaptedArticles]);
 
-  // Adapter les données pour le frontend
-  const filteredArticles = articlesData?.map(adaptArticleForNews) || [];
-  const categoriesArticles = articlesByCategorieData?.map(adaptArticleForNews) || [];
+  // Compter les articles par catégorie
+  const categoriesWithCount = useMemo(() => {
+    if (!adaptedArticles) return PREDEFINED_CATEGORIES;
+    
+    return PREDEFINED_CATEGORIES.map(cat => {
+      if (cat.id === 'all') {
+        return { ...cat, count: adaptedArticles.length };
+      }
+      const count = adaptedArticles.filter(article => article.categorie === cat.id).length;
+      return { ...cat, count };
+    });
+  }, [adaptedArticles]);
 
-  // Générer les catégories pour les filtres
-  const categories = categoriesData 
-    ? generateCategoriesFromData(categoriesData)
-    : [];
-
-  const popularArticles = popularArticlesData?.map(adaptArticleForNews) || [];
-
-  const displayedArticles = selectedCategory === 'all' ? filteredArticles : categoriesArticles;
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      'Conseils': 'emerald',
-      'Orientation': 'blue',
-      'Bourses': 'amber',
-      'Concours': 'purple',
-      'Témoignages': 'pink'
-    };
-    return colors[category] || 'gray';
+  const getCategoryColor = (category: string) => {
+    const cat = PREDEFINED_CATEGORIES.find(c => c.id === category);
+    return cat?.color || 'gray';
   };
 
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -93,14 +116,72 @@ export function Articles() {
     }
   };
 
-  if (articlesLoading) {
+  // Skeleton loading
+  if (isLoadingAll) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
+          {/* Hero skeleton */}
+          <section className="bg-gradient-to-r from-purple-500 to-blue-500 py-16">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <Skeleton className="h-12 w-3/4 max-w-2xl mx-auto mb-4" />
+              <Skeleton className="h-6 w-1/2 max-w-xl mx-auto mb-2" />
+              <Skeleton className="h-5 w-2/3 max-w-lg mx-auto" />
+            </div>
+          </section>
+
+          {/* Content skeleton */}
+          <section className="py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Search skeleton */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                  <Skeleton className="h-12 flex-1 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-48 rounded-lg" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Main content skeleton */}
+                <div className="lg:col-span-3">
+                  <div className="flex justify-between items-center mb-8">
+                    <Skeleton className="h-8 w-48 rounded-lg" />
+                    <Skeleton className="h-8 w-24 rounded-full" />
+                  </div>
+                  
+                  <div className="space-y-8">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="border-0 rounded-xl bg-white shadow-lg overflow-hidden">
+                        <div className="md:flex">
+                          <Skeleton className="md:w-80 h-64 md:h-auto" />
+                          <div className="p-6 flex-1">
+                            <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
+                            <div className="flex gap-4 mb-4">
+                              <Skeleton className="h-4 w-24 rounded-full" />
+                              <Skeleton className="h-4 w-24 rounded-full" />
+                            </div>
+                            <Skeleton className="h-4 w-full mb-2 rounded-lg" />
+                            <Skeleton className="h-4 w-2/3 mb-6 rounded-lg" />
+                            <Skeleton className="h-12 w-full rounded-xl" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Sidebar skeleton */}
+                <div className="space-y-6">
+                  <Skeleton className="h-64 w-full rounded-xl" />
+                  <Skeleton className="h-80 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
@@ -109,7 +190,7 @@ export function Articles() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-20">
+        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.h1 
               className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
@@ -153,18 +234,19 @@ export function Articles() {
                   </div>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                <div className="w-full lg:w-auto">
                   <div className="relative">
                     <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                     <select
                       aria-label="Filtrer par catégorie"
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full lg:w-48 h-12 pl-10 pr-4 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors appearance-none bg-white"
+                      className="w-full lg:w-64 h-12 pl-10 pr-4 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors appearance-none bg-white"
                     >
-                      {categories.map(category => (
+                      {categoriesWithCount.map(category => (
                         <option key={category.id} value={category.id}>
-                          {category.label} ({category.count})
+                          {category.label}
+                          {/* ({category.count}) */}
                         </option>
                       ))}
                     </select>
@@ -186,11 +268,11 @@ export function Articles() {
                     Articles Récents
                   </h2>
                   <Badge variant="secondary" className="text-lg px-4 py-2">
-                    {displayedArticles.length} article{displayedArticles.length > 1 ? 's' : ''}
+                    {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''}
                   </Badge>
                 </div>
 
-                {displayedArticles.length === 0 ? (
+                {filteredArticles.length === 0 ? (
                   <Card className="p-12 text-center">
                     <div className="text-6xl mb-4">🔍</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -211,19 +293,36 @@ export function Articles() {
                   </Card>
                 ) : (
                   <div className="space-y-8">
-                    {displayedArticles.map((article) => (
+                    {filteredArticles.map((article) => (
                       <motion.div key={article.id} variants={itemVariants}>
                         <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
                           <div className="md:flex">
-                            {article.filePath && (
+                            {article.filePath ? (
                               <div className="md:w-80 md:flex-shrink-0 relative overflow-hidden">
                                 <img
                                   src={`${url}/${article.filePath}`}
                                   alt={article.titre}
                                   className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    // Fallback: afficher une div colorée
+                                    const fallback = document.createElement('div');
+                                    fallback.className = 'w-full h-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center';
+                                    e.currentTarget.parentNode?.appendChild(fallback);
+                                  }}
                                 />
                                 <div className="absolute top-4 left-4">
-                                  <Badge className={`bg-${getCategoryColor(article.categorie)}-100 text-${getCategoryColor(article.categorie)}-800 border-0`}>
+                                  <Badge className={`bg-${getCategoryColor(article.categorie)}-100 text-${getCategoryColor(article.categorie)}-800 border-0 hover:bg-${getCategoryColor(article.categorie)}-200 transition-colors`}>
+                                    {article.categorie}
+                                  </Badge>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="md:w-80 md:flex-shrink-0 bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+                                <div className="text-center p-6">
+                                  <div className="text-4xl mb-4">📄</div>
+                                  <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
                                     {article.categorie}
                                   </Badge>
                                 </div>
@@ -237,7 +336,7 @@ export function Articles() {
                                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 flex-wrap">
                                   <div className="flex items-center gap-1">
                                     <User className="h-4 w-4" />
-                                    <span>{article.auteur}</span>
+                                    <span>{article.auteur || 'Auteur inconnu'}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <Calendar className="h-4 w-4" />
@@ -249,7 +348,7 @@ export function Articles() {
                                       })}
                                     </span>
                                   </div>
-                                  {article.vues && (
+                                  {article.vues !== undefined && (
                                     <div className="flex items-center gap-1">
                                       <Eye className="h-4 w-4" />
                                       <span>{article.vues} vues</span>
@@ -263,7 +362,7 @@ export function Articles() {
                                   )}
                                 </div>
                                 <p className="text-gray-700 mb-6 line-clamp-3 leading-relaxed">
-                                  {article.contenu}
+                                  {article.contenu || 'Aucun contenu disponible'}
                                 </p>
                               </div>
                               
@@ -275,7 +374,6 @@ export function Articles() {
                                   Lire l'article
                                   <span className="group-hover/link:translate-x-1 transition-transform">→</span>
                                 </Link>
-                                
                               </div>
                             </div>
                           </div>
@@ -300,7 +398,7 @@ export function Articles() {
                     Catégories
                   </h3>
                   <div className="space-y-2">
-                    {categories.map((category) => (
+                    {categoriesWithCount.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => setSelectedCategory(category.id)}
@@ -312,7 +410,7 @@ export function Articles() {
                       >
                         <span>{category.label}</span>
                         <Badge variant="secondary" className="text-xs">
-                          {category.count}
+                          {/* {category.count} */}
                         </Badge>
                       </button>
                     ))}
@@ -323,22 +421,27 @@ export function Articles() {
                 <Card className="p-6 border-0 shadow-lg">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     <Eye className="h-5 w-5 mr-2 text-amber-600" />
-                    Articles Populaires
+                    Articles Récents
                   </h3>
                   <div className="space-y-4">
                     {popularArticles.map((article) => (
                       <Link
                         key={article.id}
-                        to={`/actualites/${article.slug}`}
+                        to={`/articles/${article.slug}`}
                         className="block group p-3 rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start space-x-3">
-                          {article.filePath && (
+                          {article.filePath ? (
                             <img
                               src={`${url}/${article.filePath}`}
                               alt={article.titre}
                               className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                              loading="lazy"
                             />
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <div className="text-2xl">📄</div>
+                            </div>
                           )}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 mb-1 line-clamp-2 text-sm leading-tight">

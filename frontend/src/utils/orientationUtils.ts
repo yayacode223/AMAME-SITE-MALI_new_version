@@ -6,7 +6,7 @@ import {
   SalaireType,
   FiliereSummaryResponse,
   FiliereDetailResponse
-} from "../service/orientationService";
+} from "@/types/orientationType";
 
 // Mapper les domaines pour l'UI
 export const mapDomaineToUI = (domaine: DomaineFiliereType): { id: string; label: string } => {
@@ -66,7 +66,6 @@ export const adaptFiliereForOrientation = (filiere: FiliereSummaryResponse) => (
   titre: filiere.nom,
   description: filiere.descriptionCourte,
   debouches: filiere.debouches,
-  icon: filiere.icone,
   domaine: mapDomaineToUI(filiere.domaine).id,
   duree: filiere.dureeEtudes,
   difficulte: mapDifficulteToUI(filiere.difficulte),
@@ -83,7 +82,6 @@ export const adaptFiliereForDetail = (filiere: FiliereDetailResponse) => ({
   description: filiere.descriptionCourte,
   descriptionLongue: filiere.descriptionLongue,
   debouches: filiere.debouches,
-  icon: filiere.icone,
   domaine: mapDomaineToUI(filiere.domaine).id,
   duree: filiere.dureeEtudes,
   difficulte: mapDifficulteToUI(filiere.difficulte),

@@ -1,8 +1,10 @@
 package com.example.siteamame.enumeration;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum DemandeType {
     TRES_FORTE("Très forte"),
     FORTE("Forte"),
@@ -11,9 +13,5 @@ public enum DemandeType {
     VARIABLE("Variable");
 
     private final String label;
-
-    DemandeType(String label) {
-        this.label = label;
-    }
 
 }

@@ -1,7 +1,9 @@
 package com.example.siteamame.enumeration;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Getter
 public enum SalaireType {
     TRES_ELEVE("Très élevé"),
@@ -11,9 +13,5 @@ public enum SalaireType {
     VARIABLE("Variable");
 
     private final String label;
-
-    SalaireType(String label) {
-        this.label = label;
-    }
 
 }

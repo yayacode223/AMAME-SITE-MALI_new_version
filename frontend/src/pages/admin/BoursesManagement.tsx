@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import DataTable from '@/components/admin/DataTable';
-import { useGetBourses, useDeleteBourse, BourseSummary} from '../../service/bourseService';
+import { useGetBourses, useDeleteBourse} from '@/service/bourseService';
+import {BourseSummary} from '@/types/bourseType'; 
 
 const BoursesManagement: React.FC = () => {
   const [searchParams] = useState({ page: 0, size: 50 });

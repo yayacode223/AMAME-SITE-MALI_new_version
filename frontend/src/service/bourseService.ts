@@ -188,7 +188,7 @@ export const useGetBourses = (params: BourseDefaultSearchParams, options?: { ena
         queryKey: keys.lists(params),
         queryFn: () => bourseLists(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 60 * 60 * 1000,
         placeholderData: (previousData) => previousData
     });
 }
@@ -197,7 +197,8 @@ export const useGetBourseDetail = (id: number, options?: { enabled?: boolean }) 
     return useQuery({
         queryKey: keys.detail(id),
         queryFn: () => bourseDetail(id),
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
         enabled: options?.enabled ?? !!id,
     });
 }
@@ -207,7 +208,7 @@ export const useGetBourseBySearch = (params: BourseSearchRequest, options?: { en
         queryKey: keys.search(params),
         queryFn: () => bourseSearch(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
         placeholderData: (previousData) => previousData
     });
 }
@@ -217,7 +218,7 @@ export const useGetBourseByFilter = (params: BourseFilterParams, options?: { ena
         queryKey: keys.filter(params),
         queryFn: () => bourseFilter(params),
         enabled: options?.enabled ?? true,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,
         placeholderData: (previousData) => previousData
     });
 }
