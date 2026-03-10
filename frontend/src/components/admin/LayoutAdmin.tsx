@@ -1,43 +1,80 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { 
-  HomeIcon, 
-  NewspaperIcon, 
-  AcademicCapIcon, 
-  TrophyIcon, 
+import React, { useState, useMemo } from "react";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import {
+  HomeIcon,
+  NewspaperIcon,
+  AcademicCapIcon,
+  TrophyIcon,
   UserGroupIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowLeftIcon,
-} from '@heroicons/react/24/outline';
-import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/hooks/use-toast';
+} from "@heroicons/react/24/outline";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/hooks/use-toast";
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const {user, logout, isUserLoading} = useAuth(); 
+  const { user, logout, isUserLoading } = useAuth();
   const navigate = useNavigate();
-  
-  const navigation = useMemo(() => [
-    { name: 'Tableau de bord', href: '/admin', icon: HomeIcon, current: location.pathname === '/admin' },
-    { name: 'Utilisateurs', href: '/admin/users', icon: UserGroupIcon, current: location.pathname.includes('/admin/users') },
-    { name: 'Actualités', href: '/admin/articles', icon: NewspaperIcon, current: location.pathname.includes('/admin/articles') },
-    { name: 'Bourses', href: '/admin/bourses', icon: AcademicCapIcon, current: location.pathname.includes('/admin/bourses') },
-    { name: 'Concours', href: '/admin/concours', icon: TrophyIcon, current: location.pathname.includes('/admin/concours') },
-    { name: 'Orientation', href: '/admin/filieres', icon: UserGroupIcon, current: location.pathname.includes('/admin/filieres') },
-    { name: 'Page d\'accueil', href: '/', icon: ArrowLeftIcon, current: location.pathname === '/' },
-  ], [location.pathname]); 
 
- 
+  const navigation = useMemo(
+    () => [
+      {
+        name: "Tableau de bord",
+        href: "/admin",
+        icon: HomeIcon,
+        current: location.pathname === "/admin",
+      },
+      {
+        name: "Utilisateurs",
+        href: "/admin/users",
+        icon: UserGroupIcon,
+        current: location.pathname.includes("/admin/users"),
+      },
+      {
+        name: "Actualités",
+        href: "/admin/articles",
+        icon: NewspaperIcon,
+        current: location.pathname.includes("/admin/articles"),
+      },
+      {
+        name: "Bourses",
+        href: "/admin/bourses",
+        icon: AcademicCapIcon,
+        current: location.pathname.includes("/admin/bourses"),
+      },
+      {
+        name: "Concours",
+        href: "/admin/concours",
+        icon: TrophyIcon,
+        current: location.pathname.includes("/admin/concours"),
+      },
+      {
+        name: "Orientation",
+        href: "/admin/filieres",
+        icon: UserGroupIcon,
+        current: location.pathname.includes("/admin/filieres"),
+      },
+      {
+        name: "Page d'accueil",
+        href: "/",
+        icon: ArrowLeftIcon,
+        current: location.pathname === "/",
+      },
+    ],
+    [location.pathname],
+  );
+
   const handleSidebarToggle = () => {
-    setSidebarOpen(prev => !prev);
+    setSidebarOpen((prev) => !prev);
   };
 
   const handleSidebarClose = () => {
     setSidebarOpen(false);
   };
 
- const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       await logout();
       toast({ title: "Déconnexion réussie", description: "À bientôt !" });
@@ -52,15 +89,20 @@ const AdminLayout: React.FC = () => {
   };
 
   const userInitials = useMemo(() => {
-    if (!user) return '';
-    return `${user.prenom?.charAt(0) || ''}${user.nom?.charAt(0) || ''}`;
+    if (!user) return "";
+    return `${user.prenom?.charAt(0) || ""}${user.nom?.charAt(0) || ""}`;
   }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar pour mobile */}
-      <div className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? '' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={handleSidebarClose} />
+      <div
+        className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? "" : "hidden"}`}
+      >
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-75"
+          onClick={handleSidebarClose}
+        />
         <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
@@ -85,13 +127,17 @@ const AdminLayout: React.FC = () => {
                   onClick={handleSidebarClose}
                   className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
                     item.current
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-100 text-blue-900"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  <item.icon className={`mr-4 flex-shrink-0 h-6 w-6 ${
-                    item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                  }`} />
+                  <item.icon
+                    className={`mr-4 flex-shrink-0 h-6 w-6 ${
+                      item.current
+                        ? "text-blue-500"
+                        : "text-gray-400 group-hover:text-gray-500"
+                    }`}
+                  />
                   {item.name}
                 </Link>
               ))}
@@ -106,9 +152,9 @@ const AdminLayout: React.FC = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">
-                  {user?.prenom || 'Utilisateur'}
+                  {user?.prenom || "Utilisateur"}
                 </p>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="text-sm font-bold text-red-500 hover:text-red-700"
                   disabled={isUserLoading}
@@ -135,13 +181,17 @@ const AdminLayout: React.FC = () => {
                   to={item.href}
                   className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                     item.current
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-blue-100 text-blue-900"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  <item.icon className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                    item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                  }`} />
+                  <item.icon
+                    className={`mr-3 flex-shrink-0 h-6 w-6 ${
+                      item.current
+                        ? "text-blue-500"
+                        : "text-gray-400 group-hover:text-gray-500"
+                    }`}
+                  />
                   {item.name}
                 </Link>
               ))}
@@ -156,9 +206,9 @@ const AdminLayout: React.FC = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">
-                  {user?.prenom || 'Utilisateur'}
+                  {user?.prenom || "Utilisateur"}
                 </p>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="text-sm font-bold text-red-500 hover:text-red-700"
                   disabled={isUserLoading}

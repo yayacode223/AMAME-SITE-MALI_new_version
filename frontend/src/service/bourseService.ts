@@ -9,7 +9,7 @@ import {
     BourseResponsePaginated,
     BourseSearchRequest,
     BourseUpdateRequest
-} from "@/types/bourseType"; 
+} from "@/types/bourseType";
 
 
 
@@ -189,6 +189,7 @@ export const useGetBourses = (params: BourseDefaultSearchParams, options?: { ena
         queryFn: () => bourseLists(params),
         enabled: options?.enabled ?? true,
         staleTime: 60 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
         placeholderData: (previousData) => previousData
     });
 }
@@ -209,6 +210,7 @@ export const useGetBourseBySearch = (params: BourseSearchRequest, options?: { en
         queryFn: () => bourseSearch(params),
         enabled: options?.enabled ?? true,
         staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
         placeholderData: (previousData) => previousData
     });
 }
@@ -219,6 +221,7 @@ export const useGetBourseByFilter = (params: BourseFilterParams, options?: { ena
         queryFn: () => bourseFilter(params),
         enabled: options?.enabled ?? true,
         staleTime: 15 * 60 * 1000,
+        gcTime: 30*60*1000,
         placeholderData: (previousData) => previousData
     });
 }
@@ -231,7 +234,7 @@ export const useCreateBourse = () => {
         mutationFn: ({ request, file }: { request: BourseCreationRequest; file?: File }) =>
             createBourse(request, file),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.all });
+            queryClient.invalidateQueries({ queryKey: keys.all});
         },
     });
 };

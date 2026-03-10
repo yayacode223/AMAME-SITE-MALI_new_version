@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -55,19 +57,19 @@ public class Filiere {
     // Collections
     @ElementCollection
     @CollectionTable(name = "filiere_debouches", joinColumns = @JoinColumn(name = "filiere_id"))
-    private List<String> debouches = new ArrayList<>();
+    private Set<String> debouches = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "filiere_competences", joinColumns = @JoinColumn(name = "filiere_id"))
-    private List<String> competences = new ArrayList<>();
+    private Set<String> competences = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "filiere_universites", joinColumns = @JoinColumn(name = "filiere_id"))
-    private List<String> universites = new ArrayList<>();
+    private Set<String> universites = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "filiere_prerequis", joinColumns = @JoinColumn(name = "filiere_id"))
-    private List<String> prerequis = new ArrayList<>();
+    private Set<String> prerequis = new HashSet<>();
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private File file;

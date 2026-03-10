@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class ArticleDto {
     private Integer tempsLecture;
     private LocalDateTime datePublication;
     private LocalDateTime dateModification;
-    private List<String> tags;
+    private Set<String> tags;
     private String metaDescription;
     private String metaKeywords;
 }

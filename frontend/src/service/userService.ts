@@ -9,7 +9,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 
 export const register = async (
-  data: RegisterPayload
+  data: RegisterPayload,
 ): Promise<RegisterResponse> => {
   const formData = new FormData();
 
@@ -17,7 +17,7 @@ export const register = async (
     "user",
     new Blob([JSON.stringify(data.user)], {
       type: "application/json",
-    })
+    }),
   );
 
   if (data.cv) {
@@ -35,7 +35,7 @@ export const register = async (
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
 
   return response.data;
@@ -47,14 +47,14 @@ export const getUserById = async (id: number): Promise<RegisterResponse> => {
 };
 
 export const update = async (
-  data: RegisterUpdatePayload
+  data: RegisterUpdatePayload,
 ): Promise<RegisterResponse> => {
   const formData = new FormData();
   formData.append(
     "user",
     new Blob([JSON.stringify(data.user)], {
       type: "application/json",
-    })
+    }),
   );
 
   if (data.cv) {
@@ -70,13 +70,13 @@ export const update = async (
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   return response.data;
 };
 
 export const login = async (
-  credential: LoginType
+  credential: LoginType,
 ): Promise<RegisterResponse> => {
   const response = await Api.post<RegisterResponse>("/auth/login", credential);
   return response.data;
@@ -139,8 +139,9 @@ export const useUpdateMutation = () => {
     },
     onError: () => {
       toast({
-            title: "Impossible de modifier",
-            variant: "destructive"});
+        title: "Impossible de modifier",
+        variant: "destructive",
+      });
     },
   });
 };
@@ -176,6 +177,7 @@ export const useGetCurrentUser = () => {
     staleTime: Infinity, // Les données de l'utilisateur ne deviennent "périmées" que lors de la déconnexion.
     gcTime: Infinity, // Garder en cache indéfiniment jusqu'à invalidation.
     retry: false, // Ne pas réessayer de fetcher l'utilisateur s'il n'est pas là.
+    // enabled: options?.enabled ?? true,
   });
 };
 
@@ -201,8 +203,8 @@ export const useDeleteUserMutation = () => {
     onError: () => {
       toast({
         title: "Impossible de supprimer",
-        variant:"destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 };

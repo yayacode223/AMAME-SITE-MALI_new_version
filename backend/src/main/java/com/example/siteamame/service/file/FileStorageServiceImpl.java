@@ -84,6 +84,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                 : ""
         );
 
+
         // Validation du nom du fichier
         if (originalFileName.contains("..")) {
             throw new RuntimeException("Nom du fichier invalide " + originalFileName);

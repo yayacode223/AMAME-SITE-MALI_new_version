@@ -1,6 +1,5 @@
 package com.example.siteamame.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -32,7 +32,7 @@ public class Etablissement {
 
     @Column(columnDefinition = "TEXT")
     private String urlLogo;
-    
+
     @Column(columnDefinition = "TEXT")
     private String urlImage;
 

@@ -2,12 +2,14 @@ package com.example.siteamame.repository;
 
 import com.example.siteamame.model.Filiere;
 import com.example.siteamame.enumeration.DomaineFiliereSerieType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FiliereRepository extends JpaRepository<Filiere, Long> {
@@ -18,7 +20,13 @@ public interface FiliereRepository extends JpaRepository<Filiere, Long> {
             "LOWER(f.nom) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(f.descriptionCourte) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(f.descriptionLongue) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    @EntityGraph(attributePaths = {"debouches", "file"})
     List<Filiere> findBySearchTerm(@Param("searchTerm") String searchTerm);
 
+    @EntityGraph(attributePaths = {"debouches", "competences", "universites", "prerequis", "file"})
+    Optional<Filiere> findWithDetailsById(Long id);
+
+    // Pour les listes avec un minimum de collections
+    @EntityGraph(attributePaths = {"debouches", "file"})
     List<Filiere> findAllByOrderByNomAsc();
 }

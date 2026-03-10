@@ -12,7 +12,7 @@ services:
       - database_data:/var/lib/postgresql/data
     # ports:
     #   - "5432:5432"  # Ajouté pour accès externe si besoin
-    healthcheck:  # Ajout d'un healthcheck
+    healthcheck: # Ajout d'un healthcheck
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
@@ -20,30 +20,38 @@ services:
 
   backend:
     image: yaya236/amame-web-site:backend-v2
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: amame-backend
     # ports:
     #   - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_SHOW_SQL=false
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
       - JWT_SECRET=ejoVb48DypZtTiMbitoRSVitYSnrICP+ARo1zwg9S/E=
       - JWT_EXPIRATION=2592000000
-      - FRONTEND=https://preprod.amame.ml
+      - FRONTEND=https://amame.ml
     # env_file:
     #   - ./backend/.env  # Chemin corrigé
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - common_net
     depends_on:
       database:
-        condition: service_healthy  # Attend que la base soit prête
+        condition: service_healthy # Attend que la base soit prête
     volumes:
       - ./backend/uploads:/app/uploads
-    restart: unless-stopped  # Ajouté pour résilience
+    restart: unless-stopped # Ajouté pour résilience
 
   frontend:
     image: yaya236/amame-web-site:frontend-v2
@@ -81,7 +89,7 @@ services:
       - DB_NAME=amame_db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-    restart: "no"  # Le scraper ne tourne pas en continu
+    restart: "no" # Le scraper ne tourne pas en continu
 
 networks:
   common_net:

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Index from "./pages/Index";
 import Bourses from "./pages/Bourses";
@@ -33,10 +33,7 @@ import UsersManagement from "@/pages/admin/UsersManagement";
 import UserForm from "@/pages/admin/UserForm";
 import UserDetail from "./pages/admin/UserDetail";
 
-
 const queryClient = new QueryClient();
-
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -60,8 +57,6 @@ const App = () => (
           <Route path="/concours/:id" element={<ConcoursDetail />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/forbidden" element={<Forbidden />} />
-
-
           //Routes admin
           <Route
             path="/admin/*"
@@ -80,11 +75,9 @@ const App = () => (
             <Route path="bourses/new" element={<BourseForm />} />
             <Route path="bourses/edit/:id" element={<BourseForm />} />
 
-
             <Route path="concours" element={<ConcoursManagement />} />
             <Route path="concours/new" element={<ConcoursForm />} />
             <Route path="concours/edit/:id" element={<ConcoursForm />} />
-
 
             <Route path="filieres" element={<FilieresManagement />} />
             <Route path="filieres/new" element={<FiliereForm />} />
@@ -94,7 +87,6 @@ const App = () => (
             <Route path="users/new" element={<UserForm />} />
             <Route path="users/edit/:id" element={<UserForm />} />
             <Route path="users/:id" element={<UserDetail />} />
-            
           </Route>
         </Routes>
       </BrowserRouter>

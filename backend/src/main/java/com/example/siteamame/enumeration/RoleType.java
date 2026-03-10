@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum RoleType {
+    SUPERADMIN("Super Admin"),
     ADMIN("Administrateur"),
     EDITOR("Editeur"),
     MEMBER("Membre"),

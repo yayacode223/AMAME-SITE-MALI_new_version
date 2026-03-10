@@ -36,6 +36,7 @@ public class FiliereService {
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
 
+    @Transactional(readOnly = true)
     public List<FiliereSummaryDto> getAllFilieres() {
         return filiereRepository.findAllByOrderByNomAsc()
                 .stream()
@@ -43,12 +44,14 @@ public class FiliereService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public FiliereDto getFiliereById(Long id) {
-        Filiere filiere = filiereRepository.findById(id)
+        Filiere filiere = filiereRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Filière non trouvée avec l'id: " + id));
         return filiereMapper.convertToDTO(filiere);
     }
 
+    @Transactional(readOnly = true)
     public List<FiliereSummaryDto> getFiliereBySearchTerm(String query){
         return filiereRepository.findBySearchTerm(query)
                 .stream()
@@ -56,6 +59,7 @@ public class FiliereService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<FiliereSummaryDto> getFilieresByDomaine(DomaineFiliereSerieType domaine) {
         return filiereRepository.findByDomaine(domaine)
                 .stream()
@@ -78,7 +82,7 @@ public class FiliereService {
         filiere.setSalaire(filiereRequestDto.getSalaire());
         filiere.setDifficulte(filiereRequestDto.getDifficulte());
         filiere.setDescriptionCourte(filiereRequestDto.getDescriptionCourte());
-        filiereRequestDto.setDescriptionLongue(filiereRequestDto.getDescriptionLongue());
+        filiere.setDescriptionLongue(filiereRequestDto.getDescriptionLongue());
         filiere.setDureeEtudes(filiereRequestDto.getDureeEtudes());
         filiere.setTauxEmploi(filiereRequestDto.getTauxEmploi());
         filiere.setPerspectives(filiereRequestDto.getPerspectives());
@@ -127,6 +131,7 @@ public class FiliereService {
         return filiereMapper.convertToDTO(savedFiliere);
     }
 
+    @Transactional
     public void deleteFiliere(Long id){
         if(filiereRepository.existsById(id)){
             filiereRepository.deleteById(id);

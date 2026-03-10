@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 interface FormWrapperProps {
   title: string;
@@ -15,7 +15,7 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
   subtitle,
   children,
   backUrl,
-  isLoading = false
+  isLoading = false,
 }) => {
   return (
     <div className="max-w-4xl mx-auto">
@@ -31,10 +31,12 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
 
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h1 className="text-lg leading-6 font-medium text-gray-900">{title}</h1>
+          <h1 className="text-lg leading-6 font-medium text-gray-900">
+            {title}
+          </h1>
           {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
         </div>
-        
+
         {isLoading ? (
           <div className="p-6">
             <div className="animate-pulse">
@@ -45,9 +47,7 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
             </div>
           </div>
         ) : (
-          <div className="px-4 py-5 sm:p-6">
-            {children}
-          </div>
+          <div className="px-4 py-5 sm:p-6">{children}</div>
         )}
       </div>
     </div>

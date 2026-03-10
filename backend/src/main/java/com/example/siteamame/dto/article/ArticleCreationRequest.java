@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +26,7 @@ public class ArticleCreationRequest {
 
     private String filePath;
     private Integer tempsLecture;
-    private List<String> tags;
+    private Set<String> tags;
     private String metaDescription;
     private String metaKeywords;
 }

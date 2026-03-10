@@ -1,55 +1,61 @@
-// pages/admin/ConcoursManagement.tsx
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import DataTable from '@/components/admin/DataTable';
-import { useConcoursLists, useDeleteConcours} from '@/service/concoursService';
-import {ConcoursResponse} from '@/types/concoursType'; 
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import DataTable from "@/components/admin/DataTable";
+import { useConcoursLists, useDeleteConcours } from "@/service/concoursService";
+import { ConcoursResponse } from "@/types/concoursType";
 
 const ConcoursManagement: React.FC = () => {
   const [searchParams, setSearchParams] = useState({
     page: 0,
     size: 50,
-    sortBy: 'dateLimite',
-    sortDirection: 'ASC'
+    sortBy: "dateLimite",
+    sortDirection: "ASC",
   });
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
   const { data: concoursData, isLoading } = useConcoursLists(searchParams);
   const deleteConcoursMutation = useDeleteConcours();
 
   const concours = concoursData?.concours || [];
 
-  const filteredConcours = concours.filter(item =>
-    item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.pays.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredConcours = concours.filter(
+    (item) =>
+      item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.pays.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const columns = [
-    { key: 'nom', label: 'Nom du concours' },
-    { key: 'pays', label: 'Pays' },
-    { key: 'niveau', label: 'Niveau' },
-    { key: 'status', label: 'Statut' },
-    { 
-      key: 'dateLimite', 
-      label: 'Date limite',
-      render: (value: string) => new Date(value).toLocaleDateString('fr-FR')
+    { key: "nom", label: "Nom du concours" },
+    { key: "pays", label: "Pays" },
+    { key: "niveau", label: "Niveau" },
+    { key: "status", label: "Statut" },
+    {
+      key: "dateLimite",
+      label: "Date limite",
+      render: (value: string) => new Date(value).toLocaleDateString("fr-FR"),
     },
-    { 
-      key: 'isAvailable', 
-      label: 'Disponible',
+    {
+      key: "isAvailable",
+      label: "Disponible",
       render: (value: boolean) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Oui' : 'Non'}
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}
+        >
+          {value ? "Oui" : "Non"}
         </span>
-      )
+      ),
     },
   ];
 
   const handleDelete = (concours: ConcoursResponse) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le concours "${concours.nom}" ?`)) {
+    if (
+      window.confirm(
+        `Êtes-vous sûr de vouloir supprimer le concours "${concours.nom}" ?`,
+      )
+    ) {
       deleteConcoursMutation.mutate(concours.id);
     }
   };
@@ -59,14 +65,16 @@ const ConcoursManagement: React.FC = () => {
   };
 
   const handleView = (concours: ConcoursResponse) => {
-    window.open(`/concours/${concours.id}`, '_blank');
+    window.open(`/concours/${concours.id}`, "_blank");
   };
 
   return (
     <div>
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Gestion des concours</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Gestion des concours
+          </h1>
           <p className="mt-2 text-sm text-gray-700">
             Gérez les concours et examens nationaux/internationaux
           </p>
@@ -97,13 +105,18 @@ const ConcoursManagement: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           {/* Filtres */}
           <div className="flex gap-2">
             <select
               aria-label="Filtrer par niveau"
               className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
-              onChange={(e) => setSearchParams(prev => ({ ...prev, niveau: e.target.value as any }))}
+              onChange={(e) =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  niveau: e.target.value as any,
+                }))
+              }
             >
               <option value="">Tous les niveaux</option>
               <option value="BACHELIER">Bachelier</option>
@@ -111,11 +124,16 @@ const ConcoursManagement: React.FC = () => {
               <option value="MASTER">Master</option>
               <option value="DOCTORAT">Doctorat</option>
             </select>
-            
+
             <select
               aria-label="Filtrer par statut"
               className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
-              onChange={(e) => setSearchParams(prev => ({ ...prev, status: e.target.value as any }))}
+              onChange={(e) =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  status: e.target.value as any,
+                }))
+              }
             >
               <option value="">Tous les statuts</option>
               <option value="NATIONAL">National</option>

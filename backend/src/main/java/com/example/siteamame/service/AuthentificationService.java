@@ -35,13 +35,13 @@ public class AuthentificationService {
         Optional<User> userOptional = userRepository.findByEmailIgnoreCase(loginRequest.getEmail());
 
         if (userOptional.isEmpty()) {
-            throw new UserNotFoundException("User doesn't exist");
+            throw new RuntimeException("User doesn't exist");
         }
 
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new PasswordNotMatchException("Invalid password.");
+            throw new RuntimeException("Invalid password.");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
@@ -65,24 +65,24 @@ public class AuthentificationService {
     public UserReponseDto getCurrentUser(Authentication authentication) {
 
         User user = userRepository.findByEmailIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new RessourceNotFoundException("L'utilsateur n'existe pas"));
+                .orElseThrow(() -> new RuntimeException("L'utilisateur n'existe pas"));
         return userMapperDto.UserToDto(user);
     }
 
     // Logout User
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-    ResponseCookie cookie = ResponseCookie.from("token", "") // Valeur vide
-            .domain(".amame.ml")
-            .httpOnly(true)
-            .secure(true) // Doit correspondre à la config du cookie de login
-            .path("/")
-            .maxAge(0) // Expire immédiatement
-            .sameSite("Strict")
-            .build();
-    
-    response.addHeader("Set-Cookie", cookie.toString());
-    
-    return "Deconnexion reussie";
+        ResponseCookie cookie = ResponseCookie.from("token", "") // Valeur vide
+                .domain(".amame.ml")
+                .httpOnly(true)
+                .secure(true) // Doit correspondre à la config du cookie de login
+                .path("/")
+                .maxAge(0) // Expire immédiatement
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return "Deconnexion reussie";
     }
 
 }

@@ -2,12 +2,12 @@
 import { Api } from "@/utils/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ArticleCreationRequest, 
-  ArticleDetailResponse, 
-  ArticleSummaryResponse, 
+  ArticleCreationRequest,
+  ArticleDetailResponse,
+  ArticleSummaryResponse,
   SearchArticlesParams,
-  ArticleUpdateRequest
-} from "@/types/articleType"; 
+  ArticleUpdateRequest,
+} from "@/types/articleType";
 
 // Fonction principale pour récupérer TOUS les articles
 const getAllArticles = async (): Promise<ArticleSummaryResponse[]> => {
@@ -16,13 +16,19 @@ const getAllArticles = async (): Promise<ArticleSummaryResponse[]> => {
 };
 
 // Autres fonctions pour les pages de détail
-const getArticleBySlug = async (slug: string): Promise<ArticleDetailResponse> => {
-  const response = await Api.get<ArticleDetailResponse>(`/visitor/articles/slug/${slug}`);
+const getArticleBySlug = async (
+  slug: string,
+): Promise<ArticleDetailResponse> => {
+  const response = await Api.get<ArticleDetailResponse>(
+    `/visitor/articles/slug/${slug}`,
+  );
   return response.data;
 };
 
 const getArticleById = async (id: number): Promise<ArticleDetailResponse> => {
-  const response = await Api.get<ArticleDetailResponse>(`/visitor/articles/${id}`);
+  const response = await Api.get<ArticleDetailResponse>(
+    `/visitor/articles/${id}`,
+  );
   return response.data;
 };
 
@@ -33,43 +39,55 @@ const getAvailableCategories = async (): Promise<string[]> => {
 
 // Mutations (identiques)
 const createArticle = async (
-  request: ArticleCreationRequest, 
-  file?: File
+  request: ArticleCreationRequest,
+  file?: File,
 ): Promise<ArticleDetailResponse> => {
   const formData = new FormData();
-  const articleBlob = new Blob([JSON.stringify(request)], { type: 'application/json' });
-  formData.append('article', articleBlob);
-  
+  const articleBlob = new Blob([JSON.stringify(request)], {
+    type: "application/json",
+  });
+  formData.append("article", articleBlob);
+
   if (file) {
-    formData.append('image', file);
+    formData.append("image", file);
   }
 
-  const response = await Api.post<ArticleDetailResponse>('/admin/articles', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
+  const response = await Api.post<ArticleDetailResponse>(
+    "/admin/articles",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
+  );
   return response.data;
 };
 
 const updateArticle = async (
   id: number,
   request: ArticleUpdateRequest,
-  file?: File
+  file?: File,
 ): Promise<ArticleDetailResponse> => {
   const formData = new FormData();
-  const articleBlob = new Blob([JSON.stringify(request)], { type: 'application/json' });
-  formData.append('article', articleBlob);
-  
+  const articleBlob = new Blob([JSON.stringify(request)], {
+    type: "application/json",
+  });
+  formData.append("article", articleBlob);
+
   if (file) {
-    formData.append('image', file);
+    formData.append("image", file);
   }
 
-  const response = await Api.put<ArticleDetailResponse>(`/admin/articles/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
+  const response = await Api.put<ArticleDetailResponse>(
+    `/admin/articles/${id}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
+  );
   return response.data;
 };
 
@@ -82,34 +100,40 @@ export const openArticleFile = (filePath: string) => {
   if (!filePath) return;
 
   let fileUrl = filePath;
-  
-  if (!filePath.startsWith('http')) {
-    const baseUrl = process.env.REACT_APP_API_URL || '';
-    fileUrl = `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+
+  if (!filePath.startsWith("http")) {
+    const baseUrl = process.env.REACT_APP_API_URL || "";
+    fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
   }
 
-  window.open(fileUrl, '_blank');
+  window.open(fileUrl, "_blank");
 };
 
-export const downloadArticleFile = async (filePath: string, articleTitle: string) => {
+export const downloadArticleFile = async (
+  filePath: string,
+  articleTitle: string,
+) => {
   if (!filePath) return;
 
   try {
     let fileUrl = filePath;
-    
-    if (!filePath.startsWith('http')) {
-      const baseUrl = process.env.REACT_APP_API_URL || '';
-      fileUrl = `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+
+    if (!filePath.startsWith("http")) {
+      const baseUrl = process.env.REACT_APP_API_URL || "";
+      fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
     }
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = fileUrl;
-    link.setAttribute('download', `${articleTitle.replace(/\s+/g, '_')}_image.jpg`);
+    link.setAttribute(
+      "download",
+      `${articleTitle.replace(/\s+/g, "_")}_image.jpg`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   } catch (error) {
-    console.error('Erreur lors du téléchargement:', error);
+    console.error("Erreur lors du téléchargement:", error);
     openArticleFile(filePath);
   }
 };
@@ -129,8 +153,8 @@ export const useGetAllArticles = () =>
   useQuery({
     queryKey: articleKeys.lists(),
     queryFn: getAllArticles,
-    staleTime: 60 * 60 * 1000, 
-    gcTime: 30 * 60 * 1000, 
+    staleTime: 60 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 1,
   });
 
@@ -140,10 +164,14 @@ export const useGetAvailableCategories = () =>
     queryKey: articleKeys.categories(),
     queryFn: getAvailableCategories,
     staleTime: 60 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
 // Hooks pour les pages de détail
-export const useGetArticleBySlug = (slug: string, options?: {enabled?: boolean}) =>
+export const useGetArticleBySlug = (
+  slug: string,
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: articleKeys.detail(slug),
     queryFn: () => getArticleBySlug(slug),
@@ -151,12 +179,15 @@ export const useGetArticleBySlug = (slug: string, options?: {enabled?: boolean})
     staleTime: 10 * 60 * 1000,
   });
 
-export const useGetArticleById = (id: number, options?: { enabled?: boolean }) =>
+export const useGetArticleById = (
+  id: number,
+  options?: { enabled?: boolean },
+) =>
   useQuery({
     queryKey: articleKeys.detailById(id),
     queryFn: () => getArticleById(id),
     enabled: options?.enabled ?? !!id,
-    staleTime:  10* 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
 // HOOKS DÉSACTIVÉS pour compatibilité
@@ -191,10 +222,15 @@ export const useGetCategoriesWithCount = () =>
 // Mutations (restent identiques)
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ request, file }: { request: ArticleCreationRequest; file?: File }) =>
-      createArticle(request, file),
+    mutationFn: ({
+      request,
+      file,
+    }: {
+      request: ArticleCreationRequest;
+      file?: File;
+    }) => createArticle(request, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
     },
@@ -203,21 +239,32 @@ export const useCreateArticle = () => {
 
 export const useUpdateArticle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, request, file }: { id: number; request: ArticleUpdateRequest; file?: File }) =>
-      updateArticle(id, request, file),
+    mutationFn: ({
+      id,
+      request,
+      file,
+    }: {
+      id: number;
+      request: ArticleUpdateRequest;
+      file?: File;
+    }) => updateArticle(id, request, file),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
-      queryClient.invalidateQueries({ queryKey: articleKeys.detail(data.slug) });
-      queryClient.invalidateQueries({ queryKey: articleKeys.detailById(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: articleKeys.detail(data.slug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: articleKeys.detailById(variables.id),
+      });
     },
   });
 };
 
 export const useDeleteArticle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteArticle,
     onSuccess: () => {

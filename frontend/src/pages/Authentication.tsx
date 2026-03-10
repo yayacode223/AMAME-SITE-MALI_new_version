@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
@@ -123,10 +122,10 @@ const Login = () => {
                   Retour à l'accueil
                 </Link>
               </Button>
-              
+
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
                 <img
-                  src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
+                  src="/amame-uploads/amame-logo.webp"
                   alt="AMAME Logo"
                   className="w-6 h-6 sm:w-8 sm:h-8"
                 />
@@ -157,7 +156,7 @@ const Login = () => {
                   Entrez vos identifiants pour accéder à votre compte
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent>
                 <Form {...form}>
                   <form
@@ -186,7 +185,7 @@ const Login = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="password"
@@ -204,7 +203,7 @@ const Login = () => {
                             </Link>
                           </div>
                           <FormControl>
-                            <PasswordInput 
+                            <PasswordInput
                               field={field}
                               placeholder="••••••••"
                               disabled={isLoggingIn}
@@ -216,8 +215,8 @@ const Login = () => {
                       )}
                     />
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={isLoggingIn}
                       className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold text-base rounded-lg transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
                     >
@@ -247,7 +246,7 @@ const Login = () => {
                     >
                       Créer un compte
                     </Link>
-                  </p>                    
+                  </p>
                 </div>
               </CardFooter>
             </Card>

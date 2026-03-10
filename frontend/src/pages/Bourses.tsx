@@ -1,9 +1,9 @@
 // Bourses.tsx - VERSION COMPLÈTE OPTIMISÉE
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import BourseCardItem from '../components/BourseCardItem';
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import BourseCardItem from "../components/BourseCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,9 +14,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, MapPin, GraduationCap, SearchX, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useGetBourses, useGetBourseByFilter, useGetBourseBySearch } from '@/service/bourseService';
-import { BourseFilterParams, BourseSearchRequest} from '@/types/bourseType';
+import {
+  Search,
+  Filter,
+  MapPin,
+  GraduationCap,
+  SearchX,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  useGetBourses,
+  useGetBourseByFilter,
+  useGetBourseBySearch,
+} from "@/service/bourseService";
+import { BourseFilterParams, BourseSearchRequest } from "@/types/bourseType";
 
 const Bourses = () => {
   // États locaux pour les filtres et la recherche
@@ -25,42 +37,44 @@ const Bourses = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
 
   // Déterminer quels appels activer
-  const hasSearch = Boolean(searchTerm.titre && searchTerm.titre.trim() !== '');
+  const hasSearch = Boolean(searchTerm.titre && searchTerm.titre.trim() !== "");
   const hasFilter = Boolean(filter.niveau || filter.pays);
 
   // Paramètres communs
   const commonParams = {
-    page: currentPage, 
-    size: 9, 
-    sortBy: 'dateLimite', 
-    sortDirection: 'DESC' 
+    page: currentPage,
+    size: 9,
+    sortBy: "dateLimite",
+    sortDirection: "DESC",
   };
 
   // Appels API avec TOUS les paramètres dans les queryKeys
   const { data: bourses, isLoading: isBourseDataLoading } = useGetBourses(
     commonParams,
-    { enabled: !hasSearch && !hasFilter }
+    { enabled: !hasSearch && !hasFilter },
   );
 
-  const { data: filteredBySearchBourses, isLoading: isSearchLoading } = useGetBourseBySearch(
-    {
-      ...commonParams,
-      titre: searchTerm.titre || undefined,
-      description: undefined,
-      pays: undefined,
-    },
-    { enabled: hasSearch }
-  );
+  const { data: filteredBySearchBourses, isLoading: isSearchLoading } =
+    useGetBourseBySearch(
+      {
+        ...commonParams,
+        titre: searchTerm.titre || undefined,
+        description: undefined,
+        pays: undefined,
+      },
+      { enabled: hasSearch },
+    );
 
-  const { data: filteredByFilterBourses, isLoading: isFilterLoading } = useGetBourseByFilter(
-    {
-      ...commonParams,
-      categorie: undefined,
-      niveau: filter.niveau || undefined,
-      pays: filter.pays || undefined,
-    },
-    { enabled: hasFilter && !hasSearch }
-  );
+  const { data: filteredByFilterBourses, isLoading: isFilterLoading } =
+    useGetBourseByFilter(
+      {
+        ...commonParams,
+        categorie: undefined,
+        niveau: filter.niveau || undefined,
+        pays: filter.pays || undefined,
+      },
+      { enabled: hasFilter && !hasSearch },
+    );
 
   // Déterminer quelle source de données utiliser
   const filteredBourses = useMemo(() => {
@@ -72,11 +86,11 @@ const Bourses = () => {
     }
     return bourses || null;
   }, [
-    bourses, 
-    filteredBySearchBourses, 
-    filteredByFilterBourses, 
-    hasSearch, 
-    hasFilter
+    bourses,
+    filteredBySearchBourses,
+    filteredByFilterBourses,
+    hasSearch,
+    hasFilter,
   ]);
 
   // État de chargement combiné
@@ -104,25 +118,25 @@ const Bourses = () => {
 
   // Handlers
   const handleSearchChange = (value: string) => {
-    setSearchTerm({ 
-      ...searchTerm, 
-      titre: value 
+    setSearchTerm({
+      ...searchTerm,
+      titre: value,
     });
     setCurrentPage(0);
   };
 
   const handleNiveauChange = (value: string) => {
-    setFilter({ 
-      ...filter, 
-      niveau: value === "all" ? undefined : value 
+    setFilter({
+      ...filter,
+      niveau: value === "all" ? undefined : value,
     });
     setCurrentPage(0);
   };
 
   const handlePaysChange = (value: string) => {
-    setFilter({ 
-      ...filter, 
-      pays: value === "all" ? undefined : value 
+    setFilter({
+      ...filter,
+      pays: value === "all" ? undefined : value,
     });
     setCurrentPage(0);
   };
@@ -138,27 +152,27 @@ const Bourses = () => {
   // Navigation entre pages
   const handleNextPage = () => {
     if (filteredBourses?.hasNext) {
-      setCurrentPage(prev => prev + 1);
-      window.scrollTo({ top: 600, behavior: 'smooth' });
+      setCurrentPage((prev) => prev + 1);
+      window.scrollTo({ top: 600, behavior: "smooth" });
     }
   };
 
   const handlePreviousPage = () => {
     if (filteredBourses?.hasPrevious) {
-      setCurrentPage(prev => prev - 1);
-      window.scrollTo({ top: 600, behavior: 'smooth' });
+      setCurrentPage((prev) => prev - 1);
+      window.scrollTo({ top: 600, behavior: "smooth" });
     }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 600, behavior: 'smooth' });
+    window.scrollTo({ top: 600, behavior: "smooth" });
   };
 
   // Générer les numéros de page à afficher
   const getPageNumbers = () => {
     if (!filteredBourses) return [];
-    
+
     const totalPages = filteredBourses.totalPages;
     const current = filteredBourses.currentPage + 1;
     const delta = 2;
@@ -166,7 +180,11 @@ const Bourses = () => {
     const rangeWithDots = [];
 
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= current - delta && i <= current + delta)
+      ) {
         range.push(i);
       }
     }
@@ -174,7 +192,7 @@ const Bourses = () => {
     let prev = 0;
     for (const i of range) {
       if (i - prev > 1) {
-        rangeWithDots.push('...');
+        rangeWithDots.push("...");
       }
       rangeWithDots.push(i);
       prev = i;
@@ -186,7 +204,7 @@ const Bourses = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
       <Navbar />
-      
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-purple-500 to-blue-500 text-white py-5 lg:py-10">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -201,8 +219,9 @@ const Bourses = () => {
               <span className="block text-yellow-300">Bourse Idéale</span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed px-4">
-              Des milliers d'opportunités de bourses internationales vous attendent. 
-              Filtrez par pays, niveau d'études et trouvez la bourse parfaite.
+              Des milliers d'opportunités de bourses internationales vous
+              attendent. Filtrez par pays, niveau d'études et trouvez la bourse
+              parfaite.
             </p>
           </motion.div>
         </div>
@@ -228,7 +247,7 @@ const Bourses = () => {
                   <Input
                     type="text"
                     placeholder="Titre, description..."
-                    value={searchTerm.titre || ''}
+                    value={searchTerm.titre || ""}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="h-12 pl-11 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl"
                   />
@@ -242,7 +261,10 @@ const Bourses = () => {
                   <GraduationCap className="h-4 w-4 mr-2 text-blue-600" />
                   Niveau d'études
                 </label>
-                <Select value={getSelectValue(filter.niveau)} onValueChange={handleNiveauChange}>
+                <Select
+                  value={getSelectValue(filter.niveau)}
+                  onValueChange={handleNiveauChange}
+                >
                   <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
@@ -262,7 +284,10 @@ const Bourses = () => {
                   <MapPin className="h-4 w-4 mr-2 text-green-600" />
                   Pays
                 </label>
-                <Select value={getSelectValue(filter.pays)} onValueChange={handlePaysChange}>
+                <Select
+                  value={getSelectValue(filter.pays)}
+                  onValueChange={handlePaysChange}
+                >
                   <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les pays" />
                   </SelectTrigger>
@@ -321,7 +346,8 @@ const Bourses = () => {
                   </motion.div>
                 ))}
               </div>
-            ) : !filteredBourses || filteredBourses.bourseSummaryDtos.length === 0 ? (
+            ) : !filteredBourses ||
+              filteredBourses.bourseSummaryDtos.length === 0 ? (
               <motion.div
                 key="empty-state"
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -336,10 +362,10 @@ const Bourses = () => {
                   Aucune bourse trouvée
                 </h3>
                 <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-md mx-auto mb-6 sm:mb-8 px-4">
-                  Aucune bourse ne correspond à vos critères de recherche. 
+                  Aucune bourse ne correspond à vos critères de recherche.
                   Essayez de modifier vos filtres.
                 </p>
-                <Button 
+                <Button
                   onClick={resetFilters}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base"
                 >
@@ -359,7 +385,8 @@ const Bourses = () => {
                       Bourses Disponibles
                     </h2>
                     <p className="text-gray-600 text-sm sm:text-base">
-                      {filteredBourses.totalElements} bourse{filteredBourses.totalElements > 1 ? 's' : ''} 
+                      {filteredBourses.totalElements} bourse
+                      {filteredBourses.totalElements > 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>
@@ -373,7 +400,7 @@ const Bourses = () => {
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       whileHover={{ y: -4 }}
                     >
-                      <BourseCardItem 
+                      <BourseCardItem
                         id={bourse.id}
                         titre={bourse.titre}
                         descriptionCourte={bourse.descriptionCourte}
@@ -390,16 +417,17 @@ const Bourses = () => {
                 </div>
 
                 {filteredBourses.totalPages > 1 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="flex flex-col items-center gap-3 sm:gap-4 mt-8 sm:mt-12"
                   >
                     <div className="text-xs sm:text-sm text-gray-600 text-center">
-                      Page {filteredBourses.currentPage + 1} sur {filteredBourses.totalPages}
+                      Page {filteredBourses.currentPage + 1} sur{" "}
+                      {filteredBourses.totalPages}
                     </div>
-                    
+
                     {/* Version mobile simple */}
                     <div className="sm:hidden flex items-center justify-between w-full gap-3">
                       <Button
@@ -412,11 +440,12 @@ const Bourses = () => {
                         <ChevronLeft className="w-4 h-4" />
                         Précédent
                       </Button>
-                      
+
                       <div className="text-sm font-medium text-gray-700 px-3">
-                        {filteredBourses.currentPage + 1}/{filteredBourses.totalPages}
+                        {filteredBourses.currentPage + 1}/
+                        {filteredBourses.totalPages}
                       </div>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -443,27 +472,34 @@ const Bourses = () => {
                       </Button>
 
                       <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, index) => (
-                          page === '...' ? (
-                            <span key={`dots-${index}`} className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm">
+                        {getPageNumbers().map((page, index) =>
+                          page === "..." ? (
+                            <span
+                              key={`dots-${index}`}
+                              className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm"
+                            >
                               ...
                             </span>
                           ) : (
                             <Button
                               key={page}
-                              variant={filteredBourses.currentPage + 1 === page ? "default" : "outline"}
+                              variant={
+                                filteredBourses.currentPage + 1 === page
+                                  ? "default"
+                                  : "outline"
+                              }
                               size="sm"
                               className={`w-8 h-8 sm:w-10 sm:h-10 px-0 ${
-                                filteredBourses.currentPage + 1 === page 
-                                  ? 'bg-purple-600 text-white' 
-                                  : 'hover:bg-gray-100'
+                                filteredBourses.currentPage + 1 === page
+                                  ? "bg-purple-600 text-white"
+                                  : "hover:bg-gray-100"
                               }`}
                               onClick={() => handlePageChange(Number(page) - 1)}
                             >
                               {page}
                             </Button>
-                          )
-                        ))}
+                          ),
+                        )}
                       </div>
 
                       <Button

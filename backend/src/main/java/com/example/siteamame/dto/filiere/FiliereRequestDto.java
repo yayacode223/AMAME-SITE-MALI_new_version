@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,8 +31,8 @@ public class FiliereRequestDto {
     private String salaireDebut;
     private String salaireExperience;
     private String perspectives;
-    private List<String> debouches;
-    private List<String> competences;
-    private List<String> universites;
-    private List<String> prerequis;
+    private Set<String> debouches;
+    private Set<String> competences;
+    private Set<String> universites;
+    private Set<String> prerequis;
 }

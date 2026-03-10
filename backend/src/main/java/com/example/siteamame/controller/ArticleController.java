@@ -8,6 +8,7 @@ import com.example.siteamame.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,21 +25,25 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
+    @Transactional
     @GetMapping("/visitor/articles")
     public ResponseEntity<List<ArticleSummaryDto>> getAllArticles() {
         return ResponseEntity.ok(articleService.getAllArticles());
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/{id}")
     public ResponseEntity<ArticleDto> getArticleById(@PathVariable Long id) {
         return ResponseEntity.ok(articleService.getArticleById(id));
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/slug/{slug}")
     public ResponseEntity<ArticleDto> getArticleBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(articleService.getArticleBySlug(slug));
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/search")
     public ResponseEntity<List<ArticleSummaryDto>> searchArticles(
             @RequestParam(required = false) String search,
@@ -49,11 +54,13 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.searchArticles(request));
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/popular")
     public ResponseEntity<List<ArticleSummaryDto>> getPopularArticles() {
         return ResponseEntity.ok(articleService.getPopularArticles());
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/categorie/{categorie}")
     public ResponseEntity<List<ArticleSummaryDto>> getArticlesByCategorie(
             @PathVariable String categorie) {
@@ -67,6 +74,7 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getSimilarArticles(id, categorie));
     }
 
+    @Transactional
     @GetMapping("/visitor/articles/categories")
     public ResponseEntity<Map<String, Long>> getCategoriesWithCount() {
         List<String> categories = articleService.getCategoriesWithCount();
@@ -78,6 +86,7 @@ public class ArticleController {
         return ResponseEntity.ok(categoriesWithCount);
     }
 
+    @Transactional
     @PostMapping("/admin/articles")
     public ResponseEntity<ArticleDto> createArticle(
             @RequestPart(value = "article") @Valid ArticleCreationRequest request,
@@ -85,6 +94,7 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.createArticle(request, file));
     }
 
+    @Transactional
     @PutMapping("/admin/articles/{id}")
     public ResponseEntity<ArticleDto> updateArticle (
             @PathVariable  Long id,
@@ -94,6 +104,7 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.updateArticle(id, articleDto, file));
     }
 
+    @Transactional
     @DeleteMapping("/admin/articles/{id}")
     public ResponseEntity<Void> deleteArticle (@PathVariable Long id){
         articleService.deleteArticle(id);

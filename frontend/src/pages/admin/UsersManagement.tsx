@@ -1,33 +1,38 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { PlusIcon, MagnifyingGlassIcon, UserIcon } from '@heroicons/react/24/outline';
-import DataTable from '@/components/admin/DataTable';
-import { useGetAllUsers, useDeleteUserMutation } from '@/service/userService';
-import { RegisterResponse, Sexe, Role } from '@/types/userType';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
+import DataTable from "@/components/admin/DataTable";
+import { useGetAllUsers, useDeleteUserMutation } from "@/service/userService";
+import { RegisterResponse, Sexe, Role } from "@/types/userType";
 
-
-// const url = import.meta.env.BASE; 
-const url = 'https://amame.ml';
+// const url = import.meta.env.BASE;
+const url = "https://amame.ml";
 
 const UsersManagement: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: users, isLoading } = useGetAllUsers({ enabled: true });
   const deleteUserMutation = useDeleteUserMutation();
 
-  const filteredUsers = users?.filter(user =>
-    user.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredUsers =
+    users?.filter(
+      (user) =>
+        user.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || [];
 
   const getSexeLabel = (sexe: Sexe) => {
-    return sexe === 'HOMME' ? 'Homme' : 'Femme';
+    return sexe === "HOMME" ? "Homme" : sexe === "FEMME" ? "Femme" : "Non renseigné";
   };
 
   const columns = [
-    { 
-      key: 'nom', 
-      label: 'Utilisateur',
+    {
+      key: "nom",
+      label: "Utilisateur",
       render: (value: string, row: RegisterResponse) => (
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10">
@@ -50,58 +55,72 @@ const UsersManagement: React.FC = () => {
             <div className="text-sm text-gray-500">{row.email}</div>
           </div>
         </div>
-      )
+      ),
     },
-    { 
-      key: 'sexe', 
-      label: 'Sexe',
+    {
+      key: "sexe",
+      label: "Sexe",
       render: (value: Sexe) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
           {getSexeLabel(value)}
         </span>
-      )
+      ),
     },
-    { 
-      key: 'role', 
-      label: 'Rôle',
+    {
+      key: "role",
+      label: "Rôle",
       render: (value: Role) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-        }`}>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            value === "ADMIN"
+              ? "bg-purple-200 text-purple-800"
+              : value === "SUPERADMIN"
+              ? "bg-red-200 text-red-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {value}
         </span>
-      )
+      ),
     },
-    { 
-      key: 'ville', 
-      label: 'Localisation',
+    {
+      key: "ville",
+      label: "Localisation",
       render: (value: string, row: RegisterResponse) => (
         <div>
-          <div className="text-sm text-gray-900">{value || 'Non renseigné'}</div>
-          {row.pays && (
-            <div className="text-sm text-gray-500">{row.pays}</div>
-          )}
+          <div className="text-sm text-gray-900">
+            {value || "Non renseigné"}
+          </div>
+          {row.pays && <div className="text-sm text-gray-500">{row.pays}</div>}
         </div>
-      )
+      ),
     },
-    { 
-      key: 'niveauEtude', 
-      label: 'Niveau d\'étude',
+    {
+      key: "niveauEtude",
+      label: "Niveau d'étude",
       render: (value: string) => (
-        <span className="text-sm text-gray-900">{value || 'Non renseigné'}</span>
-      )
+        <span className="text-sm text-gray-900">
+          {value || "Non renseigné"}
+        </span>
+      ),
     },
-    { 
-      key: 'phone', 
-      label: 'Téléphone',
+    {
+      key: "phone",
+      label: "Téléphone",
       render: (value: string) => (
-        <span className="text-sm text-gray-900">{value || 'Non renseigné'}</span>
-      )
+        <span className="text-sm text-gray-900">
+          {value || "Non renseigné"}
+        </span>
+      ),
     },
   ];
 
   const handleDelete = (user: RegisterResponse) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`)) {
+    if (
+      window.confirm(
+        `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`,
+      )
+    ) {
       deleteUserMutation.mutate(user.id!);
     }
   };
@@ -118,7 +137,9 @@ const UsersManagement: React.FC = () => {
     <div>
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Gestion des utilisateurs</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Gestion des utilisateurs
+          </h1>
           <p className="mt-2 text-sm text-gray-700">
             Gérez les comptes utilisateurs de la plateforme
           </p>
@@ -149,9 +170,9 @@ const UsersManagement: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           {/* Filtres */}
-           {/* <div className="flex gap-2">
+          {/* <div className="flex gap-2">
             <select
               title="Filtrer par rôle"
               aria-label="Filtrer par rôle"
@@ -164,7 +185,6 @@ const UsersManagement: React.FC = () => {
               <option value="ADMIN">Administrateur</option>
               <option value="USER">Utilisateur</option>
             </select>
-            
             <select
               title="Filtrer par sexe"
               aria-label="Filtrer par sexe"

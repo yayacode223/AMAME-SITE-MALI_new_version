@@ -1,28 +1,37 @@
-// pages/admin/UserDetail.tsx
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeftIcon, UserIcon, DocumentIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
-import { useGetUserById } from '@/service/userService';
-import {Sexe} from '@/types/userType';
+import React from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  ArrowLeftIcon,
+  UserIcon,
+  DocumentIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+  AcademicCapIcon,
+} from "@heroicons/react/24/outline";
+import { useGetUserById } from "@/service/userService";
+import { Sexe } from "@/types/userType";
+import { useAuth } from "@/context/AuthContext";
 
-const url = 'https://amame.ml'; 
+const url = "https://amame.ml";
 
 const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: user, isLoading } = useGetUserById(parseInt(id || '0'));
+  const { data: user, isLoading } = useGetUserById(parseInt(id || "0"));
+  const { user: authUser } = useAuth();
 
   const getSexeLabel = (sexe: Sexe) => {
-    return sexe === 'HOMME' ? 'Homme' : 'Femme';
+    return sexe === "HOMME" ? "Homme" : "Femme";
   };
 
   const getNiveauEtudeLabel = (niveau: string) => {
     const niveaux: Record<string, string> = {
-      'BAC': 'Baccalauréat',
-      'BAC+2': 'Bac+2 (BTS, DUT)',
-      'LICENCE': 'Licence (Bac+3)',
-      'MASTER': 'Master (Bac+5)',
-      'DOCTORAT': 'Doctorat (Bac+8)',
-      'AUTRE': 'Autre'
+      BAC: "Baccalauréat",
+      "BAC+2": "Bac+2 (BTS, DUT)",
+      LICENCE: "Licence (Bac+3)",
+      MASTER: "Master (Bac+5)",
+      DOCTORAT: "Doctorat (Bac+8)",
+      AUTRE: "Autre",
     };
     return niveaux[niveau] || niveau;
   };
@@ -42,7 +51,9 @@ const UserDetail: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900">Utilisateur non trouvé</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Utilisateur non trouvé
+          </h1>
           <Link
             to="/admin/users"
             className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mt-4"
@@ -90,9 +101,15 @@ const UserDetail: React.FC = () => {
               </h1>
               <p className="text-indigo-200">{user.email}</p>
               <div className="mt-2 flex items-center space-x-4">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    user.role === "ADMIN"
+                      ? "bg-purple-100 text-purple-800"
+                      : user.role === "SUPERADMIN"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   {user.role}
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -108,44 +125,59 @@ const UserDetail: React.FC = () => {
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {/* Informations personnelles */}
             <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h2>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
+                Informations personnelles
+              </h2>
               <dl className="space-y-4">
                 <>
                   <dt className="flex items-start">
                     <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">Email</span>
+                    <span className="text-sm font-medium text-gray-500">
+                      Email
+                    </span>
                   </dt>
                   <dd className="text-sm text-gray-900 ml-8">{user.email}</dd>
                 </>
                 <>
                   <dt className="flex items-start">
                     <PhoneIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">Téléphone</span>
+                    <span className="text-sm font-medium text-gray-500">
+                      Téléphone
+                    </span>
                   </dt>
-                  <dd className="text-sm text-gray-900 ml-8">{user.phone || 'Non renseigné'}</dd>
+                  <dd className="text-sm text-gray-900 ml-8">
+                    {user.phone || "Non renseigné"}
+                  </dd>
                 </>
                 <>
                   <dt className="flex items-start">
                     <MapPinIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">Adresse</span>
+                    <span className="text-sm font-medium text-gray-500">
+                      Adresse
+                    </span>
                   </dt>
                   <dd className="text-sm text-gray-900 ml-8">
                     {user.adresse ? (
                       <>
                         {user.adresse}
                         <br />
-                        {user.codePostal && `${user.codePostal} `}{user.ville}
+                        {user.codePostal && `${user.codePostal} `}
+                        {user.ville}
                         {user.pays && <>, {user.pays}</>}
                       </>
                     ) : (
-                      'Non renseignée'
+                      "Non renseignée"
                     )}
                   </dd>
                 </>
                 <>
-                  <dt className="text-sm font-medium text-gray-500">Date de naissance</dt>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Date de naissance
+                  </dt>
                   <dd className="text-sm text-gray-900">
-                    {user.birthDate ? new Date(user.birthDate).toLocaleDateString('fr-FR') : 'Non renseignée'}
+                    {user.birthDate
+                      ? new Date(user.birthDate).toLocaleDateString("fr-FR")
+                      : "Non renseignée"}
                   </dd>
                 </>
               </dl>
@@ -153,24 +185,34 @@ const UserDetail: React.FC = () => {
 
             {/* Informations académiques */}
             <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Informations académiques</h2>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
+                Informations académiques
+              </h2>
               <dl className="space-y-4">
                 <>
                   <dt className="flex items-start">
                     <AcademicCapIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">Niveau d'étude</span>
+                    <span className="text-sm font-medium text-gray-500">
+                      Niveau d'étude
+                    </span>
                   </dt>
                   <dd className="text-sm text-gray-900 ml-8">
-                    {user.niveauEtude ? getNiveauEtudeLabel(user.niveauEtude) : 'Non renseigné'}
+                    {user.niveauEtude
+                      ? getNiveauEtudeLabel(user.niveauEtude)
+                      : "Non renseigné"}
                   </dd>
                 </>
-                
+
                 <>
                   <dt className="text-sm font-medium text-gray-500">Rôle</dt>
                   <dd className="text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.role === "ADMIN"
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {user.role}
                     </span>
                   </dd>
@@ -179,20 +221,26 @@ const UserDetail: React.FC = () => {
 
               {/* Documents */}
               <div className="mt-6">
-                <h3 className="text-md font-medium text-gray-900 mb-3">Documents</h3>
+                <h3 className="text-md font-medium text-gray-900 mb-3">
+                  Documents
+                </h3>
                 <div className="space-y-2">
                   {user.cvPath ? (
                     <a
-                      href={`${url}/${user.cvPath}`}    
+                      href={`${url}/${user.cvPath}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                     >
                       <DocumentIcon className="h-5 w-5 text-gray-400 mr-3" />
-                      <span className="text-sm font-medium text-gray-900">CV de l'utilisateur</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {authUser.id === user.id ? "Mon CV" : "Le CV de l'utilisateur"}
+                      </span>
                     </a>
                   ) : (
-                    <p className="text-sm text-gray-500">Aucun document disponible</p>
+                    <p className="text-sm text-gray-500">
+                      Aucun document disponible
+                    </p>
                   )}
                 </div>
               </div>
@@ -200,6 +248,7 @@ const UserDetail: React.FC = () => {
           </div>
 
           {/* Actions */}
+          {(user.id === authUser?.id || authUser?.role === "SUPERADMIN") && (
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="flex justify-end space-x-3">
               <Link
@@ -210,7 +259,11 @@ const UserDetail: React.FC = () => {
               </Link>
               <button
                 onClick={() => {
-                  if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`)) {
+                  if (
+                    window.confirm(
+                      `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`,
+                    )
+                  ) {
                     // Implémentez la suppression
                   }
                 }}
@@ -219,7 +272,7 @@ const UserDetail: React.FC = () => {
                 Supprimer
               </button>
             </div>
-          </div>
+          </div>)}
         </div>
       </div>
     </div>

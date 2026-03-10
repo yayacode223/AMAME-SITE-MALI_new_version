@@ -1,9 +1,9 @@
 // Concours.tsx - VERSION COMPLÈTE OPTIMISÉE POUR MOBILE
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import ConcoursCardItem from '../components/ConcoursCardItem';
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import ConcoursCardItem from "../components/ConcoursCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,50 +14,68 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, GraduationCap, Target, SearchX, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useConcoursLists, useConcoursFilter, useConcoursSearch } from '@/service/concoursService';
-import { ConcoursFilterParams, NiveauType, StatusType } from "@/types/concoursType";
+import {
+  Search,
+  Filter,
+  GraduationCap,
+  Target,
+  SearchX,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  useConcoursLists,
+  useConcoursFilter,
+  useConcoursSearch,
+} from "@/service/concoursService";
+import {
+  ConcoursFilterParams,
+  NiveauType,
+  StatusType,
+} from "@/types/concoursType";
 
 const Concours = () => {
   // États locaux pour les filtres et la recherche
   const [filter, setFilter] = useState<ConcoursFilterParams>({});
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(0);
 
   // Déterminer quels appels activer
-  const hasSearch = Boolean(searchTerm && searchTerm.trim() !== '');
+  const hasSearch = Boolean(searchTerm && searchTerm.trim() !== "");
   const hasNiveauFilter = Boolean(filter.niveau);
   const hasStatusFilter = Boolean(filter.status);
 
   // Paramètres communs
   const commonParams = {
-    page: currentPage, 
-    size: 9, 
-    sortBy: 'dateLimite', 
-    sortDirection: 'ASC'
+    page: currentPage,
+    size: 9,
+    sortBy: "dateLimite",
+    sortDirection: "ASC",
   };
 
   // Appels API
   const { data: concours, isLoading: isConcoursLoading } = useConcoursLists(
     commonParams,
-    { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter }
+    { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter },
   );
 
-  const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } = useConcoursFilter(
-    {
-      ...commonParams,
-      ...filter
-    },
-    { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch }
-  );
+  const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } =
+    useConcoursFilter(
+      {
+        ...commonParams,
+        ...filter,
+      },
+      { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch },
+    );
 
-  const { data: searchedConcours, isLoading: isSearchLoading } = useConcoursSearch(
-    {
-      ...commonParams,
-      search: searchTerm
-    },
-    { enabled: hasSearch }
-  );
+  const { data: searchedConcours, isLoading: isSearchLoading } =
+    useConcoursSearch(
+      {
+        ...commonParams,
+        search: searchTerm,
+      },
+      { enabled: hasSearch },
+    );
 
   // Déterminer quelle source de données utiliser
   const filteredConcours = useMemo(() => {
@@ -69,16 +87,17 @@ const Concours = () => {
     }
     return concours || null;
   }, [
-    concours, 
-    concoursByFilter,  
+    concours,
+    concoursByFilter,
     searchedConcours,
-    hasSearch, 
-    hasNiveauFilter, 
-    hasStatusFilter
+    hasSearch,
+    hasNiveauFilter,
+    hasStatusFilter,
   ]);
 
   // État de chargement combiné
-  const isLoading = isConcoursLoading || isConcoursByFilterLoading || isSearchLoading;
+  const isLoading =
+    isConcoursLoading || isConcoursByFilterLoading || isSearchLoading;
 
   // Options pour les filtres
   const niveauOptions = [
@@ -106,9 +125,9 @@ const Concours = () => {
       const { niveau, ...rest } = filter;
       setFilter(rest);
     } else {
-      setFilter({ 
-        ...filter, 
-        niveau: value as NiveauType 
+      setFilter({
+        ...filter,
+        niveau: value as NiveauType,
       });
     }
     setCurrentPage(0);
@@ -119,9 +138,9 @@ const Concours = () => {
       const { status, ...rest } = filter;
       setFilter(rest);
     } else {
-      setFilter({ 
-        ...filter, 
-        status: value as StatusType
+      setFilter({
+        ...filter,
+        status: value as StatusType,
       });
     }
     setCurrentPage(0);
@@ -129,7 +148,7 @@ const Concours = () => {
 
   const resetFilters = () => {
     setFilter({});
-    setSearchTerm('');
+    setSearchTerm("");
     setCurrentPage(0);
   };
 
@@ -138,27 +157,27 @@ const Concours = () => {
   // Navigation entre pages
   const handleNextPage = () => {
     if (filteredConcours?.hasNext) {
-      setCurrentPage(prev => prev + 1);
-      window.scrollTo({ top: 600, behavior: 'smooth' });
+      setCurrentPage((prev) => prev + 1);
+      window.scrollTo({ top: 600, behavior: "smooth" });
     }
   };
 
   const handlePreviousPage = () => {
     if (filteredConcours?.hasPrevious) {
-      setCurrentPage(prev => prev - 1);
-      window.scrollTo({ top: 600, behavior: 'smooth' });
+      setCurrentPage((prev) => prev - 1);
+      window.scrollTo({ top: 600, behavior: "smooth" });
     }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 600, behavior: 'smooth' });
+    window.scrollTo({ top: 600, behavior: "smooth" });
   };
 
   // Générer les numéros de page à afficher
   const getPageNumbers = () => {
     if (!filteredConcours) return [];
-    
+
     const totalPages = filteredConcours.totalPages;
     const current = filteredConcours.currentPage + 1;
     const delta = 2;
@@ -166,7 +185,11 @@ const Concours = () => {
     const rangeWithDots = [];
 
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= current - delta && i <= current + delta)
+      ) {
         range.push(i);
       }
     }
@@ -174,7 +197,7 @@ const Concours = () => {
     let prev = 0;
     for (const i of range) {
       if (i - prev > 1) {
-        rangeWithDots.push('...');
+        rangeWithDots.push("...");
       }
       rangeWithDots.push(i);
       prev = i;
@@ -186,7 +209,7 @@ const Concours = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
       <Navbar />
-      
+
       {/* Hero Section - Optimisé pour mobile */}
       <section className="relative bg-gradient-to-br from-purple-500 to-blue-500 text-white py-8 sm:py-10 lg:py-16">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -201,8 +224,9 @@ const Concours = () => {
               <span className="block text-yellow-300">Concours Idéaux</span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed px-4">
-              Des centaines de concours nationaux et internationaux vous attendent. 
-              Filtrez par niveau et statut pour trouver l'opportunité parfaite.
+              Des centaines de concours nationaux et internationaux vous
+              attendent. Filtrez par niveau et statut pour trouver l'opportunité
+              parfaite.
             </p>
           </motion.div>
         </div>
@@ -242,7 +266,10 @@ const Concours = () => {
                   <GraduationCap className="h-4 w-4 mr-2 text-blue-600" />
                   Niveau d'études
                 </label>
-                <Select value={getSelectValue(filter.niveau)} onValueChange={handleNiveauChange}>
+                <Select
+                  value={getSelectValue(filter.niveau)}
+                  onValueChange={handleNiveauChange}
+                >
                   <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
@@ -262,7 +289,10 @@ const Concours = () => {
                   <Target className="h-4 w-4 mr-2 text-green-600" />
                   Statut
                 </label>
-                <Select value={getSelectValue(filter.status)} onValueChange={handleStatusChange}>
+                <Select
+                  value={getSelectValue(filter.status)}
+                  onValueChange={handleStatusChange}
+                >
                   <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
                     <SelectValue placeholder="Tous les statuts" />
                   </SelectTrigger>
@@ -336,19 +366,17 @@ const Concours = () => {
                   Aucun concours trouvé
                 </h3>
                 <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-md mx-auto mb-6 sm:mb-8 px-4">
-                  {hasSearch || hasNiveauFilter || hasStatusFilter 
+                  {hasSearch || hasNiveauFilter || hasStatusFilter
                     ? "Aucun concours ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
-                    : "Aucun concours n'est disponible pour le moment. Revenez plus tard."
-                  }
+                    : "Aucun concours n'est disponible pour le moment. Revenez plus tard."}
                 </p>
-                <Button 
+                <Button
                   onClick={resetFilters}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base"
                 >
-                  {hasSearch || hasNiveauFilter || hasStatusFilter 
-                    ? "Voir tous les concours" 
-                    : "Actualiser la page"
-                  }
+                  {hasSearch || hasNiveauFilter || hasStatusFilter
+                    ? "Voir tous les concours"
+                    : "Actualiser la page"}
                 </Button>
               </motion.div>
             ) : (
@@ -364,21 +392,32 @@ const Concours = () => {
                       Concours Disponibles
                     </h2>
                     <p className="text-gray-600 text-sm sm:text-base">
-                      {filteredConcours.totalElements} concours{filteredConcours.totalElements > 1 ? '' : ''} 
+                      {filteredConcours.totalElements} concours
+                      {filteredConcours.totalElements > 1 ? "" : ""}
                     </p>
                   </div>
-                  
+
                   {/* Indicateurs de filtres actifs */}
                   {(hasNiveauFilter || hasStatusFilter) && (
                     <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                       {filter.niveau && (
                         <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Niveau: {niveauOptions.find(opt => opt.value === filter.niveau)?.label}
+                          Niveau:{" "}
+                          {
+                            niveauOptions.find(
+                              (opt) => opt.value === filter.niveau,
+                            )?.label
+                          }
                         </span>
                       )}
                       {filter.status && (
                         <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Statut: {statusOptions.find(opt => opt.value === filter.status)?.label}
+                          Statut:{" "}
+                          {
+                            statusOptions.find(
+                              (opt) => opt.value === filter.status,
+                            )?.label
+                          }
                         </span>
                       )}
                     </div>
@@ -394,7 +433,7 @@ const Concours = () => {
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       whileHover={{ y: -4 }}
                     >
-                      <ConcoursCardItem 
+                      <ConcoursCardItem
                         id={concours.id}
                         nom={concours.nom}
                         description={concours.description}
@@ -411,16 +450,17 @@ const Concours = () => {
                 </div>
 
                 {filteredConcours.totalPages > 1 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="flex flex-col items-center gap-3 sm:gap-4 mt-8 sm:mt-12"
                   >
                     <div className="text-xs sm:text-sm text-gray-600 text-center">
-                      Page {filteredConcours.currentPage + 1} sur {filteredConcours.totalPages}
+                      Page {filteredConcours.currentPage + 1} sur{" "}
+                      {filteredConcours.totalPages}
                     </div>
-                    
+
                     {/* Version mobile simple */}
                     <div className="sm:hidden flex items-center justify-between w-full gap-3">
                       <Button
@@ -433,11 +473,12 @@ const Concours = () => {
                         <ChevronLeft className="w-4 h-4" />
                         Précédent
                       </Button>
-                      
+
                       <div className="text-sm font-medium text-gray-700 px-3">
-                        {filteredConcours.currentPage + 1}/{filteredConcours.totalPages}
+                        {filteredConcours.currentPage + 1}/
+                        {filteredConcours.totalPages}
                       </div>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -464,27 +505,34 @@ const Concours = () => {
                       </Button>
 
                       <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, index) => (
-                          page === '...' ? (
-                            <span key={`dots-${index}`} className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm">
+                        {getPageNumbers().map((page, index) =>
+                          page === "..." ? (
+                            <span
+                              key={`dots-${index}`}
+                              className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm"
+                            >
                               ...
                             </span>
                           ) : (
                             <Button
                               key={page}
-                              variant={filteredConcours.currentPage + 1 === page ? "default" : "outline"}
+                              variant={
+                                filteredConcours.currentPage + 1 === page
+                                  ? "default"
+                                  : "outline"
+                              }
                               size="sm"
                               className={`w-8 h-8 sm:w-10 sm:h-10 px-0 ${
-                                filteredConcours.currentPage + 1 === page 
-                                  ? 'bg-purple-600 text-white' 
-                                  : 'hover:bg-gray-100'
+                                filteredConcours.currentPage + 1 === page
+                                  ? "bg-purple-600 text-white"
+                                  : "hover:bg-gray-100"
                               }`}
                               onClick={() => handlePageChange(Number(page) - 1)}
                             >
                               {page}
                             </Button>
-                          )
-                        ))}
+                          ),
+                        )}
                       </div>
 
                       <Button

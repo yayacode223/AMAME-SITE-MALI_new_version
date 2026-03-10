@@ -1,8 +1,6 @@
 package com.example.siteamame.config;
 
 import com.example.siteamame.security.jwt.JwtFilter;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +38,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/visitor/**", "uploads/**").permitAll()
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/visitor/**", "/uploads/**").permitAll()
+                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN", "SUPERADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN","SUPERADMIN")
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -60,7 +58,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // configuration.setAllowedOrigins(List.of(frontend, "*://*amame.ml*", "http://localhost:8081"));
-        configuration.setAllowedOriginPatterns(List.of(frontend, "https://*.amame.ml", "http://localhost:8081", "http://portainer.jokershosting.com:3001", "https://portainer.jokershosting.com:3001"));
+        configuration.setAllowedOriginPatterns(List.of(frontend, "https://*.amame.ml", "http://localhost:80")); //, "http://portainer.jokershosting.com:3001", "https://portainer.jokershosting.com:3001"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);

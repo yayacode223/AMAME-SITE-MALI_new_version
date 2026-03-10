@@ -8,6 +8,7 @@ import com.example.siteamame.service.FiliereService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,6 +56,7 @@ public class FiliereController {
         );
         return ResponseEntity.ok(domaines);
     }
+
 
     @PostMapping("/admin/filieres")
     public ResponseEntity<FiliereDto> ajouterFiliere(

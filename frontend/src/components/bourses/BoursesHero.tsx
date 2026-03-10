@@ -1,9 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Award } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Award } from "lucide-react";
 
 const BoursesHero = () => {
-  
   return (
     <section className="relative bg-gradient-to-r from-purple-600 via-blue-600 to-purple-800 text-white py-20 overflow-hidden">
       {/* Background Elements */}
@@ -26,15 +24,16 @@ const BoursesHero = () => {
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Bourses d'Études 
+              Bourses d'Études
               <span className="block bg-gradient-to-r from-yellow-300 to-amber-400 bg-clip-text text-transparent">
                 à l'International
               </span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
-              Découvrez des centaines d'opportunités de bourses nationales et internationales 
-              pour financer votre parcours académique d'excellence.
+              Découvrez des centaines d'opportunités de bourses nationales et
+              internationales pour financer votre parcours académique
+              d'excellence.
             </p>
           </motion.div>
 
@@ -56,7 +55,8 @@ const BoursesHero = () => {
                     Votre Futur Commence Ici
                   </h3>
                   <p className="text-blue-200">
-                    Trouvez la bourse parfaite pour réaliser vos ambitions académiques
+                    Trouvez la bourse parfaite pour réaliser vos ambitions
+                    académiques
                   </p>
                 </div>
               </div>

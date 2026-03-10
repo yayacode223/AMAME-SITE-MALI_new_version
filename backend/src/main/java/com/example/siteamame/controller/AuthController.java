@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RestController
@@ -17,16 +18,18 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthentificationService user;
 
+    @Transactional
     @PostMapping("/auth/login")
     public ResponseEntity<UserReponseDto> loginUser(@Valid @RequestBody LoginRequestDto loginReq, HttpServletResponse res) {
         return new ResponseEntity<>(user.login(loginReq, res), HttpStatus.OK);
     }
 
+    @Transactional
     @GetMapping("/auth/me")
     public ResponseEntity<UserReponseDto> getUserProfil(Authentication authentication) {
         return new ResponseEntity<>(user.getCurrentUser(authentication), HttpStatus.OK);
     }
-
+    
     @PostMapping("/auth/logout")
     public ResponseEntity<String> logoutUser(HttpServletRequest req, HttpServletResponse res) {
       return new ResponseEntity<>(user.logout(req, res), HttpStatus.OK);

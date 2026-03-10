@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,5 +24,5 @@ public class FiliereSummaryDto {
     private DemandeType demande;
     private SalaireType salaire;
     private String dureeEtudes;
-    private List<String> debouches;
+    private Set<String> debouches;
 }

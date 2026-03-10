@@ -17,7 +17,7 @@ export function Footer() {
               Association Malienne d'Appui aux Meilleurs Élèves. Votre partenaire pour l'orientation et les opportunités de bourses d'études.
             </p>
             <div className="flex gap-4">
-              <a href="https://www.facebook.com/profile.php?id=100095651374352" className="hover:text-emerald-400 transition-colors" title="Visit our Facebook page">
+              <a href="https://www.facebook.com/search/top?q=amame%20excellence" className="hover:text-emerald-400 transition-colors" title="Visit our Facebook page">
                 <Facebook className="h-5 w-5" />
               </a>
               <a href="#" className="hover:text-emerald-400 transition-colors" title="Visit our Twitter page">

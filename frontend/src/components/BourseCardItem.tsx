@@ -1,10 +1,15 @@
-import React from 'react';
-import { BourseSummary } from '@/service/bourseService';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { BourseSummary } from "@/types/bourseType";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Building, GraduationCap, Tag } from "lucide-react";
-
+import { Link } from "react-router-dom";
 
 // Composant pour une carte individuelle
 const BourseCardItem = ({
@@ -17,26 +22,29 @@ const BourseCardItem = ({
   categorie,
   financementStatut,
   organisation,
-  dateLimite
+  dateLimite,
 }: BourseSummary) => {
-  
   // Fonction pour formater la date
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Non spécifiée";
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
   // Couleur du badge selon le statut de financement
   const getFinancementColor = (statut?: string) => {
     switch (statut?.toLowerCase()) {
-      case 'complet': return 'bg-green-100 text-green-800';
-      case 'partiel': return 'bg-yellow-100 text-yellow-800';
-      case 'limité': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "complet":
+        return "bg-green-100 text-green-800";
+      case "partiel":
+        return "bg-yellow-100 text-yellow-800";
+      case "limité":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -44,11 +52,11 @@ const BourseCardItem = ({
     <Card className="h-full flex flex-col bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start mb-2">
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className={`${getFinancementColor(financementStatut)} text-xs font-medium`}
           >
-            {financementStatut || 'Financement'}
+            {financementStatut || "Financement"}
           </Badge>
           {categorie && (
             <Badge variant="outline" className="text-xs">
@@ -57,7 +65,7 @@ const BourseCardItem = ({
             </Badge>
           )}
         </div>
-        
+
         <CardTitle className="text-lg font-bold leading-tight line-clamp-2 text-gray-900">
           {titre}
         </CardTitle>
@@ -100,27 +108,39 @@ const BourseCardItem = ({
           {dateLimite && (
             <div className="flex items-center text-sm text-gray-700 mt-3 pt-2 border-t border-gray-100">
               <Calendar className="w-4 h-4 mr-2 text-red-600" />
-              <span className="font-medium">Date limite : {formatDate(dateLimite)}</span>
+              <span className="font-medium">
+                Date limite : {formatDate(dateLimite)}
+              </span>
             </div>
           )}
         </div>
       </CardContent>
 
       <CardFooter className="pt-3 border-t border-gray-100">
-        <Button 
-          variant="default" 
+        <Button
+          variant="default"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors duration-200"
           asChild
         >
-          <a
-            href={`/bourses/${id}`}
+          <Link
+            to={`/bourses/${id}`}
             className="w-full text-center flex items-center justify-center"
           >
             Voir les détails
-            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
-          </a>
+          </Link>
         </Button>
       </CardFooter>
     </Card>

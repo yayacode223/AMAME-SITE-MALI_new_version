@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ public class ArticleService {
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
 
+    @Transactional(readOnly = true)
     public List<ArticleSummaryDto> getAllArticles() {
         return articleRepository.findByEstPublieTrueOrderByDatePublicationDesc()
                 .stream()
@@ -41,15 +43,16 @@ public class ArticleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ArticleDto getArticleById(Long id) {
-        Article article = articleRepository.findById(id)
+        Article article = articleRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Article non trouvé avec l'id: " + id));
         return articleMapper.convertToDTO(article);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ArticleDto getArticleBySlug(String slug) {
-        Article article = articleRepository.findBySlug(slug)
+        Article article = articleRepository.findWithDetailsBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Article non trouvé avec le slug: " + slug));
 
         // Incrémenter les vues
@@ -59,6 +62,7 @@ public class ArticleService {
         return articleMapper.convertToDTO(article);
     }
 
+    @Transactional(readOnly = true)
     public List<ArticleSummaryDto> searchArticles(ArticleSearchingRequest request) {
         List<Article> articles;
 
@@ -88,6 +92,7 @@ public class ArticleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ArticleSummaryDto> getPopularArticles() {
         return articleRepository.findByEstPublieTrueOrderByVuesDesc()
                 .stream()
@@ -96,6 +101,7 @@ public class ArticleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ArticleSummaryDto> getArticlesByCategorie(String categorie) {
         return articleRepository.findByCategorieAndEstPublieTrue(categorie)
                 .stream()
@@ -103,6 +109,7 @@ public class ArticleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ArticleSummaryDto> getSimilarArticles(Long articleId, String categorie) {
         return articleRepository.findByCategorieAndEstPublieTrue(categorie)
                 .stream()
@@ -135,7 +142,9 @@ public class ArticleService {
         article.setAuteur(request.getAuteur());
         article.setCategorie(request.getCategorie());
         article.setTempsLecture(request.getTempsLecture());
-        article.setTags(request.getTags());
+        if(request.getTags() != null && !request.getTags().isEmpty()) {
+            article.setTags(new HashSet<>(request.getTags()));
+        }
         article.setMetaDescription(request.getMetaDescription());
         article.setMetaKeywords(request.getMetaKeywords());
         article.setEstPublie(true);
@@ -165,7 +174,8 @@ public class ArticleService {
         if(!articleDto.getCategorie().isEmpty()) articleToUpdate.setCategorie(articleDto.getCategorie());
         if(!articleDto.getMetaKeywords().isEmpty()) articleToUpdate.setMetaKeywords(articleDto.getMetaKeywords());
         if(articleDto.getTempsLecture()!= null) articleToUpdate.setTempsLecture(articleDto.getTempsLecture());
-        if(!articleDto.getTags().isEmpty()) articleToUpdate.setTags(articleDto.getTags());
+
+        if(!articleDto.getTags().isEmpty()) articleToUpdate.setTags(new HashSet<>(articleDto.getTags()));
         articleToUpdate.setDateModification(LocalDateTime.now());
         articleToUpdate.setDatePublication(LocalDateTime.now());
         articleToUpdate.setEstPublie(true);
@@ -188,6 +198,7 @@ public class ArticleService {
     }
 
     //Supprimer un article
+    @Transactional
     public void deleteArticle(Long id){
         if(articleRepository.existsById(id)){
             articleRepository.deleteById(id);

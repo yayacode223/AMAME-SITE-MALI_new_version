@@ -1,25 +1,31 @@
-import React, { useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Calendar, User, Clock, Eye, ArrowLeft } from 'lucide-react';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
+import { useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Calendar, User, Clock, Eye, ArrowLeft } from "lucide-react";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { motion } from 'framer-motion';
-import { useGetAllArticles, useGetArticleBySlug } from '@/service/articleService';
-import { adaptArticleForDetail, adaptArticleForNews } from '@/utils/articleAdapter';
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { motion } from "framer-motion";
+import {
+  useGetAllArticles,
+  useGetArticleBySlug,
+} from "@/service/articleService";
+import {
+  adaptArticleForDetail,
+  adaptArticleForNews,
+} from "@/utils/articleAdapter";
 
-// const url = import.meta.env.BASE; 
-const url = 'https://amame.ml';
+// const url = import.meta.env.BASE;
+const url = "https://amame.ml";
 
 export function ArticleDetail() {
   const { slug } = useParams();
-  
   // DEUX APPELS seulement (nécessaires pour cette page)
-  const { data: articleData, isLoading: isArticleLoading } = useGetArticleBySlug(slug || '');
-  const { data: allArticlesData, isLoading: isAllArticlesLoading } = useGetAllArticles();
+  const { data: articleData, isLoading: isArticleLoading } =
+    useGetArticleBySlug(slug || "");
+  const { data: allArticlesData } = useGetAllArticles();
 
   // Adapter l'article principal
   const article = useMemo(() => {
@@ -31,9 +37,13 @@ export function ArticleDetail() {
     if (!allArticlesData) return [];
     return allArticlesData
       .map(adaptArticleForNews)
-      .sort((a, b) => new Date(b.date_publication).getTime() - new Date(a.date_publication).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.date_publication).getTime() -
+          new Date(a.date_publication).getTime(),
+      )
       .slice(0, 5)
-      .filter(a => a.slug !== slug); // Exclure l'article actuel
+      .filter((a) => a.slug !== slug); // Exclure l'article actuel
   }, [allArticlesData, slug]);
 
   // Articles similaires (même catégorie)
@@ -41,29 +51,26 @@ export function ArticleDetail() {
     if (!allArticlesData || !article) return [];
     return allArticlesData
       .map(adaptArticleForNews)
-      .filter(a => 
-        a.categorie === article.categorie && 
-        a.slug !== slug
-      )
+      .filter((a) => a.categorie === article.categorie && a.slug !== slug)
       .slice(0, 5);
   }, [allArticlesData, article, slug]);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'Conseils': 'emerald',
-      'Orientation': 'blue',
-      'Bourses': 'amber',
-      'Concours': 'purple',
-      'Témoignages': 'pink'
+      Conseils: "emerald",
+      Orientation: "blue",
+      Bourses: "amber",
+      Concours: "purple",
+      Témoignages: "pink",
     };
-    return colors[category] || 'gray';
+    return colors[category] || "gray";
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -111,7 +118,7 @@ export function ArticleDetail() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Sidebar skeleton */}
                 <div className="space-y-6">
                   <Skeleton className="h-64 w-full rounded-xl" />
@@ -165,21 +172,23 @@ export function ArticleDetail() {
                 Retour aux actualités
               </Link>
             </Button>
-            
-            <motion.div 
+
+            <motion.div
               className="text-center mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Badge className={`mb-4 bg-${getCategoryColor(article.categorie)}-100 text-${getCategoryColor(article.categorie)}-800 border-0 text-lg px-4 py-2 hover:bg-${getCategoryColor(article.categorie)}-200 transition-colors`}>
+              <Badge
+                className={`mb-4 bg-${getCategoryColor(article.categorie)}-100 text-${getCategoryColor(article.categorie)}-800 border-0 text-lg px-4 py-2 hover:bg-${getCategoryColor(article.categorie)}-200 transition-colors`}
+              >
                 {article.categorie}
               </Badge>
-              
+
               <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 {article.titre}
               </h1>
-              
+
               <div className="flex flex-wrap items-center justify-center gap-6 text-gray-600 mb-4">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -211,7 +220,7 @@ export function ArticleDetail() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Article Content */}
-              <motion.div 
+              <motion.div
                 className="lg:col-span-3"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -226,20 +235,22 @@ export function ArticleDetail() {
                         className="w-full h-96 object-cover hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const fallback = document.createElement('div');
-                          fallback.className = 'w-full h-96 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center';
-                          fallback.innerHTML = '<div class="text-4xl text-white">📄</div>';
+                          e.currentTarget.style.display = "none";
+                          const fallback = document.createElement("div");
+                          fallback.className =
+                            "w-full h-96 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center";
+                          fallback.innerHTML =
+                            '<div class="text-4xl text-white">📄</div>';
                           e.currentTarget.parentNode?.appendChild(fallback);
                         }}
                       />
                     </div>
                   )}
-                  
+
                   <div className="prose prose-lg max-w-none">
                     {/* Contenu de l'article formaté */}
                     <div className="text-gray-700 leading-relaxed space-y-6">
-                      {article.contenu.split('\n\n').map((paragraph, index) => (
+                      {article.contenu.split("\n\n").map((paragraph, index) => (
                         <p key={index} className="text-lg leading-8">
                           {paragraph}
                         </p>
@@ -255,9 +266,13 @@ export function ArticleDetail() {
                       {article.auteur.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-lg">{article.auteur}</h4>
+                      <h4 className="font-bold text-gray-900 text-lg">
+                        {article.auteur}
+                      </h4>
                       <p className="text-gray-600">
-                        Expert en orientation et conseils académiques. Partage des conseils pratiques pour aider les étudiants dans leur parcours.
+                        Expert en orientation et conseils académiques. Partage
+                        des conseils pratiques pour aider les étudiants dans
+                        leur parcours.
                       </p>
                     </div>
                   </div>
@@ -265,7 +280,7 @@ export function ArticleDetail() {
               </motion.div>
 
               {/* Sidebar */}
-              <motion.div 
+              <motion.div
                 className="space-y-6"
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}

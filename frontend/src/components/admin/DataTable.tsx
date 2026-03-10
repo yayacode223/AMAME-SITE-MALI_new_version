@@ -1,5 +1,5 @@
-// components/admin/DataTable.tsx
-import React from 'react';
+import React from "react";
+import { useAuth } from "@/context/AuthContext";
 
 interface Column {
   key: string;
@@ -22,7 +22,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onEdit,
   onDelete,
   onView,
-  isLoading = false
+  isLoading = false,
 }) => {
   if (isLoading) {
     return (
@@ -37,6 +37,9 @@ const DataTable: React.FC<DataTableProps> = ({
       </div>
     );
   }
+
+  const { user } = useAuth();
+
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -61,8 +64,13 @@ const DataTable: React.FC<DataTableProps> = ({
             {data.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50">
                 {columns.map((column) => (
-                  <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
+                  <td
+                    key={column.key}
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  >
+                    {column.render
+                      ? column.render(row[column.key], row)
+                      : row[column.key]}
                   </td>
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -75,7 +83,7 @@ const DataTable: React.FC<DataTableProps> = ({
                         Voir
                       </button>
                     )}
-                    {onEdit && (
+                    {onEdit && row.id === user.id &&(
                       <button
                         onClick={() => onEdit(row)}
                         className="text-indigo-600 hover:text-indigo-900"
@@ -83,7 +91,7 @@ const DataTable: React.FC<DataTableProps> = ({
                         Modifier
                       </button>
                     )}
-                    {onDelete && (
+                    {onDelete && user?.role === "SUPERADMIN" && row.id !== user.id &&(
                       <button
                         onClick={() => onDelete(row)}
                         className="text-red-600 hover:text-red-900"

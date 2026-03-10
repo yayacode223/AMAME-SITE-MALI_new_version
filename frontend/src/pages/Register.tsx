@@ -433,7 +433,7 @@ const Register = () => {
 
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
                 <img
-                  src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
+                  src="/amame-uploads/amame-logo.webp"
                   alt="AMAME Logo"
                   className="w-6 h-6 sm:w-8 sm:h-8"
                 />
@@ -673,7 +673,7 @@ const Register = () => {
                         )}
                       /> */}
 
-                      {/* <FormField
+                      <FormField
                         control={form.control}
                         name="sexe"
                         render={({ field }) => (
@@ -708,7 +708,7 @@ const Register = () => {
                             <FormMessage />
                           </FormItem>
                         )}
-                      /> */}
+                      />
                     </div>
 
                     <div className="flex justify-end pt-4 sm:pt-6">

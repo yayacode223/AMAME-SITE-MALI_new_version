@@ -6,12 +6,15 @@ import com.example.siteamame.model.Article;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+
 @AllArgsConstructor
 @Component
 public class ArticleMapper {
 
     public ArticleSummaryDto convertToSummaryDTO(Article article) {
-        String resume = article.getContenu().length() > 150
+        String resume = article.getContenu() != null && article.getContenu().length() > 150
                 ? article.getContenu().substring(0, 150) + "..."
                 : article.getContenu();
 
@@ -38,6 +41,10 @@ public class ArticleMapper {
         String filePath = article.getFile()!= null
                 ? article.getFile().getFilePath()
                 : null;
+        Set<String> tags = article.getTags()!= null
+                ? article.getTags()
+                : null;
+
         return new ArticleDto(
                 article.getId(),
                 article.getTitre(),
@@ -50,7 +57,7 @@ public class ArticleMapper {
                 article.getTempsLecture(),
                 article.getDatePublication(),
                 article.getDateModification(),
-                article.getTags(),
+                tags,
                 article.getMetaDescription(),
                 article.getMetaKeywords()
         );

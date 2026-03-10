@@ -1,14 +1,23 @@
 // BourseDetail.tsx - VERSION LÉGÈREMENT OPTIMISÉE
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, MapPin, GraduationCap, Building, ExternalLink, Eye, Clock } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  GraduationCap,
+  Building,
+  ExternalLink,
+  Eye,
+  Clock,
+} from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useGetBourseDetail } from '@/service/bourseService';
-import { useMemo } from 'react';
+import { useGetBourseDetail } from "@/service/bourseService";
+import { useMemo } from "react";
 
 const BoursesDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,11 +26,11 @@ const BoursesDetail = () => {
 
   // Utiliser useMemo pour éviter les recalculs
   const formattedDate = useMemo(() => {
-    if (!bourse?.dateLimite) return 'Non spécifiée';
-    return new Date(bourse.dateLimite).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    if (!bourse?.dateLimite) return "Non spécifiée";
+    return new Date(bourse.dateLimite).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   }, [bourse?.dateLimite]);
 
@@ -47,7 +56,7 @@ const BoursesDetail = () => {
 
   const handleVisitWebsite = () => {
     if (bourse?.urlSource) {
-      window.open(bourse.urlSource, '_blank', 'noopener,noreferrer');
+      window.open(bourse.urlSource, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -70,7 +79,10 @@ const BoursesDetail = () => {
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
               La bourse que vous recherchez n'existe pas ou a été supprimée.
             </p>
-            <Button onClick={handleGoBack} className="bg-purple-600 hover:bg-purple-700">
+            <Button
+              onClick={handleGoBack}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour aux bourses
             </Button>
@@ -84,7 +96,7 @@ const BoursesDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
       <Navbar />
-      
+
       {/* Header Navigation */}
       <section className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,13 +140,13 @@ const BoursesDetail = () => {
                       <Skeleton className="h-6 w-full mb-2 rounded-lg" />
                       <Skeleton className="h-6 w-2/3 rounded-lg" />
                     </div>
-                    
+
                     <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-100">
                       <Skeleton className="h-7 w-32 mb-4 rounded-lg" />
                       <Skeleton className="h-24 w-full rounded-lg" />
                     </div>
                   </div>
-                  
+
                   {/* Sidebar */}
                   <div className="space-y-6">
                     <Skeleton className="h-48 w-full rounded-xl" />
@@ -168,24 +180,36 @@ const BoursesDetail = () => {
                     {/* Badges */}
                     <div className="flex flex-wrap gap-2 mb-6">
                       {bourse.niveau && (
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1"
+                        >
                           <GraduationCap className="h-3 w-3 mr-1" />
                           {bourse.niveau}
                         </Badge>
                       )}
                       {bourse.paysHote && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1">
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1"
+                        >
                           <MapPin className="h-3 w-3 mr-1" />
                           {bourse.paysHote}
                         </Badge>
                       )}
                       {bourse.categorie && (
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1">
+                        <Badge
+                          variant="secondary"
+                          className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1"
+                        >
                           {bourse.categorie}
                         </Badge>
                       )}
                       {bourse.financementStatut && (
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1">
+                        <Badge
+                          variant="secondary"
+                          className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1"
+                        >
                           {bourse.financementStatut}
                         </Badge>
                       )}
@@ -193,43 +217,50 @@ const BoursesDetail = () => {
 
                     {/* Deadline Alert */}
                     {bourse.dateLimite && (
-                      <div className={`rounded-xl p-4 mb-6 ${
-                        isDeadlinePassed
-                          ? 'bg-red-50 border border-red-200'
-                          : isDeadlineApproaching
-                          ? 'bg-orange-50 border border-orange-200'
-                          : 'bg-blue-50 border border-blue-200'
-                      }`}>
+                      <div
+                        className={`rounded-xl p-4 mb-6 ${
+                          isDeadlinePassed
+                            ? "bg-red-50 border border-red-200"
+                            : isDeadlineApproaching
+                              ? "bg-orange-50 border border-orange-200"
+                              : "bg-blue-50 border border-blue-200"
+                        }`}
+                      >
                         <div className="flex items-center gap-3">
-                          <Clock className={`h-5 w-5 ${
-                            isDeadlinePassed
-                              ? 'text-red-600'
-                              : isDeadlineApproaching
-                              ? 'text-orange-600'
-                              : 'text-blue-600'
-                          }`} />
+                          <Clock
+                            className={`h-5 w-5 ${
+                              isDeadlinePassed
+                                ? "text-red-600"
+                                : isDeadlineApproaching
+                                  ? "text-orange-600"
+                                  : "text-blue-600"
+                            }`}
+                          />
                           <div>
-                            <p className={`font-semibold ${
-                              isDeadlinePassed
-                                ? 'text-red-800'
-                                : isDeadlineApproaching
-                                ? 'text-orange-800'
-                                : 'text-blue-800'
-                            }`}>
+                            <p
+                              className={`font-semibold ${
+                                isDeadlinePassed
+                                  ? "text-red-800"
+                                  : isDeadlineApproaching
+                                    ? "text-orange-800"
+                                    : "text-blue-800"
+                              }`}
+                            >
                               {isDeadlinePassed
-                                ? 'Date limite dépassée'
+                                ? "Date limite dépassée"
                                 : isDeadlineApproaching
-                                ? 'Date limite approche'
-                                : 'Date limite de candidature'
-                              }
+                                  ? "Date limite approche"
+                                  : "Date limite de candidature"}
                             </p>
-                            <p className={`text-sm ${
-                              isDeadlinePassed
-                                ? 'text-red-600'
-                                : isDeadlineApproaching
-                                ? 'text-orange-600'
-                                : 'text-blue-600'
-                            }`}>
+                            <p
+                              className={`text-sm ${
+                                isDeadlinePassed
+                                  ? "text-red-600"
+                                  : isDeadlineApproaching
+                                    ? "text-orange-600"
+                                    : "text-blue-600"
+                              }`}
+                            >
                               {formattedDate}
                             </p>
                           </div>
@@ -245,10 +276,13 @@ const BoursesDetail = () => {
                     </h2>
                     <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
                       {bourse.descriptionLongue ? (
-                        <p className="whitespace-pre-line">{bourse.descriptionLongue}</p>
+                        <p className="whitespace-pre-line">
+                          {bourse.descriptionLongue}
+                        </p>
                       ) : (
                         <p className="text-gray-500 italic">
-                          Aucune description détaillée n'est disponible pour cette bourse.
+                          Aucune description détaillée n'est disponible pour
+                          cette bourse.
                         </p>
                       )}
                     </div>
@@ -300,15 +334,17 @@ const BoursesDetail = () => {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Publiée le</span>
                           <span className="font-medium text-gray-900">
-                            {new Date(bourse.datePublication).toLocaleDateString('fr-FR', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
+                            {new Date(
+                              bourse.datePublication,
+                            ).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
                             })}
                           </span>
                         </div>
                       )}
-                      
+
                       {bourse.nombresVues !== undefined && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Vues</span>
@@ -317,7 +353,7 @@ const BoursesDetail = () => {
                           </span>
                         </div>
                       )}
-                      
+
                       {bourse.financement && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600">Financement</span>
@@ -340,8 +376,12 @@ const BoursesDetail = () => {
                           <div className="flex items-center gap-3">
                             <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Pays éligibles</p>
-                              <p className="text-sm text-gray-600">{bourse.paysEligible}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Pays éligibles
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {bourse.paysEligible}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -349,8 +389,12 @@ const BoursesDetail = () => {
                           <div className="flex items-center gap-3">
                             <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0" />
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Régions éligibles</p>
-                              <p className="text-sm text-gray-600">{bourse.regionEligible}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Régions éligibles
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {bourse.regionEligible}
+                              </p>
                             </div>
                           </div>
                         )}

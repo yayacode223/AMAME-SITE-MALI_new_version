@@ -30,7 +30,7 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import {useAuth} from "@/context/AuthContext"; 
+import { useAuth } from "@/context/AuthContext";
 
 // Animations
 const fadeInUp = {
@@ -122,8 +122,7 @@ const contactMethods = [
 ];
 
 export function About() {
-
-  const {isAuthenticated} = useAuth(); 
+  const { isAuthenticated } = useAuth();
   return (
     <>
       <Navbar />
@@ -375,37 +374,38 @@ export function About() {
             </motion.div>
 
             {/* CTA */}
-            {!isAuthenticated &&
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <Card className="p-8 md:p-12 bg-gradient-to-r from-purple-500 to-blue-400 text-white rounded-2xl border-0">
-                <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                  Rejoignez notre communauté
-                </h3>
-                <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-                  Inscrivez-vous pour recevoir les dernières opportunités de
-                  bourses et nos conseils d'orientation
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-3 rounded-xl">
-                    <Link to="/register">S'inscrire maintenant</Link>
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  {/* <Button
+            {!isAuthenticated && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
+                <Card className="p-8 md:p-12 bg-gradient-to-r from-purple-500 to-blue-400 text-white rounded-2xl border-0">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                    Rejoignez notre communauté
+                  </h3>
+                  <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
+                    Inscrivez-vous pour recevoir les dernières opportunités de
+                    bourses et nos conseils d'orientation
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-3 rounded-xl">
+                      <Link to="/register">S'inscrire maintenant</Link>
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    {/* <Button
                     variant="outline"
                     className="border-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-3 rounded-xl"
                   >
                     En savoir plus
                   </Button> */}
-                </div>
-              </Card>
-            </motion.div>}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
           </div>
         </section>
       </div>

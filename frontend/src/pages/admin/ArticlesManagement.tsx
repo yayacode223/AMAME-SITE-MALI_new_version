@@ -1,44 +1,57 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import DataTable from '@/components/admin/DataTable';
-import { useGetAllArticles, useDeleteArticle} from '../../service/articleService';
-import {ArticleSummaryResponse } from "@/types/articleType"; 
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import DataTable from "@/components/admin/DataTable";
+import {
+  useGetAllArticles,
+  useDeleteArticle,
+} from "../../service/articleService";
+import { ArticleSummaryResponse } from "@/types/articleType";
 const ArticlesManagement: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: articles, isLoading } = useGetAllArticles();
   const deleteArticleMutation = useDeleteArticle();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  const filteredArticles = articles?.filter(article =>
-    article.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    article.auteur.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredArticles =
+    articles?.filter(
+      (article) =>
+        article.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.auteur.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || [];
 
   const columns = [
-    { key: 'titre', label: 'Titre' },
-    { key: 'auteur', label: 'Auteur' },
-    { key: 'categorie', label: 'Catégorie' },
-    { 
-      key: 'datePublication', 
-      label: 'Date de publication',
-      render: (value: string) => new Date(value).toLocaleDateString('fr-FR')
+    { key: "titre", label: "Titre" },
+    { key: "auteur", label: "Auteur" },
+    { key: "categorie", label: "Catégorie" },
+    {
+      key: "datePublication",
+      label: "Date de publication",
+      render: (value: string) => new Date(value).toLocaleDateString("fr-FR"),
     },
-    { 
-      key: 'estPublie', 
-      label: 'Statut',
+    {
+      key: "estPublie",
+      label: "Statut",
       render: (value: boolean) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-        }`}>
-          {value ? 'Publié' : 'Publié'}
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            value
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {value ? "Publié" : "Publié"}
         </span>
-      )
+      ),
     },
   ];
 
   const handleDelete = (article: ArticleSummaryResponse) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'article "${article.titre}" ?`)) {
+    if (
+      window.confirm(
+        `Êtes-vous sûr de vouloir supprimer l'article "${article.titre}" ?`,
+      )
+    ) {
       deleteArticleMutation.mutate(article.id);
     }
   };
@@ -50,14 +63,16 @@ const ArticlesManagement: React.FC = () => {
 
   const handleView = (article: ArticleSummaryResponse) => {
     // Navigation vers la page de détail publique
-    window.open(`/articles/${article.slug}`, '_blank');
+    window.open(`/articles/${article.slug}`, "_blank");
   };
 
   return (
     <div>
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Gestion des articles</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Gestion des articles
+          </h1>
           <p className="mt-2 text-sm text-gray-700">
             Créez et gérez les articles de votre blog
           </p>

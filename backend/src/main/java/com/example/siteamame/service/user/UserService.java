@@ -4,8 +4,6 @@ import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.user.UserRequestDto;
 import com.example.siteamame.dto.user.UserReponseDto;
 import com.example.siteamame.enumeration.RoleType;
-import com.example.siteamame.exception.concours.RessourceNotFoundException;
-
 import com.example.siteamame.mapper.FileMapper;
 import com.example.siteamame.mapper.UserMapperDto;
 import com.example.siteamame.model.File;
@@ -15,9 +13,9 @@ import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.UserRepository;
 
 import com.example.siteamame.service.file.FileStorageServiceImpl;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -38,6 +36,7 @@ public class UserService {
     private final FileMapper fileMapper;
 
     //Get All Users
+    @Transactional(readOnly = true)
     public List<UserReponseDto> getAllUser() {
             List<User> listOfUser = userRepository.findAll();
             if(listOfUser.isEmpty()){
@@ -48,9 +47,10 @@ public class UserService {
     }
 
     //Get A Specific User
+    @Transactional(readOnly = true)
     public UserReponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Ce User n'existe pas"));
+                .orElseThrow(() -> new RuntimeException("Ce User n'existe pas"));
         return userMapper.UserToDto(user);
     }
 
@@ -157,6 +157,7 @@ public class UserService {
         return userMapper.UserToDto(savedUser);
     }
 
+    @Transactional
     public void deleteUser(Long id){
         if(userRepository.existsById(id)){
             userRepository.deleteById(id);

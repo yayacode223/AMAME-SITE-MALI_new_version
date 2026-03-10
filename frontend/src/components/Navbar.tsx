@@ -19,8 +19,7 @@ const url = "https://amame.ml";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } =
-    useAuth();
+  const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,7 +72,7 @@ const Navbar = () => {
       { path: "/articles", label: "Actualités" },
       { path: "/a-propos", label: "À Propos" },
     ],
-    []
+    [],
   );
 
   // Composant pour l'avatar avec dropdown (desktop seulement)
@@ -118,7 +117,8 @@ const Navbar = () => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {user?.role === UserRole.ADMIN && (
+            {(user?.role === UserRole.ADMIN ||
+            user?.role === UserRole.SUPERADMIN)  && (
               <>
                 <DropdownMenuItem asChild>
                   <Link to="/admin" className="cursor-pointer w-full">
@@ -200,7 +200,7 @@ const Navbar = () => {
             className="flex items-center space-x-3 hover:opacity-90 transition-opacity"
           >
             <img
-              src="/amame-uploads/24ceb186-cbc8-4d01-99bd-635d9bd2df31.png"
+              src="/amame-uploads/amame-logo.webp"
               alt="AMAME Logo"
               className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover"
             />
@@ -261,7 +261,7 @@ const Navbar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user?.role === UserRole.ADMIN && (
+                  {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN)  && (
                     <>
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="cursor-pointer w-full">
@@ -371,7 +371,7 @@ const Navbar = () => {
                     </p>
                   </div>
                 </div>
-                {user?.role === UserRole.ADMIN && (
+                {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN) && (
                   <Link
                     to="/admin"
                     className="block px-4 py-3 font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg mx-2"
