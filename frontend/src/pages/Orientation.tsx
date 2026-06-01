@@ -1,135 +1,126 @@
-// Orientation.tsx - VERSION OPTIMISÉE
-import { useState, useMemo } from "react";
-import { Card } from "../components/ui/card";
+import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import {
   Briefcase,
   TrendingUp,
   Search,
-  Filter,
-  Users,
   ArrowRight,
   BookOpen,
-  Target,
+  Compass,
+  Users,
+  Clock,
+  DollarSign,
+  RotateCcw,
 } from "lucide-react";
+import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import PageHero from "../components/PageHero";
+import Pagination from "../components/Pagination";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
 
-const url = import.meta.env.BASE; 
+const difficultyConfig = {
+  TRES_ELEVEE: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
+  ELEVEE: { label: "Élevée", cls: "bg-orange-50 text-orange-700 border-orange-200" },
+  MOYENNE: { label: "Moyenne", cls: "bg-amame-green-light text-amame-green-dark border-amame-green/20" },
+};
+
+const domains = [
+  { value: DomaineFiliereType.ALL, label: "Tous les domaines" },
+  { value: DomaineFiliereType.SCIENCES_ET_TECHNOLOGIES, label: "Sciences & Tech" },
+  { value: DomaineFiliereType.SCIENCES_DE_LA_SANTE, label: "Santé" },
+  { value: DomaineFiliereType.SCIENCES_ECONOMIQUES_ET_GESTION, label: "Économie & Gestion" },
+  { value: DomaineFiliereType.DROIT_ET_SCIENCES_POLITIQUES, label: "Droit & Politique" },
+  { value: DomaineFiliereType.LETTRES_ET_SCIENCES_HUMAINES, label: "Lettres & Humaines" },
+  { value: DomaineFiliereType.ARTS_ET_COMMUNICATION, label: "Arts & Com." },
+];
+
+const howToChoose = [
+  { icon: TrendingUp, color: "bg-amame-green-light text-amame-green", title: "Vos Intérêts", text: "Identifiez les matières qui vous passionnent. La motivation sera votre meilleur atout." },
+  { icon: BookOpen, color: "bg-blue-50 text-blue-600", title: "Vos Compétences", text: "Évaluez vos forces naturelles et les compétences que vous souhaitez développer." },
+  { icon: Briefcase, color: "bg-amame-gold-subtle text-amame-gold", title: "Les Débouchés", text: "Renseignez-vous sur les opportunités de carrière et les perspectives d'évolution." },
+  { icon: Users, color: "bg-purple-50 text-purple-600", title: "Les Témoignages", text: "Échangez avec des professionnels pour comprendre la réalité de chaque filière." },
+];
+
+const CardSkeleton = () => (
+  <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
+    <div className="h-1 bg-gray-100" />
+    <div className="p-5 space-y-3">
+      <div className="flex justify-between">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </div>
+      <Skeleton className="h-5 w-3/4 rounded-md" />
+      <Skeleton className="h-4 w-full rounded-md" />
+      <Skeleton className="h-4 w-2/3 rounded-md" />
+      <div className="space-y-2 py-2 border-t border-gray-100">
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-4 w-full rounded-md" />)}
+      </div>
+      <Skeleton className="h-9 w-full rounded-lg" />
+    </div>
+  </div>
+);
 
 export function Orientation() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDomain, setSelectedDomain] = useState<DomaineFiliereType>(
-    DomaineFiliereType.ALL
-  );
+  const [selectedDomain, setSelectedDomain] = useState<DomaineFiliereType>(DomaineFiliereType.ALL);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // UN SEUL APPEL API
-  const { data: allFilieresData, isLoading: isLoadingAll } = useGetAllFilieres();
+  const { data: filieresPage, isLoading } = useGetAllFilieres({
+    page: currentPage,
+    size: 9,
+    sortBy: "nom",
+    sortDirection: "ASC",
+    search: searchTerm || undefined,
+    domaine: selectedDomain,
+  });
 
-  // FILTRAGE COTÉ CLIENT
-  const filteredFilieres = useMemo(() => {
-    if (!allFilieresData) return [];
-    
-    let filtered = allFilieresData;
-    
-    // Filtre par domaine
-    if (selectedDomain !== DomaineFiliereType.ALL) {
-      filtered = filtered.filter(filiere => 
-        filiere.domaine === selectedDomain
-      );
-    }
-    
-    // Filtre par recherche
-    if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(filiere =>
-        filiere.nom.toLowerCase().includes(term) ||
-        filiere.descriptionCourte?.toLowerCase().includes(term) ||
-        filiere.debouches?.some(d => d.toLowerCase().includes(term))
-      );
-    }
-    
-    return filtered;
-  }, [allFilieresData, selectedDomain, searchTerm]);
+  const filieres = filieresPage?.content || [];
+  const hasActiveFilters = searchTerm.trim() || selectedDomain !== DomaineFiliereType.ALL;
 
-  const domains: DomaineFiliereType[] = [
-    DomaineFiliereType.ALL,
-    DomaineFiliereType.SCIENCES_ET_TECHNOLOGIES,
-    DomaineFiliereType.SCIENCES_DE_LA_SANTE,
-    DomaineFiliereType.SCIENCES_ECONOMIQUES_ET_GESTION,
-    DomaineFiliereType.DROIT_ET_SCIENCES_POLITIQUES,
-    DomaineFiliereType.LETTRES_ET_SCIENCES_HUMAINES,
-    DomaineFiliereType.ARTS_ET_COMMUNICATION,
-  ];
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(0);
+  };
 
-  // Amélioration du skeleton pour toute la page
-  if (isLoadingAll) {
+  const handleDomain = (domain: DomaineFiliereType) => {
+    setSelectedDomain(domain);
+    setCurrentPage(0);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedDomain(DomaineFiliereType.ALL);
+    setCurrentPage(0);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 400, behavior: "smooth" });
+  };
+
+  if (isLoading && !filieresPage) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-          {/* Hero skeleton */}
-          <section className="bg-gradient-to-r from-purple-500 to-blue-500 py-16">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <Skeleton className="h-12 w-3/4 max-w-2xl mx-auto mb-4" />
-              <Skeleton className="h-6 w-1/2 max-w-xl mx-auto mb-2" />
-              <Skeleton className="h-5 w-2/3 max-w-lg mx-auto" />
+        <div className="min-h-screen bg-amame-surface">
+          <div className="page-hero">
+            <div className="container mx-auto px-4 py-12 text-center space-y-3">
+              <Skeleton className="h-12 w-3/4 max-w-lg mx-auto rounded-xl" />
+              <Skeleton className="h-5 w-1/2 max-w-md mx-auto rounded-md" />
             </div>
-          </section>
-
-          {/* Stats Section skeleton */}
-          <section className="py-12 bg-white">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <Skeleton className="h-80 w-full rounded-xl" />
+          </div>
+          <div className="container mx-auto px-4 py-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
             </div>
-          </section>
-
-          {/* Search and Filter skeleton */}
-          <section className="py-8">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <div className="flex flex-col lg:flex-row gap-4 items-center">
-                  <Skeleton className="h-12 flex-1 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-64 rounded-lg" />
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center mb-8">
-                <Skeleton className="h-8 w-48 rounded-lg" />
-                <Skeleton className="h-8 w-24 rounded-full" />
-              </div>
-              
-              {/* Grid skeleton - 6 cartes seulement */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="border-0 rounded-2xl bg-white shadow-lg overflow-hidden">
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <Skeleton className="h-12 w-12 rounded-md" />
-                        <Skeleton className="h-6 w-20 rounded-full" />
-                      </div>
-                      <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
-                      <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                      <Skeleton className="h-4 w-2/3 mb-4 rounded-lg" />
-                      <div className="space-y-3 mb-6">
-                        <Skeleton className="h-4 w-full rounded-lg" />
-                        <Skeleton className="h-4 w-full rounded-lg" />
-                        <Skeleton className="h-4 w-full rounded-lg" />
-                      </div>
-                      <Skeleton className="h-12 w-full rounded-xl" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
         <Footer />
       </>
@@ -139,308 +130,192 @@ export function Orientation() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Guide d'<span className="text-yellow-300">Orientation</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              Trouvez la filière qui correspond à vos passions et ambitions
-            </p>
-            <p className="text-lg text-blue-200 mt-4 max-w-2xl mx-auto">
-              Découvrez les parcours académiques, débouchés professionnels et
-              conseils pour faire le bon choix
-            </p>
-          </div>
-        </section>
+      <div className="min-h-screen bg-amame-surface flex flex-col">
+        <SEO
+          title="Orientation & Filières"
+          description="Choisissez votre filière avec l'aide de l'AMAME. Explorez les domaines, débouchés professionnels, durées d'études et établissements disponibles au Mali."
+          path="/orientation"
+          keywords="orientation Mali, filières études Mali, débouchés professionnels, guide orientation scolaire"
+        />
+        <PageHero
+          icon={Compass}
+          label="Filières"
+          title="Guide d'"
+          titleHighlight="Orientation"
+          description="" //Trouvez la filière qui correspond à vos passions et ambitions. Explorez les parcours académiques, débouchés et conseils.
+          imageSrc="/images/heroes/hero-orientation.png"
+          imageAlt="Étudiant malien choisissant sa voie professionnelle"
+        />
 
-        {/* Stats Section */}
-        <section className="py-4 bg-white">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Guidance Card */}
-            <Card className="p-8 mb-12 bg-gradient-to-br from-white to-purple-50 border-0 shadow-xl">
-              <div className="text-center mb-8">
-                <Target className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Comment Choisir Sa Filière ?
-                </h2>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  Les clés pour faire un choix éclairé et épanouissant
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-emerald-100 p-3 rounded-xl">
-                      <TrendingUp className="h-6 w-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-2">
-                        Vos Intérêts et Passions
-                      </h3>
-                      <p className="text-gray-700">
-                        Identifiez les matières et domaines qui vous
-                        passionnent. Votre motivation sera votre meilleur atout
-                        pour réussir et vous épanouir professionnellement.
-                      </p>
-                    </div>
+        {/* How to choose */}
+        <section className="bg-white border-b border-amame-border py-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {howToChoose.map(({ icon: Icon, color, title, text }) => (
+                <div key={title} className="flex flex-col items-start gap-2 p-4 rounded-xl bg-gray-50 border border-amame-border">
+                  <div className={`inline-flex items-center justify-center w-9 h-9 rounded-lg ${color}`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-blue-100 p-3 rounded-xl">
-                      <BookOpen className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-2">
-                        Compétences et Talents
-                      </h3>
-                      <p className="text-gray-700">
-                        Évaluez vos forces naturelles et les compétences que
-                        vous souhaitez développer. Choisissez une filière qui
-                        valorise vos talents.
-                      </p>
-                    </div>
-                  </div>
+                  <p className="font-semibold text-sm text-amame-charcoal">{title}</p>
+                  <p className="text-xs text-amame-muted leading-relaxed hidden sm:block">{text}</p>
                 </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-amber-100 p-3 rounded-xl">
-                      <Briefcase className="h-6 w-6 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-2">
-                        Débouchés Professionnels
-                      </h3>
-                      <p className="text-gray-700">
-                        Renseignez-vous sur les opportunités de carrière, le
-                        marché de l'emploi et les perspectives d'évolution dans
-                        les domaines qui vous intéressent.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-purple-100 p-3 rounded-xl">
-                      <Users className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-2">
-                        Témoignages et Retours
-                      </h3>
-                      <p className="text-gray-700">
-                        Échangez avec des professionnels et des étudiants pour
-                        comprendre la réalité du métier et les défis de chaque
-                        filière.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        {/* Search and Filter Section */}
-        <section className="py-4">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-              <div className="flex flex-col lg:flex-row gap-4 items-center">
-                <div className="flex-1 w-full">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <Input
-                      type="text"
-                      placeholder="Rechercher une filière, un métier..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-12 text-lg border-2 border-gray-200 focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-                <div className="w-full lg:w-64">
-                  <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <select
-                      aria-label="Filtrer par domaine"
-                      title="Filtrer par domaine"
-                      value={selectedDomain}
-                      onChange={(e) =>
-                        setSelectedDomain(e.target.value as DomaineFiliereType)
-                      }
-                      className="w-full h-12 pl-10 pr-4 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors appearance-none bg-white"
-                    >
-                      {domains.map((domain) => (
-                        <option key={domain} value={domain}>
-                          {domain === "ALL"
-                            ? "Tous les domaines"
-                            : domain === "SCIENCES_ET_TECHNOLOGIES"
-                            ? "Sciences & Technologies"
-                            : domain === "SCIENCES_DE_LA_SANTE"
-                            ? "Santé"
-                            : domain === "SCIENCES_ECONOMIQUES_ET_GESTION"
-                            ? "Sciences Économiques & Gestion"
-                            : domain === "DROIT_ET_SCIENCES_POLITIQUES"
-                            ? "Droit & Sciences Politiques"
-                            : domain === "LETTRES_ET_SCIENCES_HUMAINES"
-                            ? "Lettres & Sciences Humaines"
-                            : domain === "ARTS_ET_COMMUNICATION"
-                            ? "Arts & Communication"
-                            : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
+        </section>
 
-            {/* Filières Grid */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Filières Disponibles
-                </h2>
-                <Badge variant="secondary" className="text-lg px-4 py-2">
-                  {filteredFilieres.length} filière
-                  {filteredFilieres.length > 1 ? "s" : ""} trouvée
-                  {filteredFilieres.length > 1 ? "s" : ""}
-                </Badge>
+        {/* Search & Domain filter */}
+        <section className="bg-white border-b border-amame-border py-5">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher une filière, un métier..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10 h-11 border-amame-border focus:border-amame-green rounded-xl"
+                />
               </div>
-
-              {filteredFilieres.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Aucune filière trouvée
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Essayez de modifier vos critères de recherche ou explorez
-                    toutes les filières disponibles.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedDomain(DomaineFiliereType.ALL);
-                    }}
-                    className="bg-purple-600 hover:bg-purple-700"
+              <div className="flex gap-2 flex-wrap">
+                {domains.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleDomain(value)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+                      selectedDomain === value
+                        ? "bg-amame-green text-white border-amame-green shadow-green"
+                        : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"
+                    }`}
                   >
-                    Voir toutes les filières
-                  </Button>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {filteredFilieres.map((filiere) => (
-                    <Card
-                      key={filiere.id}
-                      className="p-6 group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        {filiere.filePath ? (
-                          <div className="">
-                            <img 
-                              className="w-12 h-12 object-cover rounded-md"  
-                              src={`${url}/${filiere.filePath}`} 
-                              alt={filiere.nom}
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                // Optionnel: afficher un fallback
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
-                            <Briefcase className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
-                        <Badge
-                          className={`${
-                            filiere.difficulte === "TRES_ELEVEE"
-                              ? "bg-red-100 text-red-800 hover:bg-red-200"
-                              : filiere.difficulte === "ELEVEE"
-                              ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-                              : "bg-green-100 text-green-800 hover:bg-green-200"
-                          } transition-colors`}
-                        >
-                          {filiere.difficulte === "TRES_ELEVEE"
-                            ? "Très élevée"
-                            : filiere.difficulte === "ELEVEE"
-                            ? "Élevée"
-                            : "Moyenne"}
-                        </Badge>
-                      </div>
-
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                        {filiere.nom}
-                      </h3>
-                      <p className="text-gray-600 mb-4 leading-relaxed line-clamp-2">
-                        {filiere.descriptionCourte}
-                      </p>
-
-                      <div className="space-y-3 mb-6">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Durée:</span>
-                          <span className="font-medium bg-blue-50 px-2 py-1 rounded">
-                            {filiere.dureeEtudes}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Demande:</span>
-                          <span className="font-medium bg-amber-50 px-2 py-1 rounded">
-                            {filiere.demande}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Salaire moyen:</span>
-                          <span className="font-medium bg-emerald-50 px-2 py-1 rounded">
-                            {filiere.salaire}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="border-t pt-4">
-                        <p className="text-sm font-semibold text-gray-700 mb-3">
-                          Débouchés principaux :
-                        </p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {filiere.debouches
-                            ?.slice(0, 3)
-                            .map((debouche, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-xs bg-gray-50"
-                              >
-                                {debouche}
-                              </Badge>
-                            ))}
-                          {filiere.debouches && filiere.debouches.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{filiere.debouches.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          className="w-full group/btn border-2 hover:border-purple-500 hover:bg-purple-50"
-                          asChild
-                        >
-                          <Link to={`/orientation/${filiere.id}`}>
-                            <span className="font-medium">En savoir plus</span>
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={resetFilters} className="h-11 text-amame-muted hover:text-amame-charcoal gap-2 rounded-xl shrink-0">
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Réinitialiser</span>
+                </Button>
               )}
             </div>
+          </div>
+        </section>
+
+        {/* Grid */}
+        <section className="flex-grow py-8 lg:py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-nunito font-bold text-lg text-amame-charcoal">Filières disponibles</h2>
+                {filieresPage && (
+                  <p className="text-sm text-amame-muted">
+                    {filieresPage.totalElements} filière{filieresPage.totalElements > 1 ? "s" : ""} trouvée{filieresPage.totalElements > 1 ? "s" : ""}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
+                  {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                </motion.div>
+              ) : filieres.length === 0 ? (
+                <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-20">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">
+                    <Search className="h-8 w-8 text-amame-green" />
+                  </div>
+                  <h3 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">Aucune filière trouvée</h3>
+                  <p className="text-amame-muted text-sm max-w-md mx-auto mb-6">Essayez de modifier vos critères de recherche.</p>
+                  <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                    Voir toutes les filières
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
+                    {filieres.map((filiere) => {
+                      const diff = difficultyConfig[filiere.difficulte as keyof typeof difficultyConfig] || difficultyConfig.MOYENNE;
+                      return (
+                        <div key={filiere.id} className="h-full flex flex-col bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                          <div className="h-1 bg-gradient-to-r from-amame-green to-amame-green-dark" />
+                          <div className="flex flex-col flex-grow p-5">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="w-11 h-11 bg-amame-green-subtle rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                                {filiere.filePath ? (
+                                  <img src={`/${filiere.filePath}`} alt={filiere.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                                ) : (
+                                  <Briefcase className="h-5 w-5 text-amame-green" />
+                                )}
+                              </div>
+                              <Badge className={`text-xs border ${diff.cls}`}>{diff.label}</Badge>
+                            </div>
+
+                            <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-1.5 group-hover:text-amame-green transition-colors">
+                              {filiere.nom}
+                            </h3>
+                            <p className="text-xs text-amame-muted leading-relaxed line-clamp-2 mb-4 flex-grow">
+                              {filiere.descriptionCourte}
+                            </p>
+
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                              <div className="flex flex-col items-center gap-0.5 bg-gray-50 rounded-lg p-2 border border-amame-border">
+                                <Clock className="h-3 w-3 text-blue-500" />
+                                <span className="text-xs font-medium text-amame-charcoal text-center leading-tight">{filiere.dureeEtudes}</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-0.5 bg-gray-50 rounded-lg p-2 border border-amame-border">
+                                <TrendingUp className="h-3 w-3 text-amame-gold" />
+                                <span className="text-xs font-medium text-amame-charcoal text-center leading-tight">{filiere.demande}</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-0.5 bg-gray-50 rounded-lg p-2 border border-amame-border">
+                                <DollarSign className="h-3 w-3 text-amame-green" />
+                                <span className="text-xs font-medium text-amame-charcoal text-center leading-tight">{filiere.salaire}</span>
+                              </div>
+                            </div>
+
+                            {filiere.debouches && filiere.debouches.length > 0 && (
+                              <div className="mb-4">
+                                <p className="text-xs font-semibold text-amame-slate mb-2">Débouchés :</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {filiere.debouches.slice(0, 3).map((d, i) => (
+                                    <span key={i} className="text-xs bg-amame-green-subtle text-amame-green-dark border border-amame-green/15 px-2 py-0.5 rounded-full">{d}</span>
+                                  ))}
+                                  {filiere.debouches.length > 3 && (
+                                    <span className="text-xs bg-gray-100 text-amame-muted border border-gray-200 px-2 py-0.5 rounded-full">+{filiere.debouches.length - 3}</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            <Button asChild variant="outline" className="w-full border-2 border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold rounded-lg text-sm group/btn">
+                              <Link to={`/orientation/${filiere.id}`} className="flex items-center justify-center gap-2">
+                                En savoir plus
+                                <ArrowRight className="h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {filieresPage && (
+                    <Pagination
+                      totalPages={filieresPage.totalPages}
+                      currentPage={filieresPage.currentPage}
+                      hasNext={filieresPage.hasNext}
+                      hasPrevious={filieresPage.hasPrevious}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
       </div>

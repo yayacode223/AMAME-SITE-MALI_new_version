@@ -11,7 +11,8 @@ public enum RoleType {
     ADMIN("Administrateur"),
     EDITOR("Editeur"),
     MEMBER("Membre"),
-    USER("Utilisateur");
+    USER("Utilisateur"),
+    VISITOR("Visiteur"); 
 
     private final String label;
 }

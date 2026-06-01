@@ -1,0 +1,22 @@
+{
+  "name": "AMAME — Association Malienne d'Appui aux Meilleurs Élèves",
+  "short_name": "AMAME",
+  "description": "Bourses, concours, orientation et ressources académiques pour les étudiants maliens. 100% gratuit et bénévole.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#16a34a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

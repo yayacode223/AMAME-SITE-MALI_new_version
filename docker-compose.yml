@@ -19,7 +19,7 @@ services:
       retries: 5
 
   backend:
-    image: yaya236/amame-web-site:backend-v2
+    image: yaya236/amame-web-site:backend-v4.4
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -31,15 +31,23 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_SHOW_SQL=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
       - JWT_SECRET=ejoVb48DypZtTiMbitoRSVitYSnrICP+ARo1zwg9S/E=
-      - JWT_EXPIRATION=2592000000
+      - JWT_EXPIRATION=900000
+      - JWT_REFRESH_EXPIRATION=604800000
       - FRONTEND=https://amame.ml
-    # env_file:
-    #   - ./backend/.env  # Chemin corrigé
+      # Cookies — profil prod : domain .amame.ml + Secure (HTTPS)
+      - COOKIE_DOMAIN=.amame.ml
+      - COOKIE_SECURE=true
+      # ── Email SMTP ──────────────────────────────────────────────────────────
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     deploy:
       resources:
         limits:
@@ -54,7 +62,7 @@ services:
     restart: unless-stopped # Ajouté pour résilience
 
   frontend:
-    image: yaya236/amame-web-site:frontend-v2
+    image: yaya236/amame-web-site:frontend-v4.5
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -91,9 +99,79 @@ services:
       - DB_PASSWORD=postgres
     restart: "no" # Le scraper ne tourne pas en continu
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: amame-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpass
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - common_net
+    depends_on:
+      database:
+        condition: service_healthy
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: amame-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@database:5432/amame_db?sslmode=disable"
+    networks:
+      - common_net
+    depends_on:
+      database:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: amame-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - common_net
+    depends_on:
+      - postgres-exporter
+      - backend
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: amame-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: adminpass
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - common_net
+    depends_on:
+      - prometheus
+
 networks:
   common_net:
     driver: bridge
 
 volumes:
   database_data:
+  pgadmin_data:
+  prometheus_data:
+  grafana_data:
+
+# networks:
+#   common_net:
+#     driver: bridge
+
+# volumes:
+#   database_data:

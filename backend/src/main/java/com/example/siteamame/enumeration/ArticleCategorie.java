@@ -11,7 +11,8 @@ public enum ArticleCategorie {
     BOURSES("Bourses"),
     CONCOURS("Concours"),
     TEMOIGNAGES("Témoignages"),
-    ACTUALITES("Actualités");
+    ACTUALITES("Actualités"),
+    POSTES("Postes");
 
     private final String label;
 

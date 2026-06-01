@@ -1,0 +1,10 @@
+# Secrets — ne jamais commiter
+.env
+*.env.local
+
+# Builds frontend
+frontend/dist/
+frontend/node_modules/
+
+# Uploads
+backend/uploads/

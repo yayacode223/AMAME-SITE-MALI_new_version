@@ -32,6 +32,7 @@ export interface ArticleSummaryResponse {
   tempsLecture: number;
   datePublication: string;
   resume: string;
+  estPublie: boolean;
 }
 
 export interface ArticleDetailResponse {

@@ -7,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Component
@@ -31,58 +31,62 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        //  Routes publiques UNIQUEMENT
+        // Routes publiques — pas de vérification du token
         if (path.equals("/api/auth/login")
                 || path.equals("/api/auth/logout")
+                || path.equals("/api/auth/refresh")
                 || path.startsWith("/api/visitor/")) {
-
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Toutes les autres routes DOIVENT être authentifiées
-        String token = getTokenFromRequest(request);
+        // Toutes les autres routes : vérification de l'access token
+        String token = extractAccessToken(request);
 
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // extractUsernameSafely évite les ExpiredJwtException non catchées (évite 500)
+            Optional<String> usernameOpt = jwtUtil.extractUsernameSafely(token);
 
-            String username = jwtUtil.extractUsername(token);
+            if (usernameOpt.isPresent()) {
+                String username = usernameOpt.get();
+                if (jwtUtil.validateToken(token, username)) {
+                    CustomUserDetails userDetails =
+                            (CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
 
-            if (username != null && jwtUtil.validateToken(token, username)) {
-
-                CustomUserDetails userDetails =
-                        (CustomUserDetails) customUserDetailsService
-                                .loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+                // Token expiré ou invalide → pas d'auth → Spring Security renverra 401
+                // Le frontend interceptera ce 401 et tentera le refresh
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-
-    private String getTokenFromRequest(HttpServletRequest request) {
-        // Chercher le token dans les cookies
+    /**
+     * Lit l'access token depuis :
+     * 1. Cookie "access_token" (HttpOnly, prioritaire)
+     * 2. Header "Authorization: Bearer <token>" (fallback pour clients non-navigateur)
+     */
+    private String extractAccessToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("token".equals(cookie.getName())) {
+                if ("access_token".equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
         }
 
-        // Chercher dans l'en-tête Authorization (Bearer token)
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7); // Enlever "Bearer"
+            return header.substring(7);
         }
         return null;
     }

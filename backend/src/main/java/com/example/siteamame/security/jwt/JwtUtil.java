@@ -2,14 +2,13 @@ package com.example.siteamame.security.jwt;
 
 import com.example.siteamame.enumeration.RoleType;
 import io.jsonwebtoken.*;
-import java.util.Date;
-
 import io.jsonwebtoken.security.Keys;
-
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -21,50 +20,62 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expirationTime;
 
-//    public JwtUtil(@Value("${jwt.secret}")String secretKey, @Value("${jwt.expiration}")long expirationTime) {
-//        this.secretKey = secretKey;
-//        this.expirationTime = expirationTime;
-//    }
-
-    // Génération du JWT
+    /** Génère un access token JWT (durée = jwt.expiration, ex: 15 min). */
     public String generateToken(String email, RoleType role) {
         return Jwts.builder()
-                .setSubject(email) // Mettre l'email de l'utilisateur dans le token
-                .claim("roles",role) // Mettre le role de l'utilisateur dans le token
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Date de création du token
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime)) // Date d'expiration
-                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes())) // Signature avec clé secrète
+                .setSubject(email)
+                .claim("roles", role)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .compact();
     }
 
-    // Extraire le nom d'utilisateur (email) du token JWT
+    /** Extrait le sujet (email). Lance JwtException si invalide ou expiré. */
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes())) // Clé pour valider la signature
+                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
 
-    // Vérifier si le token est expiré
+    /**
+     * Version sûre : retourne Optional.empty() si le token est invalide ou expiré,
+     * sans propager d'exception. Utilisée dans JwtFilter pour éviter les 500.
+     */
+    public Optional<String> extractUsernameSafely(String token) {
+        try {
+            return Optional.ofNullable(extractUsername(token));
+        } catch (JwtException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date(System.currentTimeMillis()));
     }
 
-    // Extraire la date d'expiration du token
     public Date extractExpiration(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes())) // Clé pour valider la signature
+                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getExpiration();
     }
 
-    // Valider le token
+    /**
+     * Valide le token : email correspondant + non expiré.
+     * Retourne false sans lever d'exception en cas de token invalide/expiré.
+     */
     public boolean validateToken(String token, String username) {
-        return (username.equals(extractUsername(token)) && !isTokenExpired(token));
+        try {
+            return username.equals(extractUsername(token)) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 }
 

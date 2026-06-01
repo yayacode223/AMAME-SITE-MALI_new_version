@@ -7,6 +7,7 @@ import com.example.siteamame.service.BourseService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -73,6 +74,7 @@ public class BourseController {
 
     // NOUVELLES MÉTHODES CRUD
     @PostMapping("/admin/bourses")
+    @PreAuthorize("hasAuthority('BOURSE_CREATE')")
     public ResponseEntity<BourseDetailDto> createBourse(
             @RequestPart(value = "bourse") @Valid BourseCreationRequest bourseRequest,
             @RequestPart(value = "file", required = false) MultipartFile file
@@ -82,6 +84,7 @@ public class BourseController {
     }
 
     @PutMapping("/admin/bourses/{id}")
+    @PreAuthorize("hasAuthority('BOURSE_EDIT')")
     public ResponseEntity<BourseDetailDto> updateBourse(
             @PathVariable Long id,
             @RequestPart(value = "bourse") @Valid BourseCreationRequest bourseRequest,
@@ -92,6 +95,7 @@ public class BourseController {
     }
 
     @DeleteMapping("/admin/bourses/{id}")
+    @PreAuthorize("hasAuthority('BOURSE_DELETE')")
     public ResponseEntity<Void> deleteBourse(@PathVariable Long id) {
         bourseService.deleteBourse(id);
         return ResponseEntity.noContent().build();

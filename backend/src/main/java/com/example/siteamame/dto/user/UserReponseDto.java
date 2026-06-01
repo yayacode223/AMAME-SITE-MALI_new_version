@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Getter
@@ -36,4 +38,11 @@ public class UserReponseDto {
     @Enumerated(EnumType.STRING)
     private NiveauType niveauEtude;
     private Integer codePostal;
+
+    /**
+     * Permissions effectives de l'utilisateur (nom des enum Permission).
+     * Rempli uniquement sur les réponses auth (/login, /refresh, /me).
+     * Vide pour les listes utilisateurs admin (pas de N+1).
+     */
+    private Set<String> permissions = new HashSet<>();
 }

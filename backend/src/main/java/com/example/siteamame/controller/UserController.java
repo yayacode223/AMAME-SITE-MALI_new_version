@@ -1,5 +1,6 @@
 package com.example.siteamame.controller;
 
+import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.user.UserRequestDto;
 import com.example.siteamame.dto.user.UserReponseDto;
 import com.example.siteamame.service.user.UserService;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,10 +22,14 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    //Get All Users
     @GetMapping("/admin/users")
-    public ResponseEntity<List<UserReponseDto>> getAllUsers(){
-        return new ResponseEntity<>(userService.getAllUser(), HttpStatus.OK);
+    @PreAuthorize("hasAuthority('USER_READ_ALL')")
+    public ResponseEntity<PageResponse<UserReponseDto>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDirection) {
+        return ResponseEntity.ok(userService.getAllUserPage(page, size, sortBy, sortDirection));
     }
 
     //Get User by Id
@@ -43,6 +49,7 @@ public class UserController {
     }
 
     @PutMapping("/user/update/{id}")
+    @PreAuthorize("hasAuthority('USER_EDIT_ANY') or #id == authentication.principal.user.id")
     public ResponseEntity<UserReponseDto> update(
             @PathVariable Long id,
             @RequestPart("user") @Valid UserRequestDto requestDto,
@@ -53,6 +60,7 @@ public class UserController {
     }
 
     @DeleteMapping("/admin/user/{id}")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

@@ -1,17 +1,37 @@
 import { BourseSummary } from "@/types/bourseType";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Building, GraduationCap, Tag } from "lucide-react";
+import { Calendar, MapPin, Building, GraduationCap, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Composant pour une carte individuelle
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "Non spécifiée";
+  return new Date(dateString).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getFinancementStyle = (statut?: string) => {
+  switch (statut?.toLowerCase()) {
+    case "complet":
+      return "bg-amame-green-light text-amame-green-dark border-amame-green/20";
+    case "partiel":
+      return "bg-amame-gold-subtle text-amame-gold border-amame-gold/20";
+    case "limité":
+      return "bg-orange-50 text-orange-700 border-orange-200";
+    default:
+      return "bg-gray-50 text-gray-600 border-gray-200";
+  }
+};
+
+const isDeadlineNear = (dateString?: string) => {
+  if (!dateString) return false;
+  const diff = new Date(dateString).getTime() - Date.now();
+  return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000;
+};
+
 const BourseCardItem = ({
   id,
   titre,
@@ -24,126 +44,76 @@ const BourseCardItem = ({
   organisation,
   dateLimite,
 }: BourseSummary) => {
-  // Fonction pour formater la date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Non spécifiée";
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  // Couleur du badge selon le statut de financement
-  const getFinancementColor = (statut?: string) => {
-    switch (statut?.toLowerCase()) {
-      case "complet":
-        return "bg-green-100 text-green-800";
-      case "partiel":
-        return "bg-yellow-100 text-yellow-800";
-      case "limité":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const nearDeadline = isDeadlineNear(dateLimite);
 
   return (
-    <Card className="h-full flex flex-col bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start mb-2">
-          <Badge
-            variant="secondary"
-            className={`${getFinancementColor(financementStatut)} text-xs font-medium`}
-          >
+    <div className="h-full flex flex-col bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+      {/* Gold top accent bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-amame-gold to-amame-gold-light" />
+
+      <div className="flex flex-col flex-grow p-5">
+        {/* Header badges */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <Badge className={`text-xs font-medium border ${getFinancementStyle(financementStatut)}`}>
             {financementStatut || "Financement"}
           </Badge>
           {categorie && (
-            <Badge variant="outline" className="text-xs">
-              <Tag className="w-3 h-3 mr-1" />
+            <span className="text-xs text-amame-muted bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">
               {categorie}
-            </Badge>
+            </span>
           )}
         </div>
 
-        <CardTitle className="text-lg font-bold leading-tight line-clamp-2 text-gray-900">
+        {/* Title */}
+        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-2 line-clamp-2 leading-snug group-hover:text-amame-green transition-colors">
           {titre}
-        </CardTitle>
-      </CardHeader>
+        </h3>
 
-      <CardContent className="flex-grow pb-3">
-        <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+        {/* Description */}
+        <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mb-4 flex-grow">
           {descriptionCourte}
         </p>
 
-        <div className="space-y-2">
+        {/* Meta info */}
+        <div className="space-y-1.5 mb-4">
           {paysHote && (
-            <div className="flex items-center text-sm text-gray-700">
-              <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+            <div className="flex items-center gap-2 text-xs text-amame-slate">
+              <MapPin className="w-3.5 h-3.5 text-amame-green shrink-0" />
               <span>{paysHote}</span>
             </div>
           )}
-
-          {bailleur && (
-            <div className="flex items-center text-sm text-gray-700">
-              <Building className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="line-clamp-1">{bailleur}</span>
+          {(bailleur || organisation) && (
+            <div className="flex items-center gap-2 text-xs text-amame-slate">
+              <Building className="w-3.5 h-3.5 text-amame-gold shrink-0" />
+              <span className="line-clamp-1">{bailleur || organisation}</span>
             </div>
           )}
-
           {niveau && (
-            <div className="flex items-center text-sm text-gray-700">
-              <GraduationCap className="w-4 h-4 mr-2 text-green-600" />
+            <div className="flex items-center gap-2 text-xs text-amame-slate">
+              <GraduationCap className="w-3.5 h-3.5 text-blue-500 shrink-0" />
               <span>{niveau}</span>
             </div>
           )}
-
-          {organisation && (
-            <div className="flex items-center text-sm text-gray-700">
-              <Building className="w-4 h-4 mr-2 text-orange-600" />
-              <span className="line-clamp-1">{organisation}</span>
-            </div>
-          )}
-
-          {dateLimite && (
-            <div className="flex items-center text-sm text-gray-700 mt-3 pt-2 border-t border-gray-100">
-              <Calendar className="w-4 h-4 mr-2 text-red-600" />
-              <span className="font-medium">
-                Date limite : {formatDate(dateLimite)}
-              </span>
-            </div>
-          )}
         </div>
-      </CardContent>
 
-      <CardFooter className="pt-3 border-t border-gray-100">
-        <Button
-          variant="default"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors duration-200"
-          asChild
-        >
-          <Link
-            to={`/bourses/${id}`}
-            className="w-full text-center flex items-center justify-center"
-          >
+        {/* Deadline */}
+        {dateLimite && (
+          <div className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg mb-4 ${nearDeadline ? "bg-red-50 text-red-700 border border-red-200" : "bg-amame-surface text-amame-slate border border-amame-border"}`}>
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span>Clôture : {formatDate(dateLimite)}</span>
+            {nearDeadline && <span className="ml-auto font-bold text-red-600">Urgent !</span>}
+          </div>
+        )}
+
+        {/* CTA */}
+        <Button asChild className="w-full bg-amame-gold hover:bg-yellow-600 text-white font-semibold rounded-lg text-sm transition-all shadow-sm hover:shadow-md">
+          <Link to={`/bourses/${id}`} className="flex items-center justify-center gap-2">
             Voir les détails
-            <svg
-              className="w-4 h-4 ml-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
 

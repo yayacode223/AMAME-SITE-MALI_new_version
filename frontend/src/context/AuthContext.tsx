@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useCallback, useContext, ReactNode } from "react";
 import * as authService from "@/service/userService";
 import * as Type from "@/types/userType";
 
@@ -12,6 +12,8 @@ interface AuthContextType {
   register: (data: Type.RegisterPayload) => Promise<Type.RegisterResponse>;
   login: (credentials: Type.LoginType) => Promise<Type.RegisterResponse>;
   logout: () => Promise<void>;
+  /** Vérifie si l'utilisateur courant possède une permission effective. */
+  hasPermission: (permission: Type.Permission) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,8 +41,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return logoutMutation();
   };
 
-  const finalUser = user ?? null; // S'assurer que la valeur est `null` et non `undefined`
+  const finalUser = user ?? null;
   const isAuthenticated = !!finalUser;
+
+  const hasPermission = useCallback(
+    (permission: Type.Permission): boolean =>
+      finalUser?.permissions?.includes(permission) ?? false,
+    [finalUser],
+  );
 
   const value: AuthContextType = {
     user: finalUser,
@@ -52,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     register,
     login,
     logout,
+    hasPermission,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

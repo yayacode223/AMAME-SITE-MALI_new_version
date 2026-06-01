@@ -1,4 +1,4 @@
-// service/orientationService.ts - VERSION OPTIMISÉE
+// service/orientationService.ts
 import { Api } from "@/utils/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,10 +9,30 @@ import {
   DomaineFiliereType,
   SearchFilieresParams,
 } from "@/types/orientationType";
+import { PageResponse, PaginationParams } from "@/types/commonTypes";
 
-// Fonction pour récupérer TOUTES les filières
-const getAllFilieres = async (): Promise<FiliereSummaryResponse[]> => {
-  const response = await Api.get<FiliereSummaryResponse[]>("/visitor/filieres");
+export interface FilierePageParams extends PaginationParams {
+  search?: string;
+  domaine?: DomaineFiliereType;
+}
+
+const buildFiliereUrl = (params: FilierePageParams): string => {
+  const { page = 0, size = 9, sortBy = "nom", sortDirection = "ASC", search, domaine } = params;
+  const q = new URLSearchParams({ page: String(page), size: String(size), sortBy, sortDirection });
+
+  if (search?.trim()) {
+    q.append("search", search.trim());
+    return `/visitor/filieres/search?${q}`;
+  }
+  if (domaine && domaine !== DomaineFiliereType.ALL) {
+    return `/visitor/filieres/domaine/${domaine}?${q}`;
+  }
+  return `/visitor/filieres?${q}`;
+};
+
+const getAllFilieres = async (params?: FilierePageParams): Promise<PageResponse<FiliereSummaryResponse>> => {
+  const url = buildFiliereUrl(params || {});
+  const response = await Api.get<PageResponse<FiliereSummaryResponse>>(url);
   return response.data;
 };
 
@@ -133,20 +153,21 @@ export const downloadFiliereFile = async (
 // Query keys
 export const orientationKeys = {
   all: ["orientation"] as const,
-  lists: () => [...orientationKeys.all, "list"] as const,
+  lists: (params?: FilierePageParams) => [...orientationKeys.all, "list", params] as const,
   details: () => [...orientationKeys.all, "detail"] as const,
   detail: (id: number) => [...orientationKeys.details(), id] as const,
   domaines: () => [...orientationKeys.all, "domaines"] as const,
 };
 
-// UN SEUL HOOK PRINCIPAL - OPTIMISÉ
-export const useGetAllFilieres = () =>
+export const useGetAllFilieres = (params?: FilierePageParams, options?: { enabled?: boolean }) =>
   useQuery({
-    queryKey: orientationKeys.lists(),
-    queryFn: getAllFilieres,
-    staleTime: 60 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes en cache
-    retry: 1, // Une seule retry
+    queryKey: orientationKeys.lists(params),
+    queryFn: () => getAllFilieres(params),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    placeholderData: (prev) => prev,
+    enabled: options?.enabled ?? true,
   });
 
 export const useGetFiliereById = (id: number, options?: { enabled: boolean }) =>

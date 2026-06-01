@@ -1,17 +1,25 @@
+# syntax=docker/dockerfile:1
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# 1. Copier uniquement les fichiers de dépendances
+# 1. Augmenter le timeout et les retries npm pour réseau instable
+RUN npm config set fetch-retries 5 \
+    && npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set fetch-timeout 600000
+
+# 2. Copier uniquement les fichiers de dépendances
 COPY package.json package-lock.json ./
 
-# 2. Installer les dépendances AVANT de copier le code source
-RUN npm ci --legacy-peer-deps --quiet
+# 3. Installer avec cache BuildKit (évite de tout re-télécharger à chaque rebuild)
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps --quiet
 
-# 3. Maintenant copier le reste du code source
+# 4. Copier le reste du code source
 COPY . .
 
-# 4. Builder l'application
+# 5. Builder l'application
 RUN npm run build
 
 FROM nginx:alpine

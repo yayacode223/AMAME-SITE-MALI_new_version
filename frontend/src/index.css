@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,35 +7,37 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%;
+    --foreground: 220 13% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 13% 7%;
 
-    --primary: 221 51% 44%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Vert AMAME (Mali green) */
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 150 62% 42%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary: Or Mali */
+    --secondary: 43 96% 56%;
+    --secondary-foreground: 26 83% 14%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 220 79% 72%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 70% 96%;
+    --accent-foreground: 142 71% 25%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 51% 44%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 71% 45%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
   }
 
   * {
@@ -43,32 +45,117 @@
   }
 
   body {
-    @apply bg-background text-foreground font-roboto;
+    @apply bg-background text-foreground font-inter antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-nunito font-bold;
+    @apply font-nunito font-bold tracking-tight;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
+  /* Boutons AMAME */
   .btn-primary {
-    @apply bg-amame-blue hover:bg-amame-blue/90 text-white py-2 px-4 rounded-md transition-colors;
+    @apply bg-amame-green hover:bg-amame-green-dark text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-green hover:shadow-lg;
   }
-  
+
   .btn-secondary {
-    @apply bg-amame-green hover:bg-amame-green/90 text-white py-2 px-4 rounded-md transition-colors;
+    @apply bg-amame-gold hover:bg-amame-gold/90 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200;
   }
-  
+
   .btn-outline {
-    @apply border border-amame-blue text-amame-blue hover:bg-amame-blue/10 py-2 px-4 rounded-md transition-colors;
+    @apply border-2 border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold py-2.5 px-5 rounded-lg transition-all duration-200;
   }
-  
+
+  /* Cards AMAME */
+  .card-base {
+    @apply bg-white rounded-xl border border-amame-border shadow-card transition-all duration-300;
+  }
+
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    @apply card-base hover:shadow-card-hover hover:-translate-y-1;
   }
-  
-  .section-padding {
-    @apply py-16 px-4 md:px-8 lg:px-16;
+
+  /* Section patterns */
+  .section-white {
+    @apply py-16 lg:py-24 bg-white;
+  }
+
+  .section-subtle {
+    @apply py-16 lg:py-24 bg-amame-green-subtle;
+  }
+
+  .section-surface {
+    @apply py-16 lg:py-24 bg-amame-surface;
+  }
+
+  /* Hero badge */
+  .hero-badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amame-green-light text-amame-green-dark text-sm font-semibold;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply inline-block text-amame-green font-semibold text-sm uppercase tracking-widest mb-3;
+  }
+
+  /* Page hero */
+  .page-hero {
+    @apply bg-amame-green-subtle border-b border-amame-border py-12 lg:py-16;
+  }
+
+  /* Hero decorative grid */
+  .hero-dot-grid {
+    background-image: radial-gradient(circle, #16a34a 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Responsive background-position helpers for hero images */
+  .hero-bg-image {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .page-hero-bg-image {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  /* Spin animations with custom durations (uses Tailwind's built-in spin keyframe) */
+  .spin-20s {
+    animation: spin 20s linear infinite;
+  }
+
+  .spin-30s-reverse {
+    animation: spin 30s linear infinite reverse;
+  }
+
+
+  /* Badge float delays */
+  .float-delay-0 { animation-delay: 0s; }
+  .float-delay-1 { animation-delay: 0.8s; }
+  .float-delay-2 { animation-delay: 1.6s; }
+
+  /* Motion fade delay variants */
+  .motion-delay-0 { animation-delay: 0s; }
+  .motion-delay-sm { animation-delay: 0.7s; }
+  .motion-delay-md { animation-delay: 1.5s; }
+}
+
+/* Uses Tailwind's built-in @keyframes spin — no redefinition needed */
+
+@media (min-width: 1024px) {
+  .hero-bg-image {
+    background-position: center right 10%;
+  }
+
+  .page-hero-bg-image {
+    background-position: center right 20%;
   }
 }

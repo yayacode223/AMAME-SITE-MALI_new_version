@@ -1,4 +1,4 @@
-// articleService.ts - VERSION OPTIMISÉE
+// articleService.ts
 import { Api } from "@/utils/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -8,10 +8,58 @@ import {
   SearchArticlesParams,
   ArticleUpdateRequest,
 } from "@/types/articleType";
+import { PageResponse, PaginationParams } from "@/types/commonTypes";
 
-// Fonction principale pour récupérer TOUS les articles
-const getAllArticles = async (): Promise<ArticleSummaryResponse[]> => {
-  const response = await Api.get<ArticleSummaryResponse[]>("/visitor/articles");
+export interface ArticlePageParams extends PaginationParams {
+  search?: string;
+  categorie?: string;
+}
+
+// /visitor/articles/search gère tous les cas : sans search/categorie = liste complète
+const getAllArticles = async (params?: ArticlePageParams): Promise<PageResponse<ArticleSummaryResponse>> => {
+  const {
+    page = 0,
+    size = 9,
+    sortBy = "datePublication",
+    sortDirection = "DESC",
+    search,
+    categorie = "all",
+  } = params || {};
+  const q = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sortBy,
+    sortDirection,
+    categorie,
+  });
+  if (search?.trim()) q.append("search", search.trim());
+  const response = await Api.get<PageResponse<ArticleSummaryResponse>>(
+    `/visitor/articles/search?${q}`,
+  );
+  return response.data;
+};
+
+// Admin : liste complète (publiés + brouillons)
+const getAdminArticles = async (params?: ArticlePageParams): Promise<PageResponse<ArticleSummaryResponse>> => {
+  const {
+    page = 0,
+    size = 10,
+    sortBy = "datePublication",
+    sortDirection = "DESC",
+    search,
+    categorie = "all",
+  } = params || {};
+  const q = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sortBy,
+    sortDirection,
+    categorie,
+  });
+  if (search?.trim()) q.append("search", search.trim());
+  const response = await Api.get<PageResponse<ArticleSummaryResponse>>(
+    `/admin/articles?${q}`,
+  );
   return response.data;
 };
 
@@ -138,24 +186,25 @@ export const downloadArticleFile = async (
   }
 };
 
-// Query keys SIMPLIFIÉES
+// Query keys
 export const articleKeys = {
   all: ["articles"] as const,
-  lists: () => [...articleKeys.all, "list"] as const,
+  lists: (params?: ArticlePageParams) => [...articleKeys.all, "list", params] as const,
   details: () => [...articleKeys.all, "detail"] as const,
   detail: (slug: string) => [...articleKeys.details(), slug] as const,
   detailById: (id: number) => [...articleKeys.details(), id] as const,
   categories: () => [...articleKeys.all, "categories"] as const,
 };
 
-// UN SEUL HOOK PRINCIPAL
-export const useGetAllArticles = () =>
+export const useGetAllArticles = (params?: ArticlePageParams, options?: { enabled?: boolean }) =>
   useQuery({
-    queryKey: articleKeys.lists(),
-    queryFn: getAllArticles,
-    staleTime: 60 * 60 * 1000,
+    queryKey: articleKeys.lists(params),
+    queryFn: () => getAllArticles(params),
+    staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: 1,
+    placeholderData: (prev) => prev,
+    enabled: options?.enabled ?? true,
   });
 
 // Hook pour récupérer les catégories disponibles
@@ -188,6 +237,14 @@ export const useGetArticleById = (
     queryFn: () => getArticleById(id),
     enabled: options?.enabled ?? !!id,
     staleTime: 10 * 60 * 1000,
+  });
+
+export const useGetAdminArticles = (params?: ArticlePageParams) =>
+  useQuery({
+    queryKey: [...articleKeys.all, "admin", params],
+    queryFn: () => getAdminArticles(params),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev,
   });
 
 // HOOKS DÉSACTIVÉS pour compatibilité

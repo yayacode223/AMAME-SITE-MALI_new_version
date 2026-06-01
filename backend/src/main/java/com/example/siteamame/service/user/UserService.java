@@ -1,5 +1,6 @@
 package com.example.siteamame.service.user;
 
+import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.user.UserRequestDto;
 import com.example.siteamame.dto.user.UserReponseDto;
@@ -14,6 +15,8 @@ import com.example.siteamame.repository.UserRepository;
 
 import com.example.siteamame.service.file.FileStorageServiceImpl;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +47,17 @@ public class UserService {
             }
             return listOfUser.stream()
                     .map(userMapper::UserToDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<UserReponseDto> getAllUserPage(
+            int page, int size, String sortBy, String sortDirection) {
+        Sort sort = "DESC".equalsIgnoreCase(sortDirection)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        return new PageResponse<>(
+                userRepository.findAll(PageRequest.of(page, size, sort))
+                        .map(userMapper::UserToDto));
     }
 
     //Get A Specific User

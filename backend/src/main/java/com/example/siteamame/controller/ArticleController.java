@@ -4,11 +4,13 @@ import com.example.siteamame.dto.article.ArticleCreationRequest;
 import com.example.siteamame.dto.article.ArticleDto;
 import com.example.siteamame.dto.article.ArticleSearchingRequest;
 import com.example.siteamame.dto.article.ArticleSummaryDto;
+import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,8 +29,12 @@ public class ArticleController {
 
     @Transactional
     @GetMapping("/visitor/articles")
-    public ResponseEntity<List<ArticleSummaryDto>> getAllArticles() {
-        return ResponseEntity.ok(articleService.getAllArticles());
+    public ResponseEntity<PageResponse<ArticleSummaryDto>> getAllArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "datePublication") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+        return ResponseEntity.ok(articleService.getArticlesPage(page, size, sortBy, sortDirection, null, "all"));
     }
 
     @Transactional
@@ -45,13 +51,14 @@ public class ArticleController {
 
     @Transactional
     @GetMapping("/visitor/articles/search")
-    public ResponseEntity<List<ArticleSummaryDto>> searchArticles(
+    public ResponseEntity<PageResponse<ArticleSummaryDto>> searchArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(required = false, defaultValue = "datePublication") String sortBy,
+            @RequestParam(required = false, defaultValue = "DESC") String sortDirection,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "all") String categorie,
-            @RequestParam(required = false, defaultValue = "newest") String sortBy) {
-
-        ArticleSearchingRequest request = new ArticleSearchingRequest(search, categorie, sortBy, true);
-        return ResponseEntity.ok(articleService.searchArticles(request));
+            @RequestParam(required = false, defaultValue = "all") String categorie) {
+        return ResponseEntity.ok(articleService.getArticlesPage(page, size, sortBy, sortDirection, search, categorie));
     }
 
     @Transactional
@@ -87,7 +94,21 @@ public class ArticleController {
     }
 
     @Transactional
+    @GetMapping("/admin/articles")
+    @PreAuthorize("hasAuthority('ARTICLE_EDIT')")
+    public ResponseEntity<PageResponse<ArticleSummaryDto>> getAllArticlesAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "datePublication") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "all") String categorie) {
+        return ResponseEntity.ok(articleService.getAdminArticlesPage(page, size, sortBy, sortDirection, search, categorie));
+    }
+
+    @Transactional
     @PostMapping("/admin/articles")
+    @PreAuthorize("hasAuthority('ARTICLE_CREATE')")
     public ResponseEntity<ArticleDto> createArticle(
             @RequestPart(value = "article") @Valid ArticleCreationRequest request,
             @RequestPart(value = "image", required = false) MultipartFile file) throws IOException {
@@ -96,6 +117,7 @@ public class ArticleController {
 
     @Transactional
     @PutMapping("/admin/articles/{id}")
+    @PreAuthorize("hasAuthority('ARTICLE_EDIT')")
     public ResponseEntity<ArticleDto> updateArticle (
             @PathVariable  Long id,
             @RequestPart(value = "article") @Valid ArticleDto articleDto,
@@ -106,6 +128,7 @@ public class ArticleController {
 
     @Transactional
     @DeleteMapping("/admin/articles/{id}")
+    @PreAuthorize("hasAuthority('ARTICLE_DELETE')")
     public ResponseEntity<Void> deleteArticle (@PathVariable Long id){
         articleService.deleteArticle(id);
         return  ResponseEntity.noContent().build();

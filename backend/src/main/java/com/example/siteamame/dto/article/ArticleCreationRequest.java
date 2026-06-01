@@ -29,4 +29,5 @@ public class ArticleCreationRequest {
     private Set<String> tags;
     private String metaDescription;
     private String metaKeywords;
+    private boolean estPublie;
 }

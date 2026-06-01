@@ -32,7 +32,8 @@ public class ArticleMapper {
                 article.getVues(),
                 article.getTempsLecture(),
                 article.getDatePublication(),
-                resume
+                resume,
+                Boolean.TRUE.equals(article.getEstPublie())
         );
     }
 
@@ -59,7 +60,8 @@ public class ArticleMapper {
                 article.getDateModification(),
                 tags,
                 article.getMetaDescription(),
-                article.getMetaKeywords()
+                article.getMetaKeywords(),
+                Boolean.TRUE.equals(article.getEstPublie())
         );
     }
 

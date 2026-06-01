@@ -45,23 +45,67 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: "es2020",
-      minify: "esbuild", // Utiliser esbuild au lieu de terser
-      // Pas de terserOptions nécessaire avec esbuild
+      minify: "esbuild",
       rollupOptions: {
         output: {
-          manualChunks: {
-            "vendor-react": ["react", "react-dom", "react-router-dom"],
+          manualChunks(id) {
+            // Core React — toujours chargé
+            if (id.includes("node_modules/react/") ||
+                id.includes("node_modules/react-dom/") ||
+                id.includes("node_modules/react-router-dom/") ||
+                id.includes("node_modules/scheduler/")) {
+              return "vendor-react";
+            }
+            // Radix UI (shadcn/ui)
+            if (id.includes("node_modules/@radix-ui/")) {
+              return "vendor-radix";
+            }
+            // Framer Motion
+            if (id.includes("node_modules/framer-motion/")) {
+              return "vendor-motion";
+            }
+            // React Query
+            if (id.includes("node_modules/@tanstack/")) {
+              return "vendor-query";
+            }
+            // date-fns
+            if (id.includes("node_modules/date-fns/")) {
+              return "vendor-date";
+            }
+            // Charts — admin uniquement (lazy loaded)
+            if (id.includes("node_modules/recharts/") ||
+                id.includes("node_modules/apexcharts/") ||
+                id.includes("node_modules/react-apexcharts/") ||
+                id.includes("node_modules/d3-")) {
+              return "vendor-charts";
+            }
+            // FullCalendar — admin uniquement
+            if (id.includes("node_modules/@fullcalendar/")) {
+              return "vendor-calendar";
+            }
+            // Icons
+            if (id.includes("node_modules/lucide-react/") ||
+                id.includes("node_modules/@heroicons/")) {
+              return "vendor-icons";
+            }
+            // Formulaires
+            if (id.includes("node_modules/zod/") ||
+                id.includes("node_modules/react-hook-form/") ||
+                id.includes("node_modules/@hookform/")) {
+              return "vendor-forms";
+            }
           },
           chunkFileNames: "assets/[name]-[hash].js",
           entryFileNames: "assets/[name]-[hash].js",
+          assetFileNames: "assets/[name]-[hash][extname]",
         },
       },
       sourcemap: mode === "development",
-      chunkSizeWarningLimit: 500,
+      chunkSizeWarningLimit: 600,
       assetsInlineLimit: 4096,
     },
     optimizeDeps: {
-      include: ["react", "react-dom", "react-router-dom"],
+      include: ["react", "react-dom", "react-router-dom", "framer-motion"],
     },
   };
 });

@@ -1,8 +1,9 @@
-// Concours.tsx - VERSION COMPLÈTE OPTIMISÉE POUR MOBILE
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import PageHero from "../components/PageHero";
 import ConcoursCardItem from "../components/ConcoursCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,537 +17,256 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Search,
-  Filter,
+  Trophy,
   GraduationCap,
   Target,
   SearchX,
   ChevronLeft,
   ChevronRight,
+  RotateCcw,
 } from "lucide-react";
 import {
   useConcoursLists,
   useConcoursFilter,
   useConcoursSearch,
 } from "@/service/concoursService";
-import {
-  ConcoursFilterParams,
-  NiveauType,
-  StatusType,
-} from "@/types/concoursType";
+import { ConcoursFilterParams, NiveauType, StatusType } from "@/types/concoursType";
+
+const niveauOptions = [
+  { value: "all", label: "Tous les niveaux" },
+  { value: "BACHELIER", label: "Bachelier" },
+  { value: "LICENCE", label: "Licence" },
+  { value: "MASTER", label: "Master" },
+  { value: "DOCTORAT", label: "Doctorat" },
+];
+
+const statusOptions = [
+  { value: "all", label: "Tous les types" },
+  { value: "NATIONAL", label: "National" },
+  { value: "INTERNATIONAL", label: "International" },
+];
+
+const CardSkeleton = () => (
+  <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
+    <div className="h-1 bg-gray-100" />
+    <div className="p-5 space-y-3">
+      <div className="flex justify-between">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-5 w-24 rounded-full" />
+      </div>
+      <Skeleton className="h-5 w-3/4 rounded-md" />
+      <Skeleton className="h-4 w-full rounded-md" />
+      <Skeleton className="h-4 w-2/3 rounded-md" />
+      <div className="space-y-1.5 pt-2">
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-3.5 w-1/2 rounded-md" />)}
+      </div>
+      <Skeleton className="h-9 w-full rounded-lg mt-2" />
+    </div>
+  </div>
+);
 
 const Concours = () => {
-  // États locaux pour les filtres et la recherche
   const [filter, setFilter] = useState<ConcoursFilterParams>({});
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // Déterminer quels appels activer
-  const hasSearch = Boolean(searchTerm && searchTerm.trim() !== "");
+  const hasSearch = Boolean(searchTerm.trim());
   const hasNiveauFilter = Boolean(filter.niveau);
   const hasStatusFilter = Boolean(filter.status);
 
-  // Paramètres communs
-  const commonParams = {
-    page: currentPage,
-    size: 9,
-    sortBy: "dateLimite",
-    sortDirection: "ASC",
-  };
+  const commonParams = { page: currentPage, size: 9, sortBy: "dateLimite", sortDirection: "ASC" };
 
-  // Appels API
-  const { data: concours, isLoading: isConcoursLoading } = useConcoursLists(
-    commonParams,
-    { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter },
-  );
+  const { data: concours, isLoading: isConcoursLoading } = useConcoursLists(commonParams, { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter });
+  const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } = useConcoursFilter({ ...commonParams, ...filter }, { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch });
+  const { data: searchedConcours, isLoading: isSearchLoading } = useConcoursSearch({ ...commonParams, search: searchTerm }, { enabled: hasSearch });
 
-  const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } =
-    useConcoursFilter(
-      {
-        ...commonParams,
-        ...filter,
-      },
-      { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch },
-    );
-
-  const { data: searchedConcours, isLoading: isSearchLoading } =
-    useConcoursSearch(
-      {
-        ...commonParams,
-        search: searchTerm,
-      },
-      { enabled: hasSearch },
-    );
-
-  // Déterminer quelle source de données utiliser
   const filteredConcours = useMemo(() => {
-    if (hasSearch) {
-      return searchedConcours || null;
-    }
-    if (hasNiveauFilter || hasStatusFilter) {
-      return concoursByFilter || null;
-    }
+    if (hasSearch) return searchedConcours || null;
+    if (hasNiveauFilter || hasStatusFilter) return concoursByFilter || null;
     return concours || null;
-  }, [
-    concours,
-    concoursByFilter,
-    searchedConcours,
-    hasSearch,
-    hasNiveauFilter,
-    hasStatusFilter,
-  ]);
+  }, [concours, concoursByFilter, searchedConcours, hasSearch, hasNiveauFilter, hasStatusFilter]);
 
-  // État de chargement combiné
-  const isLoading =
-    isConcoursLoading || isConcoursByFilterLoading || isSearchLoading;
+  const isLoading = isConcoursLoading || isConcoursByFilterLoading || isSearchLoading;
+  const hasActiveFilters = hasSearch || hasNiveauFilter || hasStatusFilter;
 
-  // Options pour les filtres
-  const niveauOptions = [
-    { value: "all", label: "Tous les niveaux" },
-    { value: "BACHELIER", label: "Bachelier" },
-    { value: "LICENCE", label: "Licence" },
-    { value: "MASTER", label: "Master" },
-    { value: "DOCTORAT", label: "Doctorat" },
-  ];
+  const resetFilters = () => { setFilter({}); setSearchTerm(""); setCurrentPage(0); };
+  const handleNextPage = () => { if (filteredConcours?.hasNext) { setCurrentPage(p => p + 1); window.scrollTo({ top: 400, behavior: "smooth" }); } };
+  const handlePreviousPage = () => { if (filteredConcours?.hasPrevious) { setCurrentPage(p => p - 1); window.scrollTo({ top: 400, behavior: "smooth" }); } };
+  const handlePageChange = (page: number) => { setCurrentPage(page); window.scrollTo({ top: 400, behavior: "smooth" }); };
 
-  const statusOptions = [
-    { value: "all", label: "Tous les statuts" },
-    { value: "NATIONAL", label: "National" },
-    { value: "INTERNATIONAL", label: "International" },
-  ];
-
-  // Handlers
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(0);
-  };
-
-  const handleNiveauChange = (value: string) => {
-    if (value === "all") {
-      const { niveau, ...rest } = filter;
-      setFilter(rest);
-    } else {
-      setFilter({
-        ...filter,
-        niveau: value as NiveauType,
-      });
-    }
-    setCurrentPage(0);
-  };
-
-  const handleStatusChange = (value: string) => {
-    if (value === "all") {
-      const { status, ...rest } = filter;
-      setFilter(rest);
-    } else {
-      setFilter({
-        ...filter,
-        status: value as StatusType,
-      });
-    }
-    setCurrentPage(0);
-  };
-
-  const resetFilters = () => {
-    setFilter({});
-    setSearchTerm("");
-    setCurrentPage(0);
-  };
-
-  const getSelectValue = (value: string | undefined) => value || "all";
-
-  // Navigation entre pages
-  const handleNextPage = () => {
-    if (filteredConcours?.hasNext) {
-      setCurrentPage((prev) => prev + 1);
-      window.scrollTo({ top: 600, behavior: "smooth" });
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (filteredConcours?.hasPrevious) {
-      setCurrentPage((prev) => prev - 1);
-      window.scrollTo({ top: 600, behavior: "smooth" });
-    }
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 600, behavior: "smooth" });
-  };
-
-  // Générer les numéros de page à afficher
   const getPageNumbers = () => {
     if (!filteredConcours) return [];
-
-    const totalPages = filteredConcours.totalPages;
+    const total = filteredConcours.totalPages;
     const current = filteredConcours.currentPage + 1;
     const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= current - delta && i <= current + delta)
-      ) {
-        range.push(i);
-      }
-    }
-
+    const range: (number | string)[] = [];
     let prev = 0;
-    for (const i of range) {
-      if (i - prev > 1) {
-        rangeWithDots.push("...");
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+        if (i - prev > 1) range.push("...");
+        range.push(i);
+        prev = i;
       }
-      rangeWithDots.push(i);
-      prev = i;
     }
-
-    return rangeWithDots;
+    return range;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-amame-surface flex flex-col">
+      <SEO
+        title="Concours"
+        description="Découvrez les concours nationaux et internationaux ouverts aux étudiants maliens. Filtrez par niveau, type et dates pour trouver le concours idéal."
+        path="/concours"
+        keywords="concours Mali, concours nationaux, concours internationaux, étudiants Mali"
+      />
       <Navbar />
 
-      {/* Hero Section - Optimisé pour mobile */}
-      <section className="relative bg-gradient-to-br from-purple-500 to-blue-500 text-white py-8 sm:py-10 lg:py-16">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <PageHero
+        icon={Trophy}
+        label="Compétitions"
+        title="Découvrez vos"
+        titleHighlight="concours idéaux"
+        description="" //Des centaines de concours nationaux et internationaux vous attendent. Filtrez par niveau et type pour trouver l'opportunité parfaite.
+        imageSrc="/images/heroes/hero-concours.png"
+        imageAlt="Podium académique — étudiants maliens en compétition"
+      />
+
+      {/* Filters */}
+      <section className="bg-white border-b border-amame-border py-5 lg:py-6">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6">
-              Découvrez Vos
-              <span className="block text-yellow-300">Concours Idéaux</span>
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed px-4">
-              Des centaines de concours nationaux et internationaux vous
-              attendent. Filtrez par niveau et statut pour trouver l'opportunité
-              parfaite.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Search & Filters Section - Optimisé pour mobile */}
-      <section className="py-6 sm:py-8 lg:py-12 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-              {/* Recherche */}
-              <div className="sm:col-span-2 lg:col-span-1">
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2 sm:mb-3">
-                  <Search className="h-4 w-4 mr-2 text-purple-600" />
-                  Rechercher un concours
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Nom, description..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="h-12 pl-11 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                </div>
-              </div>
-
-              {/* Niveau Filter */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2 text-blue-600" />
-                  Niveau d'études
-                </label>
-                <Select
-                  value={getSelectValue(filter.niveau)}
-                  onValueChange={handleNiveauChange}
-                >
-                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
-                    <SelectValue placeholder="Tous les niveaux" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {niveauOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Statut Filter */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Target className="h-4 w-4 mr-2 text-green-600" />
-                  Statut
-                </label>
-                <Select
-                  value={getSelectValue(filter.status)}
-                  onValueChange={handleStatusChange}
-                >
-                  <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500 rounded-lg sm:rounded-xl">
-                    <SelectValue placeholder="Tous les statuts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Rechercher un concours..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(0); }}
+                className="pl-10 h-11 border-amame-border focus:border-amame-green focus:ring-amame-green/20 rounded-xl"
+              />
             </div>
 
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={resetFilters}
-                className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 rounded-lg sm:rounded-xl font-medium px-6 sm:px-8 py-2 text-sm sm:text-base"
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <GraduationCap className="h-4 w-4 text-amame-muted shrink-0" />
+              <Select
+                value={filter.niveau || "all"}
+                onValueChange={(v) => { setFilter(f => v === "all" ? (({ niveau, ...rest }) => rest)(f) : { ...f, niveau: v as NiveauType }); setCurrentPage(0); }}
               >
-                <Filter className="mr-2 h-4 w-4" />
-                Réinitialiser les filtres
-              </Button>
+                <SelectTrigger className="h-11 border-amame-border focus:border-amame-green rounded-xl flex-1">
+                  <SelectValue placeholder="Niveau" />
+                </SelectTrigger>
+                <SelectContent>
+                  {niveauOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <Target className="h-4 w-4 text-amame-muted shrink-0" />
+              <Select
+                value={filter.status || "all"}
+                onValueChange={(v) => { setFilter(f => v === "all" ? (({ status, ...rest }) => rest)(f) : { ...f, status: v as StatusType }); setCurrentPage(0); }}
+              >
+                <SelectTrigger className="h-11 border-amame-border focus:border-amame-green rounded-xl flex-1">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {hasActiveFilters && (
+              <Button variant="ghost" onClick={resetFilters} className="h-11 text-amame-muted hover:text-amame-charcoal hover:bg-gray-100 rounded-xl gap-2 shrink-0">
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Réinitialiser</span>
+              </Button>
+            )}
           </motion.div>
         </div>
       </section>
 
-      {/* Content Section - Optimisé pour mobile */}
-      <section className="py-6 sm:py-8 lg:py-16 bg-gradient-to-b from-white to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Content */}
+      <section className="flex-grow py-8 lg:py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                {[...Array(6)].map((_, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <div className="border-0 rounded-xl sm:rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                      <div className="p-4 sm:p-6">
-                        <Skeleton className="h-6 sm:h-7 w-3/4 mb-2 sm:mb-3 rounded-lg" />
-                        <Skeleton className="h-4 w-1/2 mb-3 sm:mb-4 rounded-lg" />
-                        <div className="flex gap-2 mb-3 sm:mb-4">
-                          <Skeleton className="h-5 sm:h-6 w-16 sm:w-20 rounded-full" />
-                          <Skeleton className="h-5 sm:h-6 w-12 sm:w-16 rounded-full" />
-                        </div>
-                        <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                        <Skeleton className="h-4 w-2/3 mb-3 sm:mb-4 rounded-lg" />
-                        <Skeleton className="h-16 sm:h-20 w-full rounded-lg mb-3 sm:mb-4" />
-                        <Skeleton className="h-10 sm:h-12 w-full rounded-lg sm:rounded-xl" />
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+              </motion.div>
             ) : !filteredConcours || filteredConcours.concours.length === 0 ? (
-              <motion.div
-                key="empty-state"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="text-center py-8 sm:py-12 lg:py-16"
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-purple-100 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6">
-                  <SearchX className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-purple-600" />
+              <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                className="text-center py-20">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-2xl mb-5">
+                  <SearchX className="h-8 w-8 text-blue-500" />
                 </div>
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                  Aucun concours trouvé
-                </h3>
-                <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-md mx-auto mb-6 sm:mb-8 px-4">
-                  {hasSearch || hasNiveauFilter || hasStatusFilter
-                    ? "Aucun concours ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
-                    : "Aucun concours n'est disponible pour le moment. Revenez plus tard."}
+                <h3 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">Aucun concours trouvé</h3>
+                <p className="text-amame-muted text-sm max-w-md mx-auto mb-6">
+                  {hasActiveFilters ? "Aucun concours ne correspond à vos critères. Essayez de modifier les filtres." : "Aucun concours n'est disponible pour le moment. Revenez plus tard."}
                 </p>
-                <Button
-                  onClick={resetFilters}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base"
-                >
-                  {hasSearch || hasNiveauFilter || hasStatusFilter
-                    ? "Voir tous les concours"
-                    : "Actualiser la page"}
-                </Button>
+                {hasActiveFilters && (
+                  <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                    Voir tous les concours
+                  </Button>
+                )}
               </motion.div>
             ) : (
-              <motion.div
-                key="concours-content"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 sm:mb-6 lg:mb-8">
-                  <div className="mb-3 sm:mb-4 lg:mb-0">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
-                      Concours Disponibles
-                    </h2>
-                    <p className="text-gray-600 text-sm sm:text-base">
-                      {filteredConcours.totalElements} concours
-                      {filteredConcours.totalElements > 1 ? "" : ""}
-                    </p>
+              <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="font-nunito font-bold text-lg text-amame-charcoal">Concours disponibles</h2>
+                    <p className="text-sm text-amame-muted">{filteredConcours.totalElements} résultat{filteredConcours.totalElements > 1 ? "s" : ""}</p>
                   </div>
-
-                  {/* Indicateurs de filtres actifs */}
-                  {(hasNiveauFilter || hasStatusFilter) && (
-                    <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-                      {filter.niveau && (
-                        <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Niveau:{" "}
-                          {
-                            niveauOptions.find(
-                              (opt) => opt.value === filter.niveau,
-                            )?.label
-                          }
-                        </span>
-                      )}
-                      {filter.status && (
-                        <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Statut:{" "}
-                          {
-                            statusOptions.find(
-                              (opt) => opt.value === filter.status,
-                            )?.label
-                          }
-                        </span>
-                      )}
+                  {hasActiveFilters && (
+                    <div className="flex flex-wrap gap-2">
+                      {filter.niveau && <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{niveauOptions.find(o => o.value === filter.niveau)?.label}</span>}
+                      {filter.status && <span className="text-xs bg-amame-green-light text-amame-green-dark border border-amame-green/20 px-2.5 py-1 rounded-full font-medium">{statusOptions.find(o => o.value === filter.status)?.label}</span>}
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                  {filteredConcours.concours.map((concours, index) => (
-                    <motion.div
-                      key={concours.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      whileHover={{ y: -4 }}
-                    >
-                      <ConcoursCardItem
-                        id={concours.id}
-                        nom={concours.nom}
-                        description={concours.description}
-                        pays={concours.pays}
-                        niveau={concours.niveau}
-                        status={concours.status}
-                        dateOuverture={concours.dateOuverture}
-                        dateLimite={concours.dateLimite}
-                        lienOfficiel={concours.lienOfficiel}
-                        isAvailable={concours.isAvailable}
-                      />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                  {filteredConcours.concours.map((item, index) => (
+                    <motion.div key={item.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.06 }}>
+                      <ConcoursCardItem {...item} />
                     </motion.div>
                   ))}
                 </div>
 
                 {filteredConcours.totalPages > 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex flex-col items-center gap-3 sm:gap-4 mt-8 sm:mt-12"
-                  >
-                    <div className="text-xs sm:text-sm text-gray-600 text-center">
-                      Page {filteredConcours.currentPage + 1} sur{" "}
-                      {filteredConcours.totalPages}
+                  <div className="flex items-center justify-center gap-2 mt-10">
+                    <Button variant="outline" size="sm" disabled={!filteredConcours.hasPrevious} onClick={handlePreviousPage} className="rounded-lg border-amame-border gap-1">
+                      <ChevronLeft className="h-4 w-4" />
+                      <span className="hidden sm:inline">Précédent</span>
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {getPageNumbers().map((page, i) =>
+                        page === "..." ? (
+                          <span key={`d-${i}`} className="px-2 text-amame-muted text-sm">…</span>
+                        ) : (
+                          <Button
+                            key={page}
+                            variant={filteredConcours.currentPage + 1 === page ? "default" : "outline"}
+                            size="sm"
+                            className={`w-9 h-9 p-0 rounded-lg text-sm ${filteredConcours.currentPage + 1 === page ? "bg-amame-green hover:bg-amame-green-dark text-white" : "border-amame-border hover:bg-gray-50"}`}
+                            onClick={() => handlePageChange(Number(page) - 1)}
+                          >
+                            {page}
+                          </Button>
+                        )
+                      )}
                     </div>
-
-                    {/* Version mobile simple */}
-                    <div className="sm:hidden flex items-center justify-between w-full gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!filteredConcours.hasPrevious}
-                        onClick={handlePreviousPage}
-                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Précédent
-                      </Button>
-
-                      <div className="text-sm font-medium text-gray-700 px-3">
-                        {filteredConcours.currentPage + 1}/
-                        {filteredConcours.totalPages}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!filteredConcours.hasNext}
-                        onClick={handleNextPage}
-                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm"
-                      >
-                        Suivant
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    {/* Version desktop complète */}
-                    <div className="hidden sm:flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!filteredConcours.hasPrevious}
-                        onClick={handlePreviousPage}
-                        className="flex items-center gap-2 px-3 sm:px-4"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span className="hidden sm:inline">Précédent</span>
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        {getPageNumbers().map((page, index) =>
-                          page === "..." ? (
-                            <span
-                              key={`dots-${index}`}
-                              className="px-2 sm:px-3 py-1 sm:py-2 text-gray-500 text-sm"
-                            >
-                              ...
-                            </span>
-                          ) : (
-                            <Button
-                              key={page}
-                              variant={
-                                filteredConcours.currentPage + 1 === page
-                                  ? "default"
-                                  : "outline"
-                              }
-                              size="sm"
-                              className={`w-8 h-8 sm:w-10 sm:h-10 px-0 ${
-                                filteredConcours.currentPage + 1 === page
-                                  ? "bg-purple-600 text-white"
-                                  : "hover:bg-gray-100"
-                              }`}
-                              onClick={() => handlePageChange(Number(page) - 1)}
-                            >
-                              {page}
-                            </Button>
-                          ),
-                        )}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!filteredConcours.hasNext}
-                        onClick={handleNextPage}
-                        className="flex items-center gap-2 px-3 sm:px-4"
-                      >
-                        <span className="hidden sm:inline">Suivant</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </motion.div>
+                    <Button variant="outline" size="sm" disabled={!filteredConcours.hasNext} onClick={handleNextPage} className="rounded-lg border-amame-border gap-1">
+                      <span className="hidden sm:inline">Suivant</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </motion.div>
             )}

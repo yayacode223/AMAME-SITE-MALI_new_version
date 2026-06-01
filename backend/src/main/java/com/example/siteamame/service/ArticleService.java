@@ -4,6 +4,7 @@ import com.example.siteamame.dto.article.ArticleCreationRequest;
 import com.example.siteamame.dto.article.ArticleDto;
 import com.example.siteamame.dto.article.ArticleSearchingRequest;
 import com.example.siteamame.dto.article.ArticleSummaryDto;
+import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.enumeration.FileType;
 import com.example.siteamame.mapper.ArticleMapper;
@@ -18,6 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -41,6 +47,35 @@ public class ArticleService {
                 .stream()
                 .map(articleMapper::convertToSummaryDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ArticleSummaryDto> getArticlesPage(
+            int page, int size, String sortBy, String sortDirection,
+            String search, String categorie) {
+        Sort sort = "ASC".equalsIgnoreCase(sortDirection)
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        // Passer "" (pas null) pour éviter l'inférence PostgreSQL bytea dans la JPQL
+        String cleanSearch = (search == null || search.isBlank()) ? "" : search.trim();
+        String cleanCategorie = (categorie == null || categorie.isBlank()) ? "all" : categorie.trim();
+        Page<Article> articles = articleRepository.findPagedWithFilters(cleanCategorie, cleanSearch, pageable);
+        return new PageResponse<>(articles.map(articleMapper::convertToSummaryDTO));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ArticleSummaryDto> getAdminArticlesPage(
+            int page, int size, String sortBy, String sortDirection,
+            String search, String categorie) {
+        Sort sort = "ASC".equalsIgnoreCase(sortDirection)
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        String cleanSearch = (search == null || search.isBlank()) ? "" : search.trim();
+        String cleanCategorie = (categorie == null || categorie.isBlank()) ? "all" : categorie.trim();
+        Page<Article> articles = articleRepository.findAllPagedAdmin(cleanCategorie, cleanSearch, pageable);
+        return new PageResponse<>(articles.map(articleMapper::convertToSummaryDTO));
     }
 
     @Transactional(readOnly = true)
@@ -147,7 +182,7 @@ public class ArticleService {
         }
         article.setMetaDescription(request.getMetaDescription());
         article.setMetaKeywords(request.getMetaKeywords());
-        article.setEstPublie(true);
+        article.setEstPublie(request.isEstPublie());
         article.setVues(0);
 
         if(file != null){
@@ -167,18 +202,20 @@ public class ArticleService {
         Article articleToUpdate = articleRepository.findById(id).
                     orElseThrow(()-> new RuntimeException("Article avec cet Id:"+ articleDto.getId() +"n'existe pas"));
 
-        if(!articleDto.getTitre().isEmpty()) articleToUpdate.setTitre(articleDto.getTitre());
-        if(!articleDto.getContenu().isEmpty()) articleToUpdate.setContenu(articleDto.getContenu());
-        if(!articleDto.getMetaDescription().isEmpty()) articleToUpdate.setMetaDescription(articleDto.getMetaDescription());
-        if(!articleDto.getAuteur().isEmpty()) articleToUpdate.setAuteur(articleDto.getAuteur());
-        if(!articleDto.getCategorie().isEmpty()) articleToUpdate.setCategorie(articleDto.getCategorie());
-        if(!articleDto.getMetaKeywords().isEmpty()) articleToUpdate.setMetaKeywords(articleDto.getMetaKeywords());
-        if(articleDto.getTempsLecture()!= null) articleToUpdate.setTempsLecture(articleDto.getTempsLecture());
-
-        if(!articleDto.getTags().isEmpty()) articleToUpdate.setTags(new HashSet<>(articleDto.getTags()));
+        if (articleDto.getTitre() != null && !articleDto.getTitre().isBlank()) articleToUpdate.setTitre(articleDto.getTitre());
+        if (articleDto.getContenu() != null && !articleDto.getContenu().isBlank()) articleToUpdate.setContenu(articleDto.getContenu());
+        if (articleDto.getAuteur() != null && !articleDto.getAuteur().isBlank()) articleToUpdate.setAuteur(articleDto.getAuteur());
+        if (articleDto.getCategorie() != null && !articleDto.getCategorie().isBlank()) articleToUpdate.setCategorie(articleDto.getCategorie());
+        if (articleDto.getMetaDescription() != null) articleToUpdate.setMetaDescription(articleDto.getMetaDescription());
+        if (articleDto.getMetaKeywords() != null) articleToUpdate.setMetaKeywords(articleDto.getMetaKeywords());
+        if (articleDto.getTempsLecture() != null) articleToUpdate.setTempsLecture(articleDto.getTempsLecture());
+        if (articleDto.getTags() != null) articleToUpdate.setTags(new HashSet<>(articleDto.getTags()));
         articleToUpdate.setDateModification(LocalDateTime.now());
-        articleToUpdate.setDatePublication(LocalDateTime.now());
-        articleToUpdate.setEstPublie(true);
+        boolean wasPublished = Boolean.TRUE.equals(articleToUpdate.getEstPublie());
+        articleToUpdate.setEstPublie(articleDto.isEstPublie());
+        if (articleDto.isEstPublie() && !wasPublished) {
+            articleToUpdate.setDatePublication(LocalDateTime.now());
+        }
         articleToUpdate.setSlug(generateSlug(articleDto.getTitre()));
 
         if(file != null){

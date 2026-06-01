@@ -1,389 +1,232 @@
-// OrientationDetail.tsx - VERSION OPTIMISÉE
 import { useParams, Link } from "react-router-dom";
-import { Card } from "../components/ui/card";
+import SEO from "../components/SEO";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ArrowLeft,
-  Clock,
-  TrendingUp,
-  Users,
-  DollarSign,
-  BookOpen,
-  MapPin,
-  Star,
-  Target,
-  Briefcase,
-  GraduationCap,
-} from "lucide-react";
+import { ArrowLeft, Clock, TrendingUp, DollarSign, BookOpen, MapPin, Star, Briefcase, GraduationCap, Target, CheckCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useGetFiliereById } from "../service/orientationService";
 import { DifficulteType } from "@/types/orientationType";
 
-const url = import.meta.env.BASE; 
+const diffConfig: Record<string, { label: string; cls: string }> = {
+  [DifficulteType.TRES_ELEVEE]: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
+  [DifficulteType.ELEVEE]: { label: "Élevée", cls: "bg-orange-50 text-orange-700 border-orange-200" },
+};
+const defaultDiff = { label: "Moyenne", cls: "bg-amame-green-light text-amame-green-dark border-amame-green/20" };
 
 export function OrientationDetail() {
   const { id } = useParams();
-  const { data: filiereData, isLoading } = useGetFiliereById(Number(id));
+  const { data: filiere, isLoading } = useGetFiliereById(Number(id));
 
   if (isLoading) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-          {/* Header skeleton */}
-          <section className="bg-white border-b">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Skeleton className="h-10 w-32 mb-6 rounded-lg" />
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
-                <div className="flex items-center gap-4 mb-4 lg:mb-0">
-                  <Skeleton className="w-16 h-16 rounded-md" />
-                  <div>
-                    <Skeleton className="h-8 w-48 mb-2 rounded-lg" />
-                    <Skeleton className="h-5 w-64 rounded-lg" />
-                  </div>
-                </div>
-                <Skeleton className="h-10 w-32 rounded-full" />
-              </div>
-            </div>
-          </section>
-
-          {/* Content skeleton */}
-          <section className="py-12">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Sidebar skeleton */}
-                <div className="lg:col-span-1 space-y-6">
-                  <Skeleton className="h-64 w-full rounded-xl" />
-                  <Skeleton className="h-56 w-full rounded-xl" />
-                  <Skeleton className="h-48 w-full rounded-xl" />
-                </div>
-                
-                {/* Main content skeleton */}
-                <div className="lg:col-span-2 space-y-8">
-                  <Skeleton className="h-40 w-full rounded-xl" />
-                  <Skeleton className="h-48 w-full rounded-xl" />
-                  <Skeleton className="h-32 w-full rounded-xl" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Skeleton className="h-40 w-full rounded-xl" />
-                    <Skeleton className="h-40 w-full rounded-xl" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+        <div className="min-h-screen bg-amame-surface">
+          <div className="bg-white border-b border-amame-border"><div className="container mx-auto px-4 py-4"><Skeleton className="h-9 w-36 rounded-lg" /></div></div>
+          <div className="container mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1 space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-xl" />)}</div>
+            <div className="lg:col-span-2 space-y-5">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}</div>
+          </div>
         </div>
         <Footer />
       </>
     );
   }
 
-  if (!filiereData) {
+  if (!filiere) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 flex items-center justify-center">
-          <Card className="p-8 text-center max-w-md">
-            <div className="text-6xl mb-4">😕</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Filière non trouvée
-            </h2>
-            <p className="text-gray-600 mb-6">
-              La filière que vous recherchez n'existe pas ou a été déplacée.
-            </p>
-            <Button asChild>
-              <Link to="/orientation">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à l'orientation
-              </Link>
+        <div className="min-h-screen bg-amame-surface flex items-center justify-center">
+          <div className="text-center p-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5"><Briefcase className="h-8 w-8 text-amame-green" /></div>
+            <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Filière non trouvée</h2>
+            <p className="text-amame-muted mb-6">La filière que vous recherchez n'existe pas ou a été déplacée.</p>
+            <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+              <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
             </Button>
-          </Card>
+          </div>
         </div>
         <Footer />
       </>
     );
   }
 
-  const getDifficultyColor = () => {
-    switch (filiereData.difficulte) {
-      case DifficulteType.TRES_ELEVEE:
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      case DifficulteType.ELEVEE:
-        return "bg-orange-100 text-orange-800 hover:bg-orange-200";
-      default:
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-    }
-  };
-
-  const getDifficultyText = () => {
-    switch (filiereData.difficulte) {
-      case DifficulteType.TRES_ELEVEE:
-        return "Très élevée";
-      case DifficulteType.ELEVEE:
-        return "Élevée";
-      default:
-        return "Moyenne";
-    }
-  };
+  const diff = diffConfig[filiere.difficulte] || defaultDiff;
 
   return (
     <>
+      <SEO
+        title={filiere.nom}
+        description={
+          (filiere.descriptionCourte || filiere.descriptionLongue || "").slice(0, 155) ||
+          `Filière ${filiere.nom} au Mali : débouchés, durée des études, salaires et établissements. Guide complet par l'AMAME.`
+        }
+        path={`/orientation/${filiere.id}`}
+        keywords={`${filiere.nom}, filière Mali, orientation Mali, études Mali, AMAME`}
+      />
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-        {/* Header */}
-        <section className="bg-white border-b">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Button 
-              variant="ghost" 
-              asChild 
-              className="mb-6 hover:bg-gray-100 transition-colors"
-            >
-              <Link to="/orientation">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à l'orientation
-              </Link>
+      <div className="min-h-screen bg-amame-surface flex flex-col">
+        {/* Breadcrumb */}
+        <div className="bg-white border-b border-amame-border">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <Button variant="ghost" asChild className="text-amame-muted hover:text-amame-charcoal hover:bg-gray-100 rounded-lg gap-2 h-9 text-sm">
+              <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
             </Button>
+          </div>
+        </div>
 
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                {filiereData.filePath ? (
-                  <div className="flex-shrink-0">
-                    <img
-                      className="w-16 h-16 object-cover rounded-lg shadow-md"
-                      src={`${url}/${filiereData.filePath}`}
-                      alt={filiereData.nom}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const fallback = document.createElement('div');
-                        fallback.className = 'w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center';
-                        fallback.innerHTML = '<GraduationCap class="h-8 w-8 text-white" />';
-                        e.currentTarget.parentNode?.appendChild(fallback);
-                      }}
-                    />
-                  </div>
+        {/* Page header */}
+        <div className="page-hero">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-14 h-14 bg-white rounded-xl shadow-card border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
+                {filiere.filePath ? (
+                  <img src={`/${filiere.filePath}`} alt={filiere.nom} className="w-full h-full object-cover" loading="lazy" onError={e => { e.currentTarget.style.display = "none"; }} />
                 ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <GraduationCap className="h-8 w-8 text-white" />
-                  </div>
+                  <GraduationCap className="h-7 w-7 text-amame-green" />
                 )}
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-                    {filiereData.nom}
-                  </h1>
-                  <p className="text-lg text-gray-600 mt-3 leading-relaxed">
-                    {filiereData.descriptionLongue?.slice(0, 180) || "Description de la filière..."}
-                  </p>
-                </div>
               </div>
-
-              <Badge
-                className={`text-lg px-4 py-2 font-medium ${getDifficultyColor()} transition-colors`}
-              >
-                Difficulté : {getDifficultyText()}
-              </Badge>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="section-label !mb-0">Filière</span>
+                  <Badge className={`text-xs border ${diff.cls}`}>Difficulté : {diff.label}</Badge>
+                </div>
+                <h1 className="font-nunito font-black text-2xl sm:text-3xl text-amame-charcoal">{filiere.nom}</h1>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Main Content */}
-        <section className="py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="flex-grow py-8 lg:py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
               {/* Sidebar */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* Quick Stats */}
-                <Card className="p-6 border-0 shadow-lg">
-                  <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center">
-                    <Target className="mr-2 h-5 w-5 text-purple-600" />
-                    Aperçu Rapide
+              <aside className="lg:col-span-1 space-y-5">
+                {/* Quick stats */}
+                <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                  <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
+                    <Target className="h-4 w-4 text-amame-green" />Aperçu rapide
                   </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 flex items-center">
-                        <Clock className="mr-2 h-4 w-4" />
-                        Durée
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {filiereData.dureeEtudes || "Non spécifiée"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 flex items-center">
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        Demande
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {filiereData.demande || "Non spécifiée"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 flex items-center">
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Taux d'emploi
-                      </span>
-                      <span className="font-semibold text-green-600">
-                        {filiereData.tauxEmploi || "Non spécifié"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 flex items-center">
-                        <Users className="mr-2 h-4 w-4" />
-                        Salaire début
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {filiereData.salaireDebut || "Non spécifié"}
-                      </span>
-                    </div>
+                  <div className="space-y-3">
+                    {[
+                      { icon: Clock, label: "Durée", value: filiere.dureeEtudes, color: "text-blue-500" },
+                      { icon: TrendingUp, label: "Demande", value: filiere.demande, color: "text-amame-gold" },
+                      { icon: DollarSign, label: "Salaire moyen", value: filiere.salaire, color: "text-amame-green" },
+                    ].map(({ icon: Icon, label, value, color }) => value && (
+                      <div key={label} className="flex items-center justify-between py-2 border-b border-amame-border last:border-0">
+                        <span className="text-sm text-amame-muted flex items-center gap-1.5"><Icon className={`h-4 w-4 ${color}`} />{label}</span>
+                        <span className="text-sm font-semibold text-amame-charcoal">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                </Card>
+                </div>
 
                 {/* Universities */}
-                {filiereData.universites && filiereData.universites.length > 0 && (
-                  <Card className="p-6 border-0 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center">
-                      <MapPin className="mr-2 h-5 w-5 text-blue-600" />
-                      Établissements Recommandés
+                {filiere.universites && filiere.universites.length > 0 && (
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                    <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-blue-500" />Établissements
                     </h3>
-                    <ul className="space-y-3">
-                      {filiereData.universites.slice(0, 5).map((universite, index) => (
-                        <li
-                          key={index}
-                          className="flex items-center text-gray-700 group"
-                        >
-                          <Star className="mr-3 h-4 w-4 text-yellow-500 group-hover:text-yellow-600 transition-colors" />
-                          <span className="group-hover:text-blue-600 transition-colors">
-                            {universite}
-                          </span>
+                    <ul className="space-y-2">
+                      {filiere.universites.slice(0, 5).map((u, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-amame-slate">
+                          <Star className="h-3.5 w-3.5 text-amame-gold shrink-0" />{u}
                         </li>
                       ))}
-                      {filiereData.universites.length > 5 && (
-                        <li className="text-sm text-gray-500 italic">
-                          + {filiereData.universites.length - 5} autres établissements
-                        </li>
+                      {filiere.universites.length > 5 && (
+                        <li className="text-xs text-amame-muted italic">+{filiere.universites.length - 5} autres établissements</li>
                       )}
                     </ul>
-                  </Card>
+                  </div>
                 )}
 
                 {/* Prerequisites */}
-                {filiereData.prerequis && filiereData.prerequis.length > 0 && (
-                  <Card className="p-6 border-0 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center">
-                      <BookOpen className="mr-2 h-5 w-5 text-green-600" />
-                      Prérequis
+                {filiere.prerequis && filiere.prerequis.length > 0 && (
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                    <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-amame-green" />Prérequis
                     </h3>
-                    <ul className="space-y-3">
-                      {filiereData.prerequis.slice(0, 6).map((prerequis, index) => (
-                        <li
-                          key={index}
-                          className="flex items-start text-gray-700"
-                        >
-                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                          <span>{prerequis}</span>
+                    <ul className="space-y-2">
+                      {filiere.prerequis.slice(0, 6).map((p, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-amame-slate">
+                          <CheckCircle className="h-4 w-4 text-amame-green mt-0.5 shrink-0" />{p}
                         </li>
                       ))}
-                      {filiereData.prerequis.length > 6 && (
-                        <li className="text-sm text-gray-500 italic">
-                          + {filiereData.prerequis.length - 6} autres prérequis
-                        </li>
-                      )}
                     </ul>
-                  </Card>
+                  </div>
                 )}
-              </div>
+              </aside>
 
-              {/* Main Content */}
-              <div className="lg:col-span-2 space-y-8">
+              {/* Main */}
+              <div className="lg:col-span-2 space-y-5">
                 {/* Description */}
-                <Card className="p-6 lg:p-8 border-0 shadow-lg">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Description de la Filière
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {filiereData.descriptionLongue || "Aucune description détaillée disponible."}
+                <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                  <div className="h-1 -mx-6 lg:-mx-7 -mt-6 lg:-mt-7 mb-5 rounded-t-xl bg-gradient-to-r from-amame-green to-amame-green-dark" />
+                  <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4">Description de la filière</h2>
+                  <p className="text-amame-slate leading-relaxed">
+                    {filiere.descriptionLongue || filiere.descriptionCourte || "Aucune description disponible."}
                   </p>
-                </Card>
+                </div>
 
-                {/* Career Opportunities */}
-                {filiereData.debouches && filiereData.debouches.length > 0 && (
-                  <Card className="p-6 lg:p-8 border-0 shadow-lg">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                      <Briefcase className="mr-3 h-6 w-6 text-purple-600" />
-                      Débouchés Professionnels
+                {/* Debouches */}
+                {filiere.debouches && filiere.debouches.length > 0 && (
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                    <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4 flex items-center gap-2">
+                      <Briefcase className="h-5 w-5 text-amame-gold" />Débouchés professionnels
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filiereData.debouches.map((debouche, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
-                        >
-                          <div className="w-3 h-3 bg-purple-500 rounded-full mr-4 group-hover:bg-purple-600 transition-colors"></div>
-                          <span className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors">
-                            {debouche}
-                          </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {filiere.debouches.map((d, i) => (
+                        <div key={i} className="flex items-center gap-2.5 p-3 bg-amame-green-subtle rounded-lg border border-amame-green/15 text-sm text-amame-charcoal">
+                          <div className="w-2 h-2 bg-amame-green rounded-full shrink-0" />
+                          {d}
                         </div>
                       ))}
                     </div>
-                  </Card>
+                  </div>
                 )}
 
-                {/* Skills & Competencies */}
-                {filiereData.competences && filiereData.competences.length > 0 && (
-                  <Card className="p-6 lg:p-8 border-0 shadow-lg">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                      Compétences Développées
-                    </h2>
-                    <div className="flex flex-wrap gap-3">
-                      {filiereData.competences.map((competence, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="text-sm py-2 px-4 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                        >
-                          {competence}
-                        </Badge>
+                {/* Competences */}
+                {filiere.competences && filiere.competences.length > 0 && (
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                    <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4">Compétences développées</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {filiere.competences.map((c, i) => (
+                        <Badge key={i} className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-3 py-1">{c}</Badge>
                       ))}
                     </div>
-                  </Card>
+                  </div>
                 )}
 
-                {/* Salary & Prospects */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="p-6 border-0 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 mb-4">
-                      Évolution de Carrière
-                    </h3>
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-gray-600 text-sm mb-1">
-                          Début de carrière
-                        </p>
-                        <p className="font-semibold text-2xl text-gray-900">
-                          {filiereData.salaireDebut || "Non spécifié"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 text-sm mb-1">
-                          Avec expérience
-                        </p>
-                        <p className="font-semibold text-2xl text-green-600">
-                          {filiereData.salaireExperience || "Non spécifié"}
-                        </p>
-                      </div>
+                {/* Salary & Perspectives */}
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                    <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-4">Évolution de carrière</h3>
+                    <div className="space-y-3">
+                      {filiere.salaireDebut && (
+                        <div>
+                          <p className="text-xs text-amame-muted mb-0.5">Début de carrière</p>
+                          <p className="font-bold text-xl text-amame-charcoal">{filiere.salaireDebut}</p>
+                        </div>
+                      )}
+                      {filiere.salaireExperience && (
+                        <div className="pt-2 border-t border-amame-border">
+                          <p className="text-xs text-amame-muted mb-0.5">Avec expérience</p>
+                          <p className="font-bold text-xl text-amame-green">{filiere.salaireExperience}</p>
+                        </div>
+                      )}
                     </div>
-                  </Card>
+                  </div>
 
-                  <Card className="p-6 border-0 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 mb-4">
-                      Perspectives d'Avenir
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed">
-                      {filiereData.perspectives || "Les perspectives pour cette filière sont prometteuses avec une demande croissante sur le marché de l'emploi."}
+                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                    <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-3">Perspectives d'avenir</h3>
+                    <p className="text-sm text-amame-slate leading-relaxed">
+                      {filiere.perspectives || "Les perspectives pour cette filière sont prometteuses avec une demande croissante sur le marché de l'emploi."}
                     </p>
-                  </Card>
+                  </div>
                 </div>
               </div>
             </div>

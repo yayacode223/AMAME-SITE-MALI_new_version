@@ -20,4 +20,5 @@ public class ArticleSummaryDto {
     private Integer tempsLecture;
     private LocalDateTime datePublication;
     private String resume;
+    private boolean estPublie;
 }

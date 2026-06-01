@@ -1,85 +1,74 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  UserIcon,
-} from "@heroicons/react/24/outline";
+import { PlusIcon, MagnifyingGlassIcon, UserIcon } from "@heroicons/react/24/outline";
 import DataTable from "@/components/admin/DataTable";
+import Pagination from "@/components/Pagination";
 import { useGetAllUsers, useDeleteUserMutation } from "@/service/userService";
-import { RegisterResponse, Sexe, Role } from "@/types/userType";
+import { RegisterResponse, Sexe, Role, ROLE_LABELS } from "@/types/userType";
 
-// const url = import.meta.env.BASE;
 const url = "https://amame.ml";
+
+const ROLE_COLORS: Record<string, string> = {
+  SUPERADMIN: "bg-red-100 text-red-800",
+  ADMIN: "bg-purple-100 text-purple-800",
+  EDITOR: "bg-blue-100 text-blue-800",
+  MEMBER: "bg-teal-100 text-teal-800",
+  USER: "bg-gray-100 text-gray-700",
+  VISITOR: "bg-yellow-50 text-yellow-700",
+};
 
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: users, isLoading } = useGetAllUsers({ enabled: true });
+  const [page, setPage] = useState(0);
+  const { data: usersPage, isLoading } = useGetAllUsers({ page, size: 10 });
   const deleteUserMutation = useDeleteUserMutation();
 
-  const filteredUsers =
-    users?.filter(
-      (user) =>
-        user.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-    ) || [];
-
-  const getSexeLabel = (sexe: Sexe) => {
-    return sexe === "HOMME" ? "Homme" : sexe === "FEMME" ? "Femme" : "Non renseigné";
-  };
+  const filteredUsers = (usersPage?.content ?? []).filter(
+    (u) =>
+      u.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   const columns = [
     {
       key: "nom",
       label: "Utilisateur",
-      render: (value: string, row: RegisterResponse) => (
-        <div className="flex items-center">
-          <div className="flex-shrink-0 h-10 w-10">
-            {row.imagePath ? (
-              <img
-                className="h-10 w-10 rounded-full"
-                src={`${url}/${row.imagePath}`}
-                alt={`${row.prenom} ${row.nom}`}
-              />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <UserIcon className="h-6 w-6 text-gray-600" />
-              </div>
-            )}
-          </div>
-          <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">
-              {row.prenom} {row.nom}
+      render: (_: string, row: RegisterResponse) => (
+        <div className="flex items-center gap-3">
+          {row.imagePath ? (
+            <img
+              className="h-9 w-9 rounded-full object-cover shrink-0"
+              src={`${url}/${row.imagePath}`}
+              alt={`${row.prenom} ${row.nom}`}
+            />
+          ) : (
+            <div className="h-9 w-9 rounded-full bg-amame-green-subtle flex items-center justify-center shrink-0">
+              <UserIcon className="h-5 w-5 text-amame-green" />
             </div>
-            <div className="text-sm text-gray-500">{row.email}</div>
+          )}
+          <div>
+            <p className="text-sm font-semibold text-amame-charcoal">{row.prenom} {row.nom}</p>
+            <p className="text-xs text-amame-muted">{row.email}</p>
           </div>
         </div>
-      ),
-    },
-    {
-      key: "sexe",
-      label: "Sexe",
-      render: (value: Sexe) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {getSexeLabel(value)}
-        </span>
       ),
     },
     {
       key: "role",
       label: "Rôle",
       render: (value: Role) => (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            value === "ADMIN"
-              ? "bg-purple-200 text-purple-800"
-              : value === "SUPERADMIN"
-              ? "bg-red-200 text-red-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {value}
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${ROLE_COLORS[value] ?? "bg-gray-100 text-gray-700"}`}>
+          {ROLE_LABELS[value] ?? value}
+        </span>
+      ),
+    },
+    {
+      key: "sexe",
+      label: "Sexe",
+      render: (value: Sexe) => (
+        <span className="text-sm text-amame-muted">
+          {value === "HOMME" ? "Homme" : value === "FEMME" ? "Femme" : "—"}
         </span>
       ),
     },
@@ -87,128 +76,74 @@ const UsersManagement: React.FC = () => {
       key: "ville",
       label: "Localisation",
       render: (value: string, row: RegisterResponse) => (
-        <div>
-          <div className="text-sm text-gray-900">
-            {value || "Non renseigné"}
-          </div>
-          {row.pays && <div className="text-sm text-gray-500">{row.pays}</div>}
-        </div>
-      ),
-    },
-    {
-      key: "niveauEtude",
-      label: "Niveau d'étude",
-      render: (value: string) => (
-        <span className="text-sm text-gray-900">
-          {value || "Non renseigné"}
+        <span className="text-sm text-amame-muted">
+          {[value, row.pays].filter(Boolean).join(", ") || "—"}
         </span>
       ),
     },
-    {
-      key: "phone",
-      label: "Téléphone",
-      render: (value: string) => (
-        <span className="text-sm text-gray-900">
-          {value || "Non renseigné"}
-        </span>
-      ),
-    },
+    { key: "niveauEtude", label: "Niveau d'étude" },
+    { key: "phone", label: "Téléphone" },
   ];
 
   const handleDelete = (user: RegisterResponse) => {
-    if (
-      window.confirm(
-        `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`,
-      )
-    ) {
-      deleteUserMutation.mutate(user.id!);
-    }
-  };
-
-  const handleEdit = (user: RegisterResponse) => {
-    window.location.href = `/admin/users/edit/${user.id}`;
-  };
-
-  const handleView = (user: RegisterResponse) => {
-    window.location.href = `/admin/users/${user.id}`;
+    deleteUserMutation.mutate(user.id!);
   };
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+      {/* En-tête */}
+      <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Gestion des utilisateurs
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Gérez les comptes utilisateurs de la plateforme
+          <h1 className="font-nunito font-bold text-2xl text-amame-charcoal">Utilisateurs</h1>
+          <p className="mt-1 text-sm text-amame-muted">
+            {usersPage?.totalElements ?? 0} membre{(usersPage?.totalElements ?? 0) > 1 ? "s" : ""} inscrits
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link
             to="/admin/users/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark transition-colors shadow-green"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <PlusIcon className="h-4 w-4" />
             Nouvel utilisateur
           </Link>
         </div>
       </div>
 
-      {/* Barre de recherche */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Rechercher un utilisateur..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* Filtres */}
-          {/* <div className="flex gap-2">
-            <select
-              title="Filtrer par rôle"
-              aria-label="Filtrer par rôle"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              onChange={(e) => {
-                // Implémentez le filtrage par rôle si nécessaire
-              }}
-            >
-              <option value="">Tous les rôles</option>
-              <option value="ADMIN">Administrateur</option>
-              <option value="USER">Utilisateur</option>
-            </select>
-            <select
-              title="Filtrer par sexe"
-              aria-label="Filtrer par sexe"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              onChange={(e) => {
-                // Implémentez le filtrage par sexe si nécessaire
-              }}
-            >
-              <option value="">Tous les sexes</option>
-              <option value="MASCULIN">Masculin</option>
-              <option value="FEMININ">Féminin</option>
-            </select>
-          </div>  */}
+      {/* Recherche */}
+      <div className="mb-5">
+        <div className="relative max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Rechercher par nom, prénom ou email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-4 py-2 w-full text-sm border border-amame-border rounded-xl focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green placeholder-amame-muted/60 bg-white"
+          />
         </div>
       </div>
 
       <DataTable
         columns={columns}
         data={filteredUsers}
-        onEdit={handleEdit}
+        onEdit={(u) => (window.location.href = `/admin/users/edit/${u.id}`)}
         onDelete={handleDelete}
-        onView={handleView}
+        deleteConfirmMessage={(row) => `L'utilisateur "${row.prenom} ${row.nom}" sera définitivement supprimé(e).`}
+        onView={(u) => (window.location.href = `/admin/users/${u.id}`)}
         isLoading={isLoading}
+        protectSelf
       />
+
+      {usersPage && (
+        <Pagination
+          totalPages={usersPage.totalPages}
+          currentPage={usersPage.currentPage}
+          hasNext={usersPage.hasNext}
+          hasPrevious={usersPage.hasPrevious}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 };

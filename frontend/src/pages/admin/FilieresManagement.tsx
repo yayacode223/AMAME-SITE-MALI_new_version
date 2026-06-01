@@ -21,14 +21,14 @@ const FilieresManagement: React.FC = () => {
   const deleteFiliereMutation = useDeleteFiliere();
 
   const filteredFilieres =
-    filieres?.filter(
+    (filieres?.content || []).filter(
       (filiere) =>
         (filiere.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
           filiere.descriptionCourte
             .toLowerCase()
             .includes(searchTerm.toLowerCase())) &&
         (selectedDomaine === "" || filiere.domaine === selectedDomaine),
-    ) || [];
+    );
 
   const getDomaineLabel = (domaine: DomaineFiliereType) => {
     const domaines: Record<DomaineFiliereType, string> = {
@@ -89,13 +89,7 @@ const FilieresManagement: React.FC = () => {
   ];
 
   const handleDelete = (filiere: FiliereSummaryResponse) => {
-    if (
-      window.confirm(
-        `Êtes-vous sûr de vouloir supprimer la filière "${filiere.nom}" ?`,
-      )
-    ) {
-      deleteFiliereMutation.mutate(filiere.id);
-    }
+    deleteFiliereMutation.mutate(filiere.id);
   };
 
   const handleEdit = (filiere: FiliereSummaryResponse) => {
@@ -108,87 +102,61 @@ const FilieresManagement: React.FC = () => {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+      {/* En-tête */}
+      <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Gestion des filières
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Gérez les filières d'orientation pour les étudiants
+          <h1 className="font-nunito font-bold text-2xl text-amame-charcoal">Filières</h1>
+          <p className="mt-1 text-sm text-amame-muted">
+            {filieres?.totalElements ?? 0} filière{(filieres?.totalElements ?? 0) > 1 ? "s" : ""} disponibles
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link
             to="/admin/filieres/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark transition-colors shadow-green"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <PlusIcon className="h-4 w-4" />
             Nouvelle filière
           </Link>
         </div>
       </div>
 
-      {/* Barre de recherche et filtres */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-              placeholder="Rechercher une filière..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="domaine-filter"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Domaine
-            </label>
-            <select
-              id="domaine-filter"
-              className="block w-full max-w-xs pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
-              value={selectedDomaine}
-              onChange={(e) =>
-                setSelectedDomaine(e.target.value as DomaineFiliereType | "")
-              }
-            >
-              <option value="">Tous les domaines</option>
-              <option value="SCIENCES_ET_TECHNOLOGIES">
-                Sciences & Technologies
-              </option>
-              <option value="SCIENCES_DE_LA_SANTE">Sciences de la Santé</option>
-              <option value="SCIENCES_ECONOMIQUES_ET_GESTION">
-                Sciences Éco & Gestion
-              </option>
-              <option value="DROIT_ET_SCIENCES_POLITIQUES">
-                Droit & Sciences Politiques
-              </option>
-              <option value="LETTRES_ET_SCIENCES_HUMAINES">
-                Lettres & Sciences Humaines
-              </option>
-              <option value="ARTS_ET_COMMUNICATION">
-                Arts & Communication
-              </option>
-            </select>
-          </div>
+      {/* Recherche + filtre domaine */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="relative flex-1 max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Rechercher une filière..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-4 py-2 w-full text-sm border border-amame-border rounded-xl focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green placeholder-amame-muted/60 bg-white"
+          />
         </div>
-
-        <DataTable
-          columns={columns}
-          data={filteredFilieres}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          isLoading={isLoading}
-        />
+        <select
+          value={selectedDomaine}
+          onChange={(e) => setSelectedDomaine(e.target.value as DomaineFiliereType | "")}
+          className="py-2 pl-3 pr-8 text-sm border border-amame-border rounded-xl focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green bg-white text-amame-charcoal"
+        >
+          <option value="">Tous les domaines</option>
+          <option value="SCIENCES_ET_TECHNOLOGIES">Sciences & Technologies</option>
+          <option value="SCIENCES_DE_LA_SANTE">Sciences de la Santé</option>
+          <option value="SCIENCES_ECONOMIQUES_ET_GESTION">Sciences Éco & Gestion</option>
+          <option value="DROIT_ET_SCIENCES_POLITIQUES">Droit & Sciences Politiques</option>
+          <option value="LETTRES_ET_SCIENCES_HUMAINES">Lettres & Sciences Humaines</option>
+          <option value="ARTS_ET_COMMUNICATION">Arts & Communication</option>
+        </select>
       </div>
+
+      <DataTable
+        columns={columns}
+        data={filteredFilieres}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        deleteConfirmMessage={(row) => `La filière "${row.nom}" sera définitivement supprimée.`}
+        onView={handleView}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

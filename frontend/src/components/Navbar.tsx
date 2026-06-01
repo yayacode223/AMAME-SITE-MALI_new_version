@@ -14,385 +14,409 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/userType";
-const url = "https://amame.ml";
+import { Menu, X, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+
+const PROD_URL = "https://amame.ml";
+
+/* ---------- Structure de navigation ---------- */
+interface SubLink { path: string; label: string }
+interface NavItem { path?: string; label: string; children?: SubLink[] }
+
+const NAV_ITEMS: NavItem[] = [
+  { path: "/", label: "Accueil" },
+  {
+    label: "Bourses",
+    children: [
+      { path: "/bourses", label: "Toutes les bourses" },
+      { path: "/bourses/etude", label: "Bourse d'Étude" },
+      { path: "/bourses/recherche", label: "Bourse de Recherche" },
+    ],
+  },
+  {
+    label: "Concours",
+    children: [
+      { path: "/concours", label: "Tous les concours" },
+      { path: "/concours/national", label: "Concours National" },
+      { path: "/concours/international", label: "Concours International" },
+    ],
+  },
+  {
+    label: "Orientations",
+    children: [
+      { path: "/orientation/universites", label: "Universités" },
+      { path: "/orientation", label: "Filières" },
+      { path: "/orientation/liens-utiles", label: "Liens Utiles" },
+      { path: "/orientation/ressources", label: "Ressources Académiques" },
+    ],
+  },
+  {
+    label: "Actualités",
+    children: [
+      { path: "/articles", label: "Articles" },
+      { path: "/galeries", label: "Galeries" },
+    ],
+  },
+  {
+    label: "À Propos",
+    children: [
+      { path: "/a-propos", label: "À Propos" },
+      { path: "/a-propos/membres", label: "Membres" },
+      { path: "/a-propos/partenaires", label: "Partenaires" },
+    ],
+  },
+];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     setIsOpen(false);
+    setOpenMobileSection(null);
   }, [location.pathname]);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     try {
       await logout();
       toast({ title: "Déconnexion réussie", description: "À bientôt !" });
       navigate("/");
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "La déconnexion a échoué.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Erreur", description: "La déconnexion a échoué.", variant: "destructive" });
     }
   };
 
   const getUserInitials = () => {
-    if (!user) return "";
-    if (user.prenom && user.nom) {
-      return `${user.prenom.charAt(0)}${user.nom.charAt(0)}`.toUpperCase();
-    }
-    return user?.email?.charAt(0).toUpperCase() || "U";
+    if (!user) return "U";
+    if (user.prenom && user.nom) return `${user.prenom[0]}${user.nom[0]}`.toUpperCase();
+    return user.email?.[0].toUpperCase() || "U";
   };
 
-  const isActiveRoute = (path: string) => {
-    return location.pathname === path;
+  const isPathActive = (path: string) =>
+    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const isSectionActive = (item: NavItem): boolean => {
+    if (item.path) return isPathActive(item.path);
+    return item.children?.some((c) => isPathActive(c.path)) ?? false;
   };
 
-  const navLinks = useMemo(
-    () => [
-      { path: "/", label: "Accueil" },
-      { path: "/bourses", label: "Bourses" },
-      { path: "/concours", label: "Concours" },
-      { path: "/orientation", label: "Orientations" },
-      { path: "/articles", label: "Actualités" },
-      { path: "/a-propos", label: "À Propos" },
-    ],
-    [],
-  );
-
-  // Composant pour l'avatar avec dropdown (desktop seulement)
-  const UserAvatarDropdown = () => {
-    if (isUserLoading) {
-      return (
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-9 w-9 rounded-full" />
-        </div>
-      );
-    }
-
-    if (isAuthenticated && user) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="relative h-9 w-9 rounded-full hover:bg-purple-50 transition-colors"
-            >
-              <Avatar className="h-9 w-9 border-2 border-purple-100">
-                <AvatarImage
-                  src={user?.imagePath ? `${url}/${user.imagePath}` : undefined}
-                  alt={`${user?.prenom} ${user?.nom}`}
-                  className="object-cover"
-                />
-                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white font-semibold">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="font-medium leading-none text-gray-900">
-                  {user?.prenom} {user?.nom}
-                </p>
-                <p className="text-xs leading-none text-gray-500">
-                  {user?.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {(user?.role === UserRole.ADMIN ||
-            user?.role === UserRole.SUPERADMIN)  && (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/admin" className="cursor-pointer w-full">
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem
-              className="text-red-600 cursor-pointer focus:text-red-700 focus:bg-red-50"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-
-    return null;
-  };
-
-  // Composant pour les boutons auth (desktop seulement)
-  const AuthButtonsDesktop = () => {
-    if (isAuthenticated) return null;
-
-    return (
-      <div className="hidden lg:flex items-center gap-2">
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="text-gray-700 hover:text-purple-700"
-        >
-          <Link to="/login">Connexion</Link>
-        </Button>
-        <Button
-          asChild
-          size="sm"
-          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-sm"
-        >
-          <Link to="/register">S'inscrire</Link>
-        </Button>
-      </div>
-    );
-  };
-
-  const NavLink = ({ path, label }: { path: string; label: string }) => (
-    <Link
-      to={path}
-      className={`relative px-3 py-2 font-medium transition-colors duration-200 ${
-        isActiveRoute(path)
-          ? "text-purple-700"
-          : "text-gray-700 hover:text-purple-600"
-      }`}
-    >
-      {label}
-      {isActiveRoute(path) && (
-        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-600 rounded-full" />
-      )}
-    </Link>
-  );
+  const isAdmin = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN || user?.role === UserRole.EDITOR;
+  const hasMembreAccess = ["MEMBER", "ADMIN", "SUPERADMIN", "EDITOR"].includes(user?.role ?? "");
 
   return (
-    <nav
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg py-3 border-b border-gray-100"
-          : "bg-white py-4 shadow-sm"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center space-x-3 hover:opacity-90 transition-opacity"
-          >
-            <img
-              src="/amame-uploads/amame-logo.webp"
-              alt="AMAME Logo"
-              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover"
-            />
-            <span className="font-nunito font-bold text-xl sm:text-2xl text-purple-700">
-              AMAME
-            </span>
-          </Link>
+    <>
+      <nav
+        className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
+          isScrolled ? "shadow-[0_1px_20px_rgb(0_0_0/0.08)] border-b border-gray-100" : "border-b border-gray-100"
+        }`}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
 
-          {/* Navigation Desktop */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navLinks.map((link) => (
-              <NavLink key={link.path} {...link} />
-            ))}
-          </div>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+              <img
+                src="/amame-uploads/amame-logo.webp"
+                alt="AMAME"
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-green-100 group-hover:ring-green-200 transition-all"
+              />
+              <span className="font-nunito font-bold text-xl text-amame-green-dark tracking-tight">
+                AMAME
+              </span>
+            </Link>
 
-          {/* Section d'authentification desktop */}
-          <div className="flex items-center gap-2">
-            {/* Avatar pour desktop (connecté) */}
-            <div className="hidden lg:block">
-              <UserAvatarDropdown />
+            {/* Navigation Desktop */}
+            <div className="hidden lg:flex items-center gap-0.5">
+              {NAV_ITEMS.map((item) => {
+                const active = isSectionActive(item);
+
+                if (!item.children) {
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path!}
+                      className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                        active
+                          ? "text-amame-green bg-amame-green-subtle"
+                          : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+
+                /* Dropdown avec group-hover */
+                return (
+                  <div key={item.label} className="relative group">
+                    <button
+                      type="button"
+                      className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                        active
+                          ? "text-amame-green bg-amame-green-subtle"
+                          : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" />
+                    </button>
+
+                    {/* Dropdown panel */}
+                    <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-lg border border-amame-border py-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                      {item.children.map((sub) => (
+                        <Link
+                          key={sub.path}
+                          to={sub.path}
+                          className={`flex items-center px-4 py-2.5 text-sm transition-colors ${
+                            isPathActive(sub.path)
+                              ? "text-amame-green bg-amame-green-subtle font-semibold"
+                              : "text-gray-700 hover:text-amame-green hover:bg-gray-50"
+                          }`}
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Boutons auth pour desktop (non connecté) */}
-            <AuthButtonsDesktop />
-          </div>
+            {/* Actions Desktop */}
+            <div className="hidden lg:flex items-center gap-3">
+              {isUserLoading ? (
+                <Skeleton className="h-9 w-9 rounded-full" />
+              ) : isAuthenticated && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors group">
+                      <Avatar className="h-8 w-8 ring-2 ring-green-100">
+                        <AvatarImage
+                          src={user.imagePath ? `${PROD_URL}/${user.imagePath}` : undefined}
+                          alt={`${user.prenom} ${user.nom}`}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-amame-green text-white text-xs font-bold">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-gray-700 max-w-[100px] truncate">
+                        {user.prenom}
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 mt-1">
+                    <DropdownMenuLabel className="font-normal py-2">
+                      <p className="font-semibold text-gray-900 text-sm">{user.prenom} {user.nom}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{user.email}</p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                            <LayoutDashboard className="h-4 w-4 text-amame-green" />
+                            Dashboard Admin
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {hasMembreAccess && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/membre/dashboard" className="flex items-center gap-2 cursor-pointer">
+                            <LayoutDashboard className="h-4 w-4 text-amame-green" />
+                            Mon espace membre
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {user.role === "USER" && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/adhesion" className="flex items-center gap-2 cursor-pointer font-medium text-amame-green">
+                            <LayoutDashboard className="h-4 w-4" />
+                            Adhérer à l'AMAME
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {isLoggingOut ? "Déconnexion..." : "Se déconnecter"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button asChild variant="ghost" size="sm" className="text-gray-600 hover:text-amame-green hover:bg-amame-green-subtle font-medium">
+                    <Link to="/login">Connexion</Link>
+                  </Button>
+                  <Button asChild size="sm" className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold shadow-green hover:shadow-md transition-all">
+                    <Link to="/adhesion">Adhérer</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
 
-          {/* Bouton du menu mobile */}
-          <div className="flex lg:hidden items-center gap-2">
-            {/* Avatar pour mobile (connecté) - AVEC DROPDOWN CLICABLE */}
-            {isAuthenticated && user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="p-1 mr-2 rounded-full hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                    aria-label="Menu utilisateur"
-                  >
-                    <Avatar className="h-8 w-8 border-2 border-purple-100">
-                      <AvatarImage
-                        src={user?.imagePath ?? undefined}
-                        alt={`${user?.prenom} ${user?.nom}`}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white text-xs">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 lg:hidden">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="font-medium leading-none text-gray-900">
-                        {user?.prenom} {user?.nom}
-                      </p>
-                      <p className="text-xs leading-none text-gray-500">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN)  && (
-                    <>
+            {/* Mobile: avatar + burger */}
+            <div className="flex lg:hidden items-center gap-2">
+              {isAuthenticated && user && !isUserLoading && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" className="p-1 rounded-full hover:bg-gray-50 transition-colors">
+                      <Avatar className="h-8 w-8 ring-2 ring-green-100">
+                        <AvatarImage src={user.imagePath ?? undefined} alt={`${user.prenom} ${user.nom}`} className="object-cover" />
+                        <AvatarFallback className="bg-amame-green text-white text-xs font-bold">{getUserInitials()}</AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuLabel className="font-normal">
+                      <p className="font-semibold text-sm">{user.prenom} {user.nom}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {isAdmin && (
                       <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer w-full">
-                          Dashboard
+                        <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4 text-amame-green" />
+                          Dashboard Admin
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem
-                    className="text-red-600 cursor-pointer focus:text-red-700 focus:bg-red-50"
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                  >
-                    {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-            <button
-              onClick={toggleMenu}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-              aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            >
-              <div className="w-6 h-6 flex flex-col justify-center items-center">
-                <span
-                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
-                    isOpen ? "rotate-45 translate-y-1" : "-translate-y-1"
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
-                    isOpen ? "opacity-0" : "opacity-100"
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 w-6 bg-current transition-all duration-300 ${
-                    isOpen ? "-rotate-45 -translate-y-1" : "translate-y-1"
-                  }`}
-                />
-              </div>
-            </button>
+                    )}
+                    {hasMembreAccess && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/membre/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4 text-amame-green" />
+                          Mon espace membre
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut} className="text-red-600 focus:bg-red-50 cursor-pointer flex items-center gap-2">
+                      <LogOut className="h-4 w-4" />
+                      {isLoggingOut ? "Déconnexion..." : "Se déconnecter"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+                aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              >
+                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Menu Mobile */}
-        <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="bg-white border-t border-gray-200 py-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`block px-4 py-3 font-medium transition-colors rounded-lg mx-2 ${
-                  isActiveRoute(link.path)
-                    ? "text-purple-700 bg-purple-50"
-                    : "text-gray-700 hover:text-purple-600 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+      {/* Mobile overlay */}
+      <div
+        className={`fixed inset-x-0 bottom-0 top-16 z-40 lg:hidden bg-black/30 transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={() => setIsOpen(false)}
+      />
 
-            {/* Section auth pour mobile - UNIQUEMENT si NON connecté */}
-            {!isAuthenticated && (
-              <div className="border-t border-gray-200 mt-4 pt-4 px-4 space-y-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full justify-center text-gray-700 hover:text-purple-700 border-gray-300"
+      {/* Mobile menu panel */}
+      <div
+        className={`fixed top-16 left-0 right-0 z-40 lg:hidden bg-white border-b border-gray-200 shadow-xl transition-all duration-300 ease-in-out max-h-[80vh] overflow-y-auto ${
+          isOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="container mx-auto px-4 py-3 space-y-0.5">
+          {NAV_ITEMS.map((item) => {
+            if (!item.children) {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path!}
+                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    isSectionActive(item)
+                      ? "text-amame-green bg-amame-green-subtle font-semibold"
+                      : "text-gray-700 hover:text-amame-green hover:bg-gray-50"
+                  }`}
                 >
-                  <Link to="/login">Connexion</Link>
-                </Button>
-                <Button
-                  asChild
-                  className="w-full justify-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
-                >
-                  <Link to="/register">S'inscrire</Link>
-                </Button>
-              </div>
-            )}
+                  {item.label}
+                </Link>
+              );
+            }
 
-            {/* Section utilisateur pour mobile si connecté */}
-            {isAuthenticated && user && (
-              <div className="border-t border-gray-200 mt-4 pt-4 px-4 space-y-3">
-                <div className="flex items-center gap-3 px-2">
-                  <Avatar className="h-10 w-10 border-2 border-purple-100">
-                    <AvatarImage
-                      src={user?.imagePath ?? undefined}
-                      alt={`${user?.prenom} ${user?.nom}`}
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-700 text-white">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {user?.prenom} {user?.nom}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {user?.email}
-                    </p>
-                  </div>
-                </div>
-                {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUPERADMIN) && (
-                  <Link
-                    to="/admin"
-                    className="block px-4 py-3 font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50 rounded-lg mx-2"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Dashboard Admin
-                  </Link>
-                )}
+            const isExpanded = openMobileSection === item.label;
+            const active = isSectionActive(item);
+
+            return (
+              <div key={item.label}>
                 <button
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="w-full px-4 py-3 font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg mx-2 text-left transition-colors"
+                  type="button"
+                  onClick={() => setOpenMobileSection(isExpanded ? null : item.label)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    active ? "text-amame-green bg-amame-green-subtle" : "text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
-                  {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
+                  {item.label}
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
+
+                {isExpanded && (
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-amame-green/20 pl-3">
+                    {item.children.map((sub) => (
+                      <Link
+                        key={sub.path}
+                        to={sub.path}
+                        className={`flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                          isPathActive(sub.path)
+                            ? "text-amame-green font-semibold"
+                            : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
+                        }`}
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })}
+
+          {/* Auth mobile */}
+          {!isAuthenticated && (
+            <div className="pt-3 mt-3 border-t border-gray-100 space-y-2">
+              <Button asChild variant="outline" className="w-full border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold">
+                <Link to="/login">Connexion</Link>
+              </Button>
+              <Button asChild className="w-full bg-amame-green hover:bg-amame-green-dark text-white font-semibold shadow-green">
+                <Link to="/adhesion">Adhérer à l'AMAME</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
-    </nav>
+    </>
   );
 };
 

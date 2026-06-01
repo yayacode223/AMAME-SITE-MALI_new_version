@@ -7,14 +7,6 @@ import { z } from "zod";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-import {
   Form,
   FormControl,
   FormField,
@@ -24,7 +16,7 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, LogIn, Loader2, ArrowLeft, Star } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -110,148 +102,203 @@ const Login = () => {
         />
       </Helmet>
 
-      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-2">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-6">
-          {/* En-tête */}
-          <div className="text-center mb-6">
-            {/* Bouton Retour et Logo */}
-            <div className="flex justify-between items-center mb-4">
-              <Button variant="ghost" asChild className="text-sm">
-                <Link to="/">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Retour à l'accueil
-                </Link>
-              </Button>
+      <div className="min-h-screen flex flex-col lg:flex-row">
 
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+        {/* ── Panneau gauche : image hero + branding (desktop) ───────────── */}
+        <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-no-repeat [background-position:center_right_10%]">
+          {/* Overlay vert — allégé pour laisser l'image transparaître tout en gardant le texte blanc lisible */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/78 via-amame-green-dark/65 to-amame-green/42 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
+
+            {/* Logo + retour */}
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-2.5 group">
                 <img
                   src="/amame-uploads/amame-logo.webp"
-                  alt="AMAME Logo"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
+                  alt="AMAME"
+                  className="h-10 w-10 rounded-full object-cover ring-2 ring-white/25 group-hover:ring-white/50 transition-all"
                 />
+                <span className="font-nunito font-bold text-xl text-white">AMAME</span>
+              </Link>
+              <Link
+                to="/"
+                className="flex items-center gap-1.5 text-white/65 hover:text-white text-sm font-medium transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Retour au site
+              </Link>
+            </div>
+
+            {/* Contenu central */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full mb-7 border border-white/20">
+                <Star className="h-3.5 w-3.5 text-amame-gold fill-amame-gold" />
+                Excellence Académique au Mali depuis 2023
+              </div>
+
+              <h1 className="font-nunito font-black text-4xl xl:text-5xl text-white leading-[1.15] mb-5">
+                Votre Passerelle
+                <span className="block text-amame-gold mt-1">vers l'Excellence</span>
+              </h1>
+
+              <p className="text-white/75 text-base xl:text-lg leading-relaxed max-w-md">
+                Accédez à votre espace membre et profitez de toutes les ressources,
+                bourses et opportunités disponibles pour les étudiants maliens.
+              </p>
+
+              {/* Stats */}
+              <div className="flex gap-8 mt-10 pt-8 border-t border-white/20">
+                {[
+                  { value: "500+", label: "Étudiants accompagnés" },
+                  { value: "200+", label: "Bourses référencées" },
+                  { value: "100%", label: "Gratuit & bénévole" },
+                ].map(({ value, label }) => (
+                  <div key={label}>
+                    <p className="font-nunito font-black text-2xl text-white">{value}</p>
+                    <p className="text-white/55 text-xs mt-0.5 leading-tight">{label}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Titre et description */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-              Connectez-vous à l'<span className="text-purple-600">AMAME</span>
-            </h1>
-            <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
-              Accédez à votre espace membre et aux ressources exclusives
+            {/* Pied */}
+            <p className="text-white/35 text-xs">
+              © {new Date().getFullYear()} AMAME. Tous droits réservés.
             </p>
           </div>
+        </div>
 
-          <div className="max-w-md mx-auto">
-            {/* Carte de connexion */}
-            <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-600 to-purple-700 h-2 w-full"></div>
-              <CardHeader className="text-center">
-                <div className="mx-auto w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <LogIn className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  Connexion
-                </CardTitle>
-                <CardDescription className="text-gray-600">
+        {/* ── Panneau droit : formulaire ──────────────────────────────────── */}
+        <div className="flex-1 flex flex-col bg-white">
+
+          {/* Bandeau mobile : image + logo */}
+          <div className="lg:hidden relative h-36 overflow-hidden shrink-0 bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 to-amame-green/50" />
+            <div className="relative z-10 flex items-center justify-between px-5 pt-5">
+              <Link to="/" className="flex items-center gap-1.5 text-white/75 hover:text-white text-sm transition-colors">
+                <ArrowLeft className="h-4 w-4" />
+                Accueil
+              </Link>
+              <div className="flex items-center gap-2">
+                <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="h-7 w-7 rounded-full ring-2 ring-white/30 object-cover" />
+                <span className="font-nunito font-bold text-white text-sm">AMAME</span>
+              </div>
+            </div>
+            <div className="relative z-10 px-5 pt-3">
+              <p className="font-nunito font-black text-2xl text-white leading-tight">Bon retour !</p>
+              <p className="text-white/70 text-xs mt-0.5">Connectez-vous à votre espace</p>
+            </div>
+          </div>
+
+          {/* Zone formulaire */}
+          <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-10 lg:py-0">
+            <div className="w-full max-w-[400px]">
+
+              {/* Header desktop */}
+              <div className="hidden lg:block mb-10">
+                <h2 className="font-nunito font-black text-3xl text-amame-charcoal mb-2">
+                  Bon retour !
+                </h2>
+                <p className="text-amame-muted text-sm">
                   Entrez vos identifiants pour accéder à votre compte
-                </CardDescription>
-              </CardHeader>
+                </p>
+              </div>
 
-              <CardContent>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-6"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700 font-medium">
-                            Adresse Email
+              {/* Formulaire */}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-amame-charcoal">
+                          Adresse Email
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="exemple@gmail.com"
+                            type="email"
+                            autoComplete="email"
+                            disabled={isLoggingIn}
+                            {...field}
+                            className="h-12 border-amame-border focus:ring-2 focus:ring-amame-green focus:border-amame-green transition-all"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <FormLabel className="text-sm font-semibold text-amame-charcoal">
+                            Mot de passe
                           </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="exemple@gmail.com"
-                              type="email"
-                              autoComplete="email"
-                              disabled={isLoggingIn}
-                              {...field}
-                              className="h-12 transition-all duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          <Link
+                            to="/forgot-password"
+                            className="text-xs text-amame-green hover:text-amame-green-dark font-semibold transition-colors"
+                          >
+                            Mot de passe oublié ?
+                          </Link>
+                        </div>
+                        <FormControl>
+                          <PasswordInput
+                            field={field}
+                            placeholder="••••••••"
+                            disabled={isLoggingIn}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-amame-green focus:border-amame-green"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center justify-between">
-                            <FormLabel className="text-gray-700 font-medium">
-                              Mot de passe
-                            </FormLabel>
-                            <Link
-                              to="/forgot-password"
-                              className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                            >
-                              Mot de passe oublié ?
-                            </Link>
-                          </div>
-                          <FormControl>
-                            <PasswordInput
-                              field={field}
-                              placeholder="••••••••"
-                              disabled={isLoggingIn}
-                              className="transition-all duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <Button
+                    type="submit"
+                    disabled={isLoggingIn}
+                    className="w-full h-12 bg-amame-green hover:bg-amame-green-dark text-white font-semibold text-base rounded-xl transition-all duration-200 hover:shadow-lg shadow-green mt-2"
+                  >
+                    {isLoggingIn ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connexion en cours...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Se connecter
+                      </>
+                    )}
+                  </Button>
 
-                    <Button
-                      type="submit"
-                      disabled={isLoggingIn}
-                      className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold text-base rounded-lg transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                      {isLoggingIn ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Connexion en cours...
-                        </>
-                      ) : (
-                        <>
-                          <LogIn className="mr-2 h-4 w-4" />
-                          Se connecter
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
+                </form>
+              </Form>
 
-              <CardFooter className="flex flex-col border-t border-gray-100 pt-2">
-                <div className="text-center space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Vous n'avez pas de compte ?{" "}
-                    <Link
-                      to="/register"
-                      className="font-semibold text-purple-600 hover:text-purple-700 transition-colors"
-                    >
-                      Créer un compte
-                    </Link>
-                  </p>
-                </div>
-              </CardFooter>
-            </Card>
+              {/* Footer form */}
+              <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+                <p className="text-sm text-amame-muted">
+                  Pas encore membre ?{" "}
+                  <Link
+                    to="/adhesion"
+                    className="font-semibold text-amame-green hover:text-amame-green-dark transition-colors"
+                  >
+                    Adhérer à l'AMAME
+                  </Link>
+                </p>
+              </div>
+
+            </div>
           </div>
         </div>
+
       </div>
     </>
   );

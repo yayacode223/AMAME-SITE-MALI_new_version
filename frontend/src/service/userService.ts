@@ -7,6 +7,7 @@ import {
   RegisterUpdatePayload,
 } from "@/types/userType";
 import { toast } from "@/hooks/use-toast";
+import { PageResponse, PaginationParams } from "@/types/commonTypes";
 
 export const register = async (
   data: RegisterPayload,
@@ -86,8 +87,10 @@ export const logout = async (): Promise<void> => {
   await Api.post<void>("/auth/logout");
 };
 
-export const getAllUsers = async (): Promise<RegisterResponse[]> => {
-  const response = await Api.get<RegisterResponse[]>("/admin/users");
+export const getAllUsers = async (params: PaginationParams = {}): Promise<PageResponse<RegisterResponse>> => {
+  const { page = 0, size = 10, sortBy = "id", sortDirection = "ASC" } = params;
+  const q = new URLSearchParams({ page: String(page), size: String(size), sortBy, sortDirection });
+  const response = await Api.get<PageResponse<RegisterResponse>>(`/admin/users?${q}`);
   return response.data;
 };
 
@@ -181,14 +184,14 @@ export const useGetCurrentUser = () => {
   });
 };
 
-export const useGetAllUsers = (options?: { enabled: boolean }) => {
-  return useQuery({
-    queryKey: [...authKeys.all, "users"],
-    queryFn: getAllUsers,
-    staleTime: 60 * 60 * 1000,
-    ...options,
+export const useGetAllUsers = (params: PaginationParams = {}, options?: { enabled?: boolean }) =>
+  useQuery({
+    queryKey: [...authKeys.all, "users", params],
+    queryFn: () => getAllUsers(params),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (prev) => prev,
+    enabled: options?.enabled ?? true,
   });
-};
 
 export const useDeleteUserMutation = () => {
   const queryClient = useQueryClient();

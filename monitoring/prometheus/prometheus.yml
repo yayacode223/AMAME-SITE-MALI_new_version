@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # surveille Prometheus lui‑même
+  - job_name: prometheus
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  # métriques de la base PostgreSQL via l'exporter
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # métriques de l'application Spring Boot
+  - job_name: amame-backend
+    metrics_path: /actuator/prometheus  # endpoint exposé par Spring Boot
+    static_configs:
+      - targets: ['backend:8080']
+        labels:
+          application: 'amame-backend'

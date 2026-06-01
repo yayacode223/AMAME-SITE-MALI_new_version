@@ -9,6 +9,7 @@ import com.example.siteamame.service.ConcoursService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,6 +76,7 @@ public class ConcoursController {
     }
 
     @PostMapping("/admin/concours")
+    @PreAuthorize("hasAuthority('CONCOURS_CREATE')")
     public ResponseEntity<ConcoursReponseDto> ajouterConcours(
             @RequestPart(value="concours") @Valid ConcoursRequestDto concoursRequestDto,
             @RequestPart(value="file", required = false) MultipartFile file
@@ -83,6 +85,7 @@ public class ConcoursController {
     }
 
     @PutMapping("/admin/concours/{id}")
+    @PreAuthorize("hasAuthority('CONCOURS_EDIT')")
     public ResponseEntity<ConcoursReponseDto> modifierConcours(
             @PathVariable Long id,
             @RequestPart(value = "concours") ConcoursRequestDto concoursRequestDto,
@@ -92,6 +95,7 @@ public class ConcoursController {
     }
 
     @DeleteMapping("/admin/concours/{id}")
+    @PreAuthorize("hasAuthority('CONCOURS_DELETE')")
     public ResponseEntity<Void> deleteConcours(@PathVariable Long id){
         concoursService.deleteConcours(id);
         return ResponseEntity.noContent().build();

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeftIcon,
@@ -8,40 +8,59 @@ import {
   PhoneIcon,
   MapPinIcon,
   AcademicCapIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { useGetUserById } from "@/service/userService";
-import { Sexe } from "@/types/userType";
+import { useGetUserById, useDeleteUserMutation } from "@/service/userService";
+import { Sexe, ROLE_LABELS } from "@/types/userType";
 import { useAuth } from "@/context/AuthContext";
+import UserPermissionsPanel from "@/components/admin/UserPermissionsPanel";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
 const url = "https://amame.ml";
 
+const ROLE_COLORS: Record<string, string> = {
+  SUPERADMIN: "bg-red-100 text-red-800",
+  ADMIN:      "bg-purple-100 text-purple-800",
+  EDITOR:     "bg-blue-100 text-blue-800",
+  MEMBER:     "bg-teal-100 text-teal-800",
+  USER:       "bg-gray-100 text-gray-700",
+  VISITOR:    "bg-yellow-50 text-yellow-700",
+};
+
+const getSexeLabel = (sexe: Sexe) => (sexe === "HOMME" ? "Homme" : "Femme");
+
+const getNiveauLabel = (niveau: string) => {
+  const map: Record<string, string> = {
+    BAC:      "Baccalauréat",
+    "BAC+2":  "Bac+2 (BTS, DUT)",
+    LICENCE:  "Licence (Bac+3)",
+    MASTER:   "Master (Bac+5)",
+    DOCTORAT: "Doctorat (Bac+8)",
+    AUTRE:    "Autre",
+  };
+  return map[niveau] ?? niveau;
+};
+
 const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: user, isLoading } = useGetUserById(parseInt(id || "0"));
-  const { user: authUser } = useAuth();
+  const userId = parseInt(id ?? "0");
 
-  const getSexeLabel = (sexe: Sexe) => {
-    return sexe === "HOMME" ? "Homme" : "Femme";
-  };
+  const { data: user, isLoading } = useGetUserById(userId);
+  const { user: authUser, hasPermission } = useAuth();
+  const deleteUserMutation = useDeleteUserMutation();
 
-  const getNiveauEtudeLabel = (niveau: string) => {
-    const niveaux: Record<string, string> = {
-      BAC: "Baccalauréat",
-      "BAC+2": "Bac+2 (BTS, DUT)",
-      LICENCE: "Licence (Bac+3)",
-      MASTER: "Master (Bac+5)",
-      DOCTORAT: "Doctorat (Bac+8)",
-      AUTRE: "Autre",
-    };
-    return niveaux[niveau] || niveau;
-  };
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const canSeePermissions = hasPermission("USER_READ_ALL");
+  const canDelete = hasPermission("USER_DELETE");
 
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4" />
+          <div className="h-64 bg-gray-200 rounded" />
         </div>
       </div>
     );
@@ -49,70 +68,50 @@ const UserDetail: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Utilisateur non trouvé
-          </h1>
-          <Link
-            to="/admin/users"
-            className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mt-4"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            Retour à la liste
-          </Link>
-        </div>
+      <div className="max-w-4xl mx-auto text-center py-12">
+        <h1 className="text-2xl font-semibold text-gray-900">Utilisateur non trouvé</h1>
+        <Link to="/admin/users" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mt-4">
+          <ArrowLeftIcon className="h-4 w-4 mr-1" /> Retour à la liste
+        </Link>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <Link
-          to="/admin/users"
-          className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-1" />
-          Retour à la liste
-        </Link>
-      </div>
+  const roleColor = ROLE_COLORS[user.role ?? ""] ?? "bg-gray-100 text-gray-700";
+  const roleLabel = ROLE_LABELS[user.role!] ?? user.role ?? "—";
+  const isSelf = authUser?.id === user.id;
 
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+
+      {/* Retour */}
+      <Link to="/admin/users" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
+        <ArrowLeftIcon className="h-4 w-4 mr-1" /> Retour à la liste
+      </Link>
+
+      {/* ── Carte profil ── */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        {/* En-tête */}
-        <div className="bg-indigo-700 px-6 py-8">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
+        {/* Header */}
+        <div className="bg-amame-green px-6 py-8">
+          <div className="flex items-center gap-5">
+            <div className="shrink-0">
               {user.imagePath ? (
-                <img
-                  className="h-20 w-20 rounded-full"
-                  src={`${url}/${user.imagePath}`}
-                  alt={`${user.prenom} ${user.nom}`}
-                />
+                <img className="h-20 w-20 rounded-full object-cover ring-2 ring-white"
+                  src={`${url}/${user.imagePath}`} alt={`${user.prenom} ${user.nom}`} />
               ) : (
-                <div className="h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center">
+                <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center">
                   <UserIcon className="h-10 w-10 text-white" />
                 </div>
               )}
             </div>
-            <div className="ml-6">
-              <h1 className="text-2xl font-bold text-white">
-                {user.prenom} {user.nom}
-              </h1>
-              <p className="text-indigo-200">{user.email}</p>
-              <div className="mt-2 flex items-center space-x-4">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    user.role === "ADMIN"
-                      ? "bg-purple-100 text-purple-800"
-                      : user.role === "SUPERADMIN"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {user.role}
+            <div>
+              <h1 className="text-2xl font-bold text-white">{user.prenom} {user.nom}</h1>
+              <p className="text-white/80 text-sm">{user.email}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${roleColor}`}>
+                  {roleLabel}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white">
                   {getSexeLabel(user.sexe)}
                 </span>
               </div>
@@ -120,161 +119,139 @@ const UserDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Informations détaillées */}
-        <div className="px-6 py-8">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-            {/* Informations personnelles */}
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Informations personnelles
-              </h2>
-              <dl className="space-y-4">
-                <>
-                  <dt className="flex items-start">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">
-                      Email
-                    </span>
-                  </dt>
-                  <dd className="text-sm text-gray-900 ml-8">{user.email}</dd>
-                </>
-                <>
-                  <dt className="flex items-start">
-                    <PhoneIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">
-                      Téléphone
-                    </span>
-                  </dt>
-                  <dd className="text-sm text-gray-900 ml-8">
-                    {user.phone || "Non renseigné"}
-                  </dd>
-                </>
-                <>
-                  <dt className="flex items-start">
-                    <MapPinIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">
-                      Adresse
-                    </span>
-                  </dt>
-                  <dd className="text-sm text-gray-900 ml-8">
-                    {user.adresse ? (
-                      <>
-                        {user.adresse}
-                        <br />
-                        {user.codePostal && `${user.codePostal} `}
-                        {user.ville}
-                        {user.pays && <>, {user.pays}</>}
-                      </>
-                    ) : (
-                      "Non renseignée"
-                    )}
-                  </dd>
-                </>
-                <>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Date de naissance
-                  </dt>
-                  <dd className="text-sm text-gray-900">
-                    {user.birthDate
-                      ? new Date(user.birthDate).toLocaleDateString("fr-FR")
-                      : "Non renseignée"}
-                  </dd>
-                </>
-              </dl>
-            </div>
-
-            {/* Informations académiques */}
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Informations académiques
-              </h2>
-              <dl className="space-y-4">
-                <>
-                  <dt className="flex items-start">
-                    <AcademicCapIcon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                    <span className="text-sm font-medium text-gray-500">
-                      Niveau d'étude
-                    </span>
-                  </dt>
-                  <dd className="text-sm text-gray-900 ml-8">
-                    {user.niveauEtude
-                      ? getNiveauEtudeLabel(user.niveauEtude)
-                      : "Non renseigné"}
-                  </dd>
-                </>
-
-                <>
-                  <dt className="text-sm font-medium text-gray-500">Rôle</dt>
-                  <dd className="text-sm">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.role === "ADMIN"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </dd>
-                </>
-              </dl>
-
-              {/* Documents */}
-              <div className="mt-6">
-                <h3 className="text-md font-medium text-gray-900 mb-3">
-                  Documents
-                </h3>
-                <div className="space-y-2">
-                  {user.cvPath ? (
-                    <a
-                      href={`${url}/${user.cvPath}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                    >
-                      <DocumentIcon className="h-5 w-5 text-gray-400 mr-3" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {authUser.id === user.id ? "Mon CV" : "Le CV de l'utilisateur"}
-                      </span>
-                    </a>
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      Aucun document disponible
-                    </p>
-                  )}
+        {/* Body */}
+        <div className="px-6 py-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+          {/* Infos personnelles */}
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h2>
+            <dl className="space-y-3">
+              <div className="flex items-start gap-3">
+                <EnvelopeIcon className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-xs text-gray-500 font-medium">Email</dt>
+                  <dd className="text-sm text-gray-900">{user.email}</dd>
                 </div>
               </div>
-            </div>
+              <div className="flex items-start gap-3">
+                <PhoneIcon className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-xs text-gray-500 font-medium">Téléphone</dt>
+                  <dd className="text-sm text-gray-900">{user.phone ?? "Non renseigné"}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-xs text-gray-500 font-medium">Adresse</dt>
+                  <dd className="text-sm text-gray-900">
+                    {user.adresse
+                      ? <>{user.adresse}<br />{user.codePostal} {user.ville}{user.pays && `, ${user.pays}`}</>
+                      : "Non renseignée"}
+                  </dd>
+                </div>
+              </div>
+              {user.birthDate && (
+                <div>
+                  <dt className="text-xs text-gray-500 font-medium">Date de naissance</dt>
+                  <dd className="text-sm text-gray-900">
+                    {new Date(user.birthDate).toLocaleDateString("fr-FR")}
+                  </dd>
+                </div>
+              )}
+            </dl>
           </div>
 
-          {/* Actions */}
-          {(user.id === authUser?.id || authUser?.role === "SUPERADMIN") && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="flex justify-end space-x-3">
-              <Link
-                to={`/admin/users/edit/${user.id}`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Modifier
-              </Link>
-              <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.prenom} ${user.nom}" ?`,
-                    )
-                  ) {
-                    // Implémentez la suppression
-                  }
-                }}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Supprimer
-              </button>
+          {/* Infos académiques + documents */}
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Informations académiques</h2>
+            <dl className="space-y-3">
+              <div className="flex items-start gap-3">
+                <AcademicCapIcon className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                <div>
+                  <dt className="text-xs text-gray-500 font-medium">Niveau d'étude</dt>
+                  <dd className="text-sm text-gray-900">
+                    {user.niveauEtude ? getNiveauLabel(user.niveauEtude) : "Non renseigné"}
+                  </dd>
+                </div>
+              </div>
+            </dl>
+
+            {/* Documents */}
+            <div className="mt-5">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Documents</h3>
+              {user.cvPath ? (
+                <a href={`${url}/${user.cvPath}`} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <DocumentIcon className="h-5 w-5 text-gray-400 shrink-0" />
+                  <span className="text-sm font-medium text-gray-900">
+                    {isSelf ? "Mon CV" : "CV de l'utilisateur"}
+                  </span>
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400">Aucun document</p>
+              )}
             </div>
-          </div>)}
+          </div>
         </div>
+
+        {/* Actions */}
+        {(isSelf || canDelete) && (
+          <div className="px-6 pb-6 pt-0 border-t border-gray-100 flex justify-end gap-3 mt-2">
+            <Link
+              to={`/admin/users/edit/${user.id}`}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Modifier
+            </Link>
+            {canDelete && !isSelf && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setDeleteOpen(true)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 border border-transparent rounded-xl hover:bg-red-600 transition-colors"
+                >
+                  Supprimer
+                </button>
+                <ConfirmDialog
+                  open={deleteOpen}
+                  title="Supprimer l'utilisateur"
+                  description={`L'utilisateur "${user.prenom} ${user.nom}" sera définitivement supprimé(e). Cette action est irréversible.`}
+                  onConfirm={() => { deleteUserMutation.mutate(user.id!); setDeleteOpen(false); }}
+                  onClose={() => setDeleteOpen(false)}
+                  isLoading={deleteUserMutation.isPending}
+                />
+              </>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* ── Panneau rôles & permissions ── */}
+      {canSeePermissions && !isSelf && (
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setPermissionsOpen(!permissionsOpen)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="h-5 w-5 text-amame-green" />
+              <span className="text-base font-medium text-gray-900">Rôle & Permissions</span>
+            </div>
+            <span className="text-xs text-gray-400">{permissionsOpen ? "Replier" : "Afficher"}</span>
+          </button>
+
+          {permissionsOpen && (
+            <div className="px-6 pb-6 pt-2 border-t border-gray-100">
+              <UserPermissionsPanel
+                targetUserId={user.id!}
+                targetRole={user.role!}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

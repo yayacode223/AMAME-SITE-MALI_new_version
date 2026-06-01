@@ -1,22 +1,7 @@
-// components/ConcoursCardItem.tsx - Version harmonisée Blue-Violet
-import { motion } from "framer-motion";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Calendar,
-  MapPin,
-  GraduationCap,
-  ExternalLink,
-  Clock,
-  Target,
-} from "lucide-react";
-import { format, isAfter, isBefore } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar, MapPin, GraduationCap, Clock, Target, ArrowRight } from "lucide-react";
+import { format, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
 
@@ -33,6 +18,16 @@ interface ConcoursCardItemProps {
   isAvailable: boolean;
 }
 
+const getNiveauLabel = (niveau: string) => {
+  const labels: Record<string, string> = {
+    BACHELIER: "Bachelier",
+    LICENCE: "Licence",
+    MASTER: "Master",
+    DOCTORAT: "Doctorat",
+  };
+  return labels[niveau] || niveau;
+};
+
 const ConcoursCardItem = ({
   id,
   nom,
@@ -42,7 +37,6 @@ const ConcoursCardItem = ({
   status,
   dateOuverture,
   dateLimite,
-  lienOfficiel,
   isAvailable,
 }: ConcoursCardItemProps) => {
   const now = new Date();
@@ -52,136 +46,95 @@ const ConcoursCardItem = ({
   const isOpen = isAfter(now, ouverture) && isBefore(now, limite);
   const isUpcoming = isBefore(now, ouverture);
   const isClosed = isAfter(now, limite);
+  const daysLeft = isOpen ? differenceInDays(limite, now) : 0;
+  const available = isAvailable && !isClosed;
 
-  const getStatusColor = () => {
-    if (!isAvailable) return "bg-gray-100 text-gray-700";
-    if (isClosed) return "bg-red-100 text-red-700";
-    if (isUpcoming) return "bg-blue-100 text-blue-700";
-    return "bg-green-100 text-green-700";
+  const getStatusConfig = () => {
+    if (!isAvailable || isClosed) return { label: "Clôturé", cls: "bg-gray-100 text-gray-500 border-gray-200" };
+    if (isUpcoming) return { label: "À venir", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+    return { label: "Ouvert", cls: "bg-amame-green-light text-amame-green-dark border-amame-green/20" };
   };
 
-  const getStatusText = () => {
-    if (!isAvailable) return "Indisponible";
-    if (isClosed) return "Clôturé";
-    if (isUpcoming) return "À venir";
-    return "Ouvert";
-  };
-
-  const formatDate = (date: Date) => {
-    return format(date, "dd MMM yyyy", { locale: fr });
-  };
-
-  const getNiveauLabel = (niveau: string) => {
-    const labels: { [key: string]: string } = {
-      BACHELIER: "Bachelier",
-      LICENCE: "Licence",
-      MASTER: "Master",
-      DOCTORAT: "Doctorat",
-    };
-    return labels[niveau] || niveau;
-  };
-
-  const getDaysRemaining = () => {
-    const diffTime = limite.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+  const { label: statusLabel, cls: statusCls } = getStatusConfig();
+  const isUrgent = isOpen && daysLeft <= 7;
 
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-      <Card className="border-0 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between mb-3">
-            <Badge variant="secondary" className={getStatusColor()}>
-              {getStatusText()}
-            </Badge>
-            {isOpen && !isClosed && (
-              <Badge
-                variant="outline"
-                className="bg-purple-100 text-purple-700 border-purple-200"
-              >
-                {getDaysRemaining()} jour{getDaysRemaining() > 1 ? "s" : ""}{" "}
-                restant{getDaysRemaining() > 1 ? "s" : ""}
-              </Badge>
-            )}
-          </div>
+    <div className="h-full flex flex-col bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+      {/* Blue top accent */}
+      <div className={`h-1 w-full ${available ? "bg-gradient-to-r from-blue-500 to-blue-400" : "bg-gray-200"}`} />
 
-          <h3 className="font-bold text-lg text-gray-900 line-clamp-2 leading-tight mb-2">
-            {nom}
-          </h3>
-
-          {/* Badges informations */}
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-            >
-              <GraduationCap className="h-3 w-3 mr-1" />
-              {getNiveauLabel(niveau)}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-green-50 text-green-700 border-green-200 text-xs"
-            >
+      <div className="flex flex-col flex-grow p-5">
+        {/* Status row */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <Badge className={`text-xs font-medium border ${statusCls}`}>
+            {statusLabel}
+          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge className="text-xs border bg-gray-50 text-gray-600 border-gray-200">
               <Target className="h-3 w-3 mr-1" />
               {status === "NATIONAL" ? "National" : "International"}
             </Badge>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="flex-grow pb-4">
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-            {description}
-          </p>
+        {/* Title */}
+        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-2 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+          {nom}
+        </h3>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
-              <span className="font-medium">{pays}</span>
-            </div>
+        {/* Description */}
+        <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mb-4 flex-grow">
+          {description}
+        </p>
 
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
-              <span>Date début Concours: {formatDate(ouverture)}</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Clock className="h-4 w-4 text-purple-600 flex-shrink-0" />
-              <span>Clôture: {formatDate(limite)}</span>
-            </div>
+        {/* Meta info */}
+        <div className="space-y-1.5 mb-4">
+          <div className="flex items-center gap-2 text-xs text-amame-slate">
+            <MapPin className="h-3.5 w-3.5 text-amame-green shrink-0" />
+            <span>{pays}</span>
           </div>
-        </CardContent>
+          <div className="flex items-center gap-2 text-xs text-amame-slate">
+            <GraduationCap className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+            <span>{getNiveauLabel(niveau)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-amame-slate">
+            <Calendar className="h-3.5 w-3.5 text-amame-gold shrink-0" />
+            <span>Ouverture : {format(ouverture, "dd MMM yyyy", { locale: fr })}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-amame-slate">
+            <Clock className="h-3.5 w-3.5 text-red-500 shrink-0" />
+            <span>Clôture : {format(limite, "dd MMM yyyy", { locale: fr })}</span>
+          </div>
+        </div>
 
-        <CardFooter className="pt-4 border-t border-gray-100">
-          <Button
-            asChild
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-xl transition-all duration-200"
-            disabled={!isAvailable || isClosed}
-          >
-            <Link to={`/concours/${id}`}>
-              Voir les détails <ExternalLink className="h-4 w-4 ml-2" />
+        {/* Days remaining pill */}
+        {isOpen && (
+          <div className={`flex items-center justify-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg mb-4 ${isUrgent ? "bg-red-50 text-red-700 border border-red-200" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>
+            <Clock className="h-3.5 w-3.5" />
+            {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
+            {isUrgent && <span className="ml-auto font-bold">Urgent !</span>}
+          </div>
+        )}
+
+        {/* CTA */}
+        <Button
+          asChild={available}
+          disabled={!available}
+          className={`w-full font-semibold rounded-lg text-sm transition-all ${available ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+        >
+          {available ? (
+            <Link to={`/concours/${id}`} className="flex items-center justify-center gap-2">
+              Voir les détails
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          </Button>
-          {!isAvailable || isClosed ? (
-            <Button
-              className="w-full bg-gray-200 text-gray-500 font-semibold py-2.5 rounded-xl cursor-not-allowed"
-              disabled
-            >
-              Indisponible
-            </Button>
           ) : (
-            <Button
-              asChild
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-xl transition-all duration-200"
-            >
-              <Link to={`/concours/${id}`}>
-                Voir les détails <ExternalLink className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
+            <span className="flex items-center justify-center gap-2">
+              {statusLabel}
+            </span>
           )}
-        </CardFooter>
-      </Card>
-    </motion.div>
+        </Button>
+      </div>
+    </div>
   );
 };
 

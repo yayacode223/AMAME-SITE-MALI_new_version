@@ -350,7 +350,7 @@ const Register = () => {
           <div
             className={cn(
               "h-1 flex-1 mr-2 transition-all duration-300 hidden sm:block",
-              completed ? "bg-purple-600" : "bg-gray-200"
+              completed ? "bg-amame-green" : "bg-gray-200"
             )}
           />
         )}
@@ -360,9 +360,9 @@ const Register = () => {
           className={cn(
             "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 relative",
             active
-              ? "bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-200"
+              ? "bg-amame-green border-amame-green text-white shadow-lg shadow-green-200"
               : completed
-              ? "bg-green-500 border-green-500 text-white"
+              ? "bg-amame-green border-amame-green text-white"
               : "bg-white border-gray-300 text-gray-400"
           )}
         >
@@ -374,7 +374,7 @@ const Register = () => {
           <div
             className={cn(
               "h-1 flex-1 ml-2 transition-all duration-300 hidden sm:block",
-              completed ? "bg-purple-600" : "bg-gray-200"
+              completed ? "bg-amame-green" : "bg-gray-200"
             )}
           />
         )}
@@ -385,9 +385,9 @@ const Register = () => {
         className={cn(
           "text-xs sm:text-sm font-medium mt-2 sm:mt-3 text-center transition-colors duration-300 hidden sm:block",
           active
-            ? "text-purple-600"
+            ? "text-amame-green"
             : completed
-            ? "text-green-600"
+            ? "text-amame-green"
             : "text-gray-500"
         )}
       >
@@ -397,9 +397,9 @@ const Register = () => {
         className={cn(
           "text-xs font-medium mt-2 sm:hidden",
           active
-            ? "text-purple-600"
+            ? "text-amame-green"
             : completed
-            ? "text-green-600"
+            ? "text-amame-green"
             : "text-gray-500"
         )}
       >
@@ -418,7 +418,7 @@ const Register = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-4 sm:py-8">
+      <div className="min-h-screen bg-amame-surface py-4 sm:py-8">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8">
           {/* En-tête */}
           <div className="text-center mb-6 sm:mb-8">
@@ -441,8 +441,8 @@ const Register = () => {
             </div>
 
             {/* Titre et description */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-              Rejoignez l'<span className="text-purple-600">AMAME</span>
+            <h1 className="font-nunito font-black text-2xl sm:text-3xl md:text-4xl text-amame-charcoal mb-2 sm:mb-3">
+              Rejoignez l'<span className="text-amame-green">AMAME</span>
             </h1>
             <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               Créez votre compte et accédez à toutes les opportunités
@@ -451,7 +451,7 @@ const Register = () => {
           </div>
 
           {/* Carte principale */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-card border border-amame-border overflow-hidden">
             {/* Barre de progression */}
             <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
@@ -715,7 +715,7 @@ const Register = () => {
                       <Button
                         type="button"
                         onClick={nextStep}
-                        className="bg-purple-600 hover:bg-purple-700 h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg text-sm sm:text-base w-full sm:w-auto"
+                        className="bg-amame-green hover:bg-amame-green-dark h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg text-sm sm:text-base w-full sm:w-auto"
                       >
                         Continuer <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>
@@ -861,7 +861,7 @@ const Register = () => {
                       <Button
                         type="button"
                         onClick={nextStep}
-                        className="bg-purple-600 hover:bg-purple-700 h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg text-sm sm:text-base order-1 sm:order-2"
+                        className="bg-amame-green hover:bg-amame-green-dark h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg text-sm sm:text-base order-1 sm:order-2"
                       >
                         Continuer <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>
@@ -1005,7 +1005,7 @@ const Register = () => {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-purple-400 transition-colors cursor-pointer">
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-amame-green transition-colors cursor-pointer">
                                       <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
                                       <p className="text-xs sm:text-sm text-gray-600 mb-2">
                                         Glissez-déposez votre CV ou cliquez pour
@@ -1086,11 +1086,11 @@ const Register = () => {
                           )}
                         />
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h4 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">
-                            🎯 Pourquoi rejoindre l'AMAME ?
+                        <div className="bg-amame-green-subtle border border-amame-green/20 rounded-xl p-4">
+                          <h4 className="font-nunito font-bold text-amame-green-dark mb-2 text-sm sm:text-base">
+                            Pourquoi rejoindre l'AMAME ?
                           </h4>
-                          <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
+                          <ul className="text-xs sm:text-sm text-amame-slate space-y-2">
                             <li>
                               • Accès aux bourses d'études nationales et
                               internationales
@@ -1115,7 +1115,7 @@ const Register = () => {
                       <Button
                         type="submit"
                         disabled={isRegistering}
-                        className="bg-purple-600 hover:bg-purple-700 h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-1 sm:order-2"
+                        className="bg-amame-green hover:bg-amame-green-dark h-11 sm:h-12 px-6 sm:px-8 text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-1 sm:order-2"
                       >
                         {isRegistering ? (
                           <span className="flex items-center">
@@ -1142,7 +1142,7 @@ const Register = () => {
               Déjà membre ?{" "}
               <Button
                 variant="link"
-                className="text-purple-600 hover:text-purple-700 font-semibold p-0 h-auto text-sm sm:text-base"
+                className="text-amame-green hover:text-amame-green-dark font-semibold p-0 h-auto text-sm sm:text-base"
                 onClick={() => navigate("/login")}
               >
                 Connectez-vous ici

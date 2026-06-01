@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.filiere.FiliereDto;
 import com.example.siteamame.dto.filiere.FiliereRequestDto;
@@ -17,6 +18,9 @@ import com.example.siteamame.service.file.FileStorageServiceImpl;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,6 +46,37 @@ public class FiliereService {
                 .stream()
                 .map(filiereMapper::convertToSummaryDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<FiliereSummaryDto> getFilieresPage(
+            int page, int size, String sortBy, String sortDirection) {
+        Pageable pageable = PageRequest.of(page, size, buildSort(sortBy, sortDirection));
+        return new PageResponse<>(filiereRepository.findAllPaged(pageable)
+                .map(filiereMapper::convertToSummaryDTO));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<FiliereSummaryDto> getFilieresByDomainePage(
+            DomaineFiliereSerieType domaine, int page, int size, String sortBy, String sortDirection) {
+        Pageable pageable = PageRequest.of(page, size, buildSort(sortBy, sortDirection));
+        return new PageResponse<>(filiereRepository.findByDomainePaged(domaine, pageable)
+                .map(filiereMapper::convertToSummaryDTO));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<FiliereSummaryDto> searchFilieresPage(
+            String search, int page, int size, String sortBy, String sortDirection) {
+        Pageable pageable = PageRequest.of(page, size, buildSort(sortBy, sortDirection));
+        String cleanSearch = (search == null || search.isBlank()) ? "" : search.trim();
+        return new PageResponse<>(filiereRepository.findBySearchTermPaged(cleanSearch, pageable)
+                .map(filiereMapper::convertToSummaryDTO));
+    }
+
+    private Sort buildSort(String sortBy, String sortDirection) {
+        return "DESC".equalsIgnoreCase(sortDirection)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
     }
 
     @Transactional(readOnly = true)

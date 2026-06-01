@@ -3,22 +3,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import DataTable from "@/components/admin/DataTable";
 import {
-  useGetAllArticles,
+  useGetAdminArticles,
   useDeleteArticle,
 } from "../../service/articleService";
 import { ArticleSummaryResponse } from "@/types/articleType";
 const ArticlesManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: articles, isLoading } = useGetAllArticles();
+  const { data: articles, isLoading } = useGetAdminArticles();
   const deleteArticleMutation = useDeleteArticle();
   const navigate = useNavigate();
 
   const filteredArticles =
-    articles?.filter(
+    (articles?.content || []).filter(
       (article) =>
         article.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.auteur.toLowerCase().includes(searchTerm.toLowerCase()),
-    ) || [];
+    );
 
   const columns = [
     { key: "titre", label: "Titre" },
@@ -40,20 +40,14 @@ const ArticlesManagement: React.FC = () => {
               : "bg-yellow-100 text-yellow-800"
           }`}
         >
-          {value ? "Publié" : "Publié"}
+          {value ? "Publié" : "Brouillon"}
         </span>
       ),
     },
   ];
 
   const handleDelete = (article: ArticleSummaryResponse) => {
-    if (
-      window.confirm(
-        `Êtes-vous sûr de vouloir supprimer l'article "${article.titre}" ?`,
-      )
-    ) {
-      deleteArticleMutation.mutate(article.id);
-    }
+    deleteArticleMutation.mutate(article.id);
   };
 
   const handleEdit = (article: ArticleSummaryResponse) => {
@@ -68,50 +62,43 @@ const ArticlesManagement: React.FC = () => {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+      <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Gestion des articles
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Créez et gérez les articles de votre blog
+          <h1 className="font-nunito font-bold text-2xl text-amame-charcoal">Articles</h1>
+          <p className="mt-1 text-sm text-amame-muted">
+            {articles?.totalElements ?? 0} article{(articles?.totalElements ?? 0) > 1 ? "s" : ""} au total
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
           <Link
             to="/admin/articles/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark transition-colors shadow-green"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <PlusIcon className="h-4 w-4" />
             Nouvel article
           </Link>
         </div>
       </div>
 
-      {/* Barre de recherche et filtres */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Rechercher un article..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <div className="mb-5">
+        <div className="relative max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Rechercher par titre ou auteur..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-4 py-2 w-full text-sm border border-amame-border rounded-xl focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green placeholder-amame-muted/60 bg-white"
+          />
         </div>
       </div>
 
-      {/* Tableau des articles */}
       <DataTable
         columns={columns}
         data={filteredArticles}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        deleteConfirmMessage={(row) => `L'article "${row.titre}" sera définitivement supprimé.`}
         onView={handleView}
         isLoading={isLoading}
       />

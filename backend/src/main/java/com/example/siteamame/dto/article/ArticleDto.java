@@ -26,4 +26,5 @@ public class ArticleDto {
     private Set<String> tags;
     private String metaDescription;
     private String metaKeywords;
+    private boolean estPublie;
 }

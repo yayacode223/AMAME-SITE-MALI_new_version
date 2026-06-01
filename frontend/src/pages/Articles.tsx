@@ -1,494 +1,341 @@
-// Articles.tsx - VERSION OPTIMISÉE
-import React, { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, User, Search, Filter, Clock, Eye } from "lucide-react";
-import { Card } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
+import { Calendar, User, Search, Clock, Eye, Newspaper, ArrowRight, Tag } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { motion } from "framer-motion";
-import {
-  useGetAllArticles,
-  useGetAvailableCategories,
-} from "../service/articleService";
+import PageHero from "../components/PageHero";
+import Pagination from "../components/Pagination";
+import { motion, AnimatePresence } from "framer-motion";
+import { useGetAllArticles } from "../service/articleService";
 import { adaptArticleForNews } from "@/utils/articleAdapter";
-import { Skeleton } from "@/components/ui/skeleton";
 
-const url = "https://amame.ml";
+const PROD_URL = "https://amame.ml";
 
-// Catégories prédéfinies avec couleurs
-const PREDEFINED_CATEGORIES = [
-  { id: "all", label: "Toutes les catégories", color: "gray" },
-  { id: "Conseils", label: "Conseils", color: "emerald" },
-  { id: "Orientation", label: "Orientation", color: "blue" },
-  { id: "Bourses", label: "Bourses", color: "amber" },
-  { id: "Concours", label: "Concours", color: "purple" },
-  { id: "Témoignages", label: "Témoignages", color: "pink" },
+const CATEGORIES = [
+  { id: "all", label: "Toutes" },
+  { id: "Conseils", label: "Conseils", cls: "bg-amame-green-light text-amame-green-dark border-amame-green/20" },
+  { id: "Orientation", label: "Orientation", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  { id: "Bourses", label: "Bourses", cls: "bg-amame-gold-subtle text-amame-gold border-amame-gold/20" },
+  { id: "Concours", label: "Concours", cls: "bg-purple-50 text-purple-700 border-purple-200" },
+  { id: "Témoignages", label: "Témoignages", cls: "bg-rose-50 text-rose-700 border-rose-200" },
 ];
 
+const getCatStyle = (cat: string) =>
+  CATEGORIES.find((c) => c.id === cat)?.cls || "bg-gray-50 text-gray-600 border-gray-200";
+
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+
+/* ─── Skeleton card ─────────────────────────────────────────── */
+const ArticleCardSkeleton = () => (
+  <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
+    <div className="flex flex-col sm:flex-row sm:min-h-[180px]">
+      <Skeleton className="sm:w-52 shrink-0 h-52 sm:h-auto" />
+      <div className="flex-1 p-5 sm:p-6 space-y-3">
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-28 rounded-full" />
+        </div>
+        <Skeleton className="h-6 w-4/5 rounded-md" />
+        <Skeleton className="h-4 w-full rounded-md" />
+        <Skeleton className="h-4 w-2/3 rounded-md" />
+        <div className="flex justify-between pt-2 border-t border-amame-border/50">
+          <Skeleton className="h-4 w-24 rounded-full" />
+          <Skeleton className="h-4 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─── Article card ──────────────────────────────────────────── */
+const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArticleForNews>; index: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.06 }}
+  >
+    <Link to={`/articles/${article.slug}`} className="group block bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:min-h-[190px]">
+        {/* Image */}
+        <div className="sm:w-56 shrink-0 relative overflow-hidden bg-gradient-to-br from-amame-green-subtle to-green-100">
+          {article.filePath ? (
+            <img
+              src={`${PROD_URL}/${article.filePath}`}
+              alt={article.titre}
+              className="w-full h-52 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-52 sm:h-full flex items-center justify-center">
+              <Newspaper className="h-12 w-12 text-amame-green/20" />
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col flex-1 p-5 sm:p-6">
+          {/* Category + date */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${getCatStyle(article.categorie)}`}>
+              {article.categorie}
+            </span>
+            <span className="text-amame-border">·</span>
+            <span className="text-[11px] text-amame-muted flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {formatDate(article.date_publication)}
+            </span>
+            {article.temps_lecture && (
+              <>
+                <span className="text-amame-border">·</span>
+                <span className="text-[11px] text-amame-muted flex items-center gap-1">
+                  <Clock className="h-3 w-3" />{article.temps_lecture} min
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Title */}
+          <h2 className="font-nunito font-bold text-base sm:text-lg text-amame-charcoal line-clamp-2 leading-snug mb-2 group-hover:text-amame-green transition-colors duration-200">
+            {article.titre}
+          </h2>
+
+          {/* Excerpt */}
+          <p className="text-sm text-amame-muted leading-relaxed line-clamp-2 flex-1 mb-4">
+            {article.contenu || "Cliquez pour lire cet article."}
+          </p>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between border-t border-amame-border/50 pt-3 mt-auto">
+            <span className="text-[11px] text-amame-muted flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-amame-green flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                {(article.auteur || "A")[0].toUpperCase()}
+              </span>
+              {article.auteur || "AMAME"}
+            </span>
+            <div className="flex items-center gap-3">
+              {article.vues !== undefined && (
+                <span className="text-[11px] text-amame-muted flex items-center gap-1">
+                  <Eye className="h-3 w-3" />{article.vues}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amame-green group-hover:gap-2 transition-all">
+                Lire <ArrowRight className="h-3 w-3" />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  </motion.div>
+);
+
+/* ─── Page ──────────────────────────────────────────────────── */
 export function Articles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(0);
 
-  // UN SEUL APPEL API
-  const { data: allArticlesData, isLoading: isLoadingAll } =
-    useGetAllArticles();
+  const { data: articlesPage, isLoading } = useGetAllArticles({
+    page: currentPage,
+    size: 9,
+    sortBy: "datePublication",
+    sortDirection: "DESC",
+    search: searchTerm || undefined,
+    categorie: selectedCategory,
+  });
 
-  // Adapter les données
-  const adaptedArticles = useMemo(() => {
-    if (!allArticlesData) return [];
-    return allArticlesData.map(adaptArticleForNews);
-  }, [allArticlesData]);
+  const { data: recentPage } = useGetAllArticles({
+    page: 0,
+    size: 5,
+    sortBy: "datePublication",
+    sortDirection: "DESC",
+  });
 
-  // Filtrer côté client
-  const filteredArticles = useMemo(() => {
-    if (!adaptedArticles) return [];
+  const articles = (articlesPage?.content || []).map(adaptArticleForNews);
+  const recentArticles = (recentPage?.content || []).map(adaptArticleForNews);
 
-    let filtered = adaptedArticles;
-
-    // Filtrer par catégorie
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(
-        (article) => article.categorie === selectedCategory,
-      );
-    }
-
-    // Filtrer par recherche
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (article) =>
-          article.titre.toLowerCase().includes(term) ||
-          article.contenu?.toLowerCase().includes(term) ||
-          article.auteur?.toLowerCase().includes(term),
-      );
-    }
-
-    return filtered;
-  }, [adaptedArticles, selectedCategory, searchTerm]);
-
-  // Articles populaires (les 5 plus récents)
-  const popularArticles = useMemo(() => {
-    if (!adaptedArticles) return [];
-    return [...adaptedArticles]
-      .sort(
-        (a, b) =>
-          new Date(b.date_publication).getTime() -
-          new Date(a.date_publication).getTime(),
-      )
-      .slice(0, 5);
-  }, [adaptedArticles]);
-
-  // Compter les articles par catégorie
-  const categoriesWithCount = useMemo(() => {
-    if (!adaptedArticles) return PREDEFINED_CATEGORIES;
-
-    return PREDEFINED_CATEGORIES.map((cat) => {
-      if (cat.id === "all") {
-        return { ...cat, count: adaptedArticles.length };
-      }
-      const count = adaptedArticles.filter(
-        (article) => article.categorie === cat.id,
-      ).length;
-      return { ...cat, count };
-    });
-  }, [adaptedArticles]);
-
-  const getCategoryColor = (category: string) => {
-    const cat = PREDEFINED_CATEGORIES.find((c) => c.id === category);
-    return cat?.color || "gray";
+  const handleSearch = (value: string) => { setSearchTerm(value); setCurrentPage(0); };
+  const handleCategory = (id: string) => { setSelectedCategory(id); setCurrentPage(0); };
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 380, behavior: "smooth" });
   };
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.3,
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-      },
-    },
-  };
-
-  // Skeleton loading
-  if (isLoadingAll) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-          {/* Hero skeleton */}
-          <section className="bg-gradient-to-r from-purple-500 to-blue-500 py-16">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <Skeleton className="h-12 w-3/4 max-w-2xl mx-auto mb-4" />
-              <Skeleton className="h-6 w-1/2 max-w-xl mx-auto mb-2" />
-              <Skeleton className="h-5 w-2/3 max-w-lg mx-auto" />
-            </div>
-          </section>
-
-          {/* Content skeleton */}
-          <section className="py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              {/* Search skeleton */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <div className="flex flex-col lg:flex-row gap-4 items-center">
-                  <Skeleton className="h-12 flex-1 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-48 rounded-lg" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Main content skeleton */}
-                <div className="lg:col-span-3">
-                  <div className="flex justify-between items-center mb-8">
-                    <Skeleton className="h-8 w-48 rounded-lg" />
-                    <Skeleton className="h-8 w-24 rounded-full" />
-                  </div>
-
-                  <div className="space-y-8">
-                    {[...Array(3)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="border-0 rounded-xl bg-white shadow-lg overflow-hidden"
-                      >
-                        <div className="md:flex">
-                          <Skeleton className="md:w-80 h-64 md:h-auto" />
-                          <div className="p-6 flex-1">
-                            <Skeleton className="h-7 w-3/4 mb-3 rounded-lg" />
-                            <div className="flex gap-4 mb-4">
-                              <Skeleton className="h-4 w-24 rounded-full" />
-                              <Skeleton className="h-4 w-24 rounded-full" />
-                            </div>
-                            <Skeleton className="h-4 w-full mb-2 rounded-lg" />
-                            <Skeleton className="h-4 w-2/3 mb-6 rounded-lg" />
-                            <Skeleton className="h-12 w-full rounded-xl" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Sidebar skeleton */}
-                <div className="space-y-6">
-                  <Skeleton className="h-64 w-full rounded-xl" />
-                  <Skeleton className="h-80 w-full rounded-xl" />
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-        <Footer />
-      </>
-    );
-  }
+  const resetFilters = () => { setSearchTerm(""); setSelectedCategory("all"); setCurrentPage(0); };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.h1
-              className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              Actualités & <span className="text-yellow-300">Conseils</span>
-            </motion.h1>
-            <motion.p
-              className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Restez informé des dernières opportunités et découvrez nos
-              conseils pour réussir votre parcours académique
-            </motion.p>
+      <div className="min-h-screen bg-amame-surface flex flex-col">
+        <SEO
+          title="Actualités & Articles"
+          description="Restez informé des dernières opportunités académiques et découvrez nos conseils pour réussir votre parcours."
+          path="/articles"
+          keywords="actualités éducatives Mali, conseils orientation, articles AMAME, blog académique"
+        />
+        <PageHero
+          icon={Newspaper}
+          label="Blog & Actualités"
+          title="Actualités &"
+          titleHighlight="Conseils"
+          description="" //Restez informé des dernières opportunités et découvrez nos conseils pour réussir votre parcours académique.
+          imageSrc="/images/heroes/hero-articles.png"
+          imageAlt="Blog et actualités éducatives AMAME"
+        />
+
+        {/* Barre de recherche + filtres */}
+        <section className="bg-white border-b border-amame-border py-4">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative mb-4 max-w-xl">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Rechercher un article..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10 h-11 border-amame-border focus:border-amame-green rounded-xl bg-amame-surface"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleCategory(id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                    selectedCategory === id
+                      ? "bg-amame-green text-white border-amame-green shadow-green"
+                      : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Search and Filter Section */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              className="bg-white rounded-2xl shadow-lg p-6 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="flex flex-col lg:flex-row gap-4 items-center">
-                <div className="flex-1 w-full">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <Input
-                      type="text"
-                      placeholder="Rechercher des articles, conseils..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-12 text-lg border-2 border-gray-200 focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-auto">
-                  <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <select
-                      aria-label="Filtrer par catégorie"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full lg:w-64 h-12 pl-10 pr-4 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors appearance-none bg-white"
-                    >
-                      {categoriesWithCount.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.label}
-                          {/* ({category.count}) */}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
+        {/* Contenu principal */}
+        <section className="flex-grow py-8 lg:py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Main Content */}
-              <motion.div
-                className="lg:col-span-3"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    Articles Récents
+
+              {/* Liste articles */}
+              <div className="lg:col-span-3">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-nunito font-bold text-lg text-amame-charcoal">
+                    {selectedCategory === "all" ? "Tous les articles" : selectedCategory}
                   </h2>
-                  <Badge variant="secondary" className="text-lg px-4 py-2">
-                    {filteredArticles.length} article
-                    {filteredArticles.length > 1 ? "s" : ""}
-                  </Badge>
+                  {articlesPage && (
+                    <span className="text-xs text-amame-muted bg-white border border-amame-border px-2.5 py-1 rounded-full">
+                      {articlesPage.totalElements} article{articlesPage.totalElements > 1 ? "s" : ""}
+                    </span>
+                  )}
                 </div>
 
-                {filteredArticles.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <div className="text-6xl mb-4">🔍</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                      Aucun article trouvé
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      Essayez de modifier vos critères de recherche ou explorez
-                      toutes les catégories.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        setSearchTerm("");
-                        setSelectedCategory("all");
-                      }}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      Voir tous les articles
-                    </Button>
-                  </Card>
-                ) : (
-                  <div className="space-y-8">
-                    {filteredArticles.map((article) => (
-                      <motion.div key={article.id} variants={itemVariants}>
-                        <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                          <div className="md:flex">
-                            {article.filePath ? (
-                              <div className="md:w-80 md:flex-shrink-0 relative overflow-hidden">
-                                <img
-                                  src={`${url}/${article.filePath}`}
-                                  alt={article.titre}
-                                  className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                    // Fallback: afficher une div colorée
-                                    const fallback =
-                                      document.createElement("div");
-                                    fallback.className =
-                                      "w-full h-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center";
-                                    e.currentTarget.parentNode?.appendChild(
-                                      fallback,
-                                    );
-                                  }}
-                                />
-                                <div className="absolute top-4 left-4">
-                                  <Badge
-                                    className={`bg-${getCategoryColor(article.categorie)}-100 text-${getCategoryColor(article.categorie)}-800 border-0 hover:bg-${getCategoryColor(article.categorie)}-200 transition-colors`}
-                                  >
-                                    {article.categorie}
-                                  </Badge>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="md:w-80 md:flex-shrink-0 bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
-                                <div className="text-center p-6">
-                                  <div className="text-4xl mb-4">📄</div>
-                                  <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
-                                    {article.categorie}
-                                  </Badge>
-                                </div>
-                              </div>
-                            )}
-                            <div className="p-6 flex-1 flex flex-col">
-                              <div className="flex-1">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors line-clamp-2">
-                                  {article.titre}
-                                </h2>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4 flex-wrap">
-                                  <div className="flex items-center gap-1">
-                                    <User className="h-4 w-4" />
-                                    <span>
-                                      {article.auteur || "Auteur inconnu"}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>
-                                      {new Date(
-                                        article.date_publication,
-                                      ).toLocaleDateString("fr-FR", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                      })}
-                                    </span>
-                                  </div>
-                                  {article.vues !== undefined && (
-                                    <div className="flex items-center gap-1">
-                                      <Eye className="h-4 w-4" />
-                                      <span>{article.vues} vues</span>
-                                    </div>
-                                  )}
-                                  {article.temps_lecture && (
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="h-4 w-4" />
-                                      <span>{article.temps_lecture} min</span>
-                                    </div>
-                                  )}
-                                </div>
-                                <p className="text-gray-700 mb-6 line-clamp-3 leading-relaxed">
-                                  {article.contenu ||
-                                    "Aucun contenu disponible"}
-                                </p>
-                              </div>
-
-                              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                <Link
-                                  to={`/articles/${article.slug}`}
-                                  className="text-purple-600 hover:text-purple-700 font-semibold inline-flex items-center gap-2 group/link"
-                                >
-                                  Lire l'article
-                                  <span className="group-hover/link:translate-x-1 transition-transform">
-                                    →
-                                  </span>
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
+                <AnimatePresence mode="wait">
+                  {isLoading ? (
+                    <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="space-y-4">
+                      {[...Array(3)].map((_, i) => <ArticleCardSkeleton key={i} />)}
+                    </motion.div>
+                  ) : articles.length === 0 ? (
+                    <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-20 bg-white rounded-2xl border border-amame-border">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-4">
+                        <Search className="h-8 w-8 text-amame-green" />
+                      </div>
+                      <h3 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">Aucun article trouvé</h3>
+                      <p className="text-sm text-amame-muted mb-6">Essayez de modifier vos critères de recherche.</p>
+                      <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                        Voir tous les articles
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                      <div className="space-y-4">
+                        {articles.map((article, i) => (
+                          <ArticleCard key={article.id} article={article} index={i} />
+                        ))}
+                      </div>
+                      {articlesPage && (
+                        <Pagination
+                          totalPages={articlesPage.totalPages}
+                          currentPage={articlesPage.currentPage}
+                          hasNext={articlesPage.hasNext}
+                          hasPrevious={articlesPage.hasPrevious}
+                          onPageChange={handlePageChange}
+                        />
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Sidebar */}
-              <motion.div
-                className="space-y-6"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                {/* Categories */}
-                <Card className="p-6 border-0 shadow-lg">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                    <Filter className="h-5 w-5 mr-2 text-purple-600" />
+              <aside className="space-y-5">
+                {/* Catégories */}
+                <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                  <h3 className="font-nunito font-bold text-xs text-amame-charcoal mb-3 uppercase tracking-widest flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-amame-green" />
                     Catégories
                   </h3>
-                  <div className="space-y-2">
-                    {categoriesWithCount.map((category) => (
+                  <div className="space-y-0.5">
+                    {CATEGORIES.map(({ id, label }) => (
                       <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex justify-between items-center ${
-                          selectedCategory === category.id
-                            ? "bg-purple-100 text-purple-700 font-semibold"
-                            : "hover:bg-gray-50 text-gray-700"
+                        key={id}
+                        type="button"
+                        onClick={() => handleCategory(id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                          selectedCategory === id
+                            ? "bg-amame-green-subtle text-amame-green"
+                            : "text-amame-slate hover:bg-gray-50 hover:text-amame-green"
                         }`}
                       >
-                        <span>{category.label}</span>
-                        <Badge variant="secondary" className="text-xs">
-                        </Badge>
+                        {label}
                       </button>
                     ))}
                   </div>
-                </Card>
+                </div>
 
-                {/* Popular Articles */}
-                <Card className="p-6 border-0 shadow-lg">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                    <Eye className="h-5 w-5 mr-2 text-amber-600" />
-                    Articles Récents
-                  </h3>
-                  <div className="space-y-4">
-                    {popularArticles.map((article) => (
-                      <Link
-                        key={article.id}
-                        to={`/articles/${article.slug}`}
-                        className="block group p-3 rounded-xl hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-start space-x-3">
-                          {article.filePath ? (
-                            <img
-                              src={`${url}/${article.filePath}`}
-                              alt={article.titre}
-                              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-400 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <div className="text-2xl">📄</div>
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 group-hover:text-purple-600 mb-1 line-clamp-2 text-sm leading-tight">
-                              {article.titre}
-                            </h4>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {new Date(
-                                article.date_publication,
-                              ).toLocaleDateString("fr-FR", {
-                                day: "numeric",
-                                month: "short",
-                              })}
-                            </div>
+                {/* Articles récents */}
+                {recentArticles.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                    <h3 className="font-nunito font-bold text-xs text-amame-charcoal mb-4 uppercase tracking-widest flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-amame-green" />
+                      Articles récents
+                    </h3>
+                    <div className="space-y-3">
+                      {recentArticles.map((a) => (
+                        <Link key={a.id} to={`/articles/${a.slug}`}
+                          className="flex gap-3 group p-2 rounded-xl hover:bg-amame-green-subtle/50 transition-colors">
+                          <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-green-100 flex items-center justify-center">
+                            {a.filePath ? (
+                              <img src={`${PROD_URL}/${a.filePath}`} alt={a.titre}
+                                className="w-full h-full object-cover" loading="lazy" />
+                            ) : (
+                              <Newspaper className="h-5 w-5 text-amame-green/30" />
+                            )}
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-amame-charcoal group-hover:text-amame-green line-clamp-2 leading-tight mb-1 transition-colors">
+                              {a.titre}
+                            </p>
+                            <p className="text-[11px] text-amame-muted flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(a.date_publication).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </Card>
-              </motion.div>
+                )}
+              </aside>
             </div>
           </div>
         </section>

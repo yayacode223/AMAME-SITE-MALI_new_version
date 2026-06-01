@@ -47,5 +47,8 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<File> files = new ArrayList<>();
 
+    /** Overrides individuels de permissions (cascade → supprimés avec l'utilisateur). */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<com.example.siteamame.model.UserPermission> userPermissions = new ArrayList<>();
 }
 
