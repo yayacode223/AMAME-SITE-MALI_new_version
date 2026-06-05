@@ -31,7 +31,7 @@ export function Footer() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <footer className="bg-amame-green-darker text-white">
+    <footer className="bg-amame-green-darker text-white pb-16 lg:pb-0">
       {/* CTA Band — visible uniquement pour les visiteurs non connectés */}
       {!isAuthenticated && (
       <div className="relative overflow-hidden bg-gradient-to-r from-amame-green-dark via-amame-green to-amame-green-dark border-b border-white/10">

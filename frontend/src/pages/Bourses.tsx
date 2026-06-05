@@ -80,7 +80,7 @@ const Bourses = () => {
   const hasSearch = Boolean(searchTerm.titre?.trim());
   const hasFilter = Boolean(filter.niveau || filter.pays);
 
-  const commonParams = { page: currentPage, size: 9, sortBy: "dateLimite", sortDirection: "DESC" };
+  const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "DESC" };
 
   const { data: bourses, isLoading: isBourseDataLoading } = useGetBourses(commonParams, { enabled: !hasSearch && !hasFilter });
   const { data: filteredBySearchBourses, isLoading: isSearchLoading } = useGetBourseBySearch(
@@ -137,8 +137,8 @@ const Bourses = () => {
       <PageHero
         icon={Award}
         label="Opportunités"
-        title="Trouvez votre"
-        titleHighlight="bourse idéale"
+        title="Trouvez les"
+        titleHighlight="bourses"
         description="" //Des centaines d'opportunités de bourses nationales et internationales. Filtrez par pays et niveau d'études pour trouver celle qui vous correspond.
         imageSrc="/images/heroes/hero-bourses.png"
         imageAlt="Étudiante malienne avec bourse d'études"

@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import ExpandableText from "@/components/ExpandableText";
 import SEO from "../components/SEO";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -167,9 +168,15 @@ export function OrientationDetail() {
                 <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
                   <div className="h-1 -mx-6 lg:-mx-7 -mt-6 lg:-mt-7 mb-5 rounded-t-xl bg-gradient-to-r from-amame-green to-amame-green-dark" />
                   <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4">Description de la filière</h2>
-                  <p className="text-amame-slate leading-relaxed">
-                    {filiere.descriptionLongue || filiere.descriptionCourte || "Aucune description disponible."}
-                  </p>
+                  {(filiere.descriptionLongue || filiere.descriptionCourte) ? (
+                    <ExpandableText
+                      text={filiere.descriptionLongue || filiere.descriptionCourte!}
+                      maxWords={50}
+                      className="text-amame-slate leading-relaxed"
+                    />
+                  ) : (
+                    <p className="text-amame-slate leading-relaxed">Aucune description disponible.</p>
+                  )}
                 </div>
 
                 {/* Debouches */}
@@ -223,9 +230,11 @@ export function OrientationDetail() {
 
                   <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
                     <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-3">Perspectives d'avenir</h3>
-                    <p className="text-sm text-amame-slate leading-relaxed">
-                      {filiere.perspectives || "Les perspectives pour cette filière sont prometteuses avec une demande croissante sur le marché de l'emploi."}
-                    </p>
+                    <ExpandableText
+                      text={filiere.perspectives || "Les perspectives pour cette filière sont prometteuses avec une demande croissante sur le marché de l'emploi."}
+                      maxWords={50}
+                      className="text-sm text-amame-slate leading-relaxed"
+                    />
                   </div>
                 </div>
               </div>

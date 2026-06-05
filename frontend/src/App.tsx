@@ -2,10 +2,12 @@ import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
+import BottomNav from "@/components/BottomNav";
+import PWAInstallBanner from "@/components/PWAInstallBanner";
 
 // ── Pages chargées immédiatement (above-the-fold critique) ─────────────────
 import Index        from "./pages/Index";
@@ -89,11 +91,16 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
-  <TooltipProvider>
-    <Toaster />
-    <Sonner />
-    <BrowserRouter>
+/* Routes où BottomNav ne doit PAS apparaître */
+const HIDE_BOTTOM_NAV = ['/admin', '/membre', '/login', '/forgot-password', '/reset-password'];
+
+/* Composant interne — doit être dans <BrowserRouter> pour accéder à useLocation() */
+const AppContent = () => {
+  const { pathname } = useLocation();
+  const showMobileNav = !HIDE_BOTTOM_NAV.some(p => pathname.startsWith(p));
+
+  return (
+    <>
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -213,6 +220,18 @@ const App = () => (
           </Route>
       </Routes>
       </Suspense>
+      {showMobileNav && <BottomNav />}
+      <PWAInstallBanner />
+    </>
+  );
+};
+
+const App = () => (
+  <TooltipProvider>
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   </TooltipProvider>
 );

@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Calendar, User, Clock, Eye, ArrowLeft, Newspaper, Tag, ArrowRight } from "lucide-react";
+import { Calendar, User, Clock, Eye, ArrowLeft, Newspaper, Tag, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "../components/Navbar";
@@ -38,8 +38,11 @@ const renderContent = (contenu: string) =>
     );
   });
 
+const PREVIEW_PARAGRAPHS = 3;
+
 export function ArticleDetail() {
   const { slug } = useParams();
+  const [contentExpanded, setContentExpanded] = useState(false);
   const { data: articleData, isLoading } = useGetArticleBySlug(slug || "");
   const { data: allArticlesData } = useGetAllArticles({ page: 0, size: 10, sortBy: "datePublication", sortDirection: "DESC" });
 
@@ -202,7 +205,33 @@ export function ArticleDetail() {
                   {/* Corps */}
                   <div className="p-6 lg:p-8 xl:p-10">
                     <div className="max-w-none">
-                      {renderContent(article.contenu)}
+                      {(() => {
+                        const paragraphs = article.contenu
+                          .split("\n\n")
+                          .filter(p => p.trim());
+                        const needsFold = paragraphs.length > PREVIEW_PARAGRAPHS;
+                        const visible = contentExpanded || !needsFold
+                          ? paragraphs
+                          : paragraphs.slice(0, PREVIEW_PARAGRAPHS);
+                        return (
+                          <>
+                            {renderContent(visible.join("\n\n"))}
+                            {needsFold && (
+                              <button
+                                type="button"
+                                onClick={() => setContentExpanded(prev => !prev)}
+                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-amame-green hover:text-amame-green-dark transition-colors"
+                              >
+                                {contentExpanded ? (
+                                  <><ChevronUp className="h-4 w-4" />Voir moins</>
+                                ) : (
+                                  <><ChevronDown className="h-4 w-4" />Voir la suite ({paragraphs.length - PREVIEW_PARAGRAPHS} paragraphe{paragraphs.length - PREVIEW_PARAGRAPHS > 1 ? "s" : ""} restant{paragraphs.length - PREVIEW_PARAGRAPHS > 1 ? "s" : ""})</>
+                                )}
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Tags */}

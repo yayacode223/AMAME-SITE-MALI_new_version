@@ -50,7 +50,7 @@ const ConcoursListing = ({ defaultStatus }: ConcoursListingProps) => {
   const hasNiveau = Boolean(filter.niveau);
   const hasStatus = Boolean(filter.status);
 
-  const commonParams = { page: currentPage, size: 9, sortBy: "dateLimite", sortDirection: "ASC" };
+  const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "ASC" };
 
   const { data: allConcours, isLoading: isAllLoading } = useConcoursLists(commonParams, {
     enabled: !hasSearch && !hasNiveau && !hasStatus,

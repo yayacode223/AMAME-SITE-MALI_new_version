@@ -142,7 +142,7 @@ export function Articles() {
 
   const { data: articlesPage, isLoading } = useGetAllArticles({
     page: currentPage,
-    size: 9,
+    size: 6,
     sortBy: "datePublication",
     sortDirection: "DESC",
     search: searchTerm || undefined,
@@ -183,7 +183,7 @@ export function Articles() {
           title="Actualités &"
           titleHighlight="Conseils"
           description="" //Restez informé des dernières opportunités et découvrez nos conseils pour réussir votre parcours académique.
-          imageSrc="/images/heroes/hero-articles.png"
+          imageSrc="/images/heroes/hero-articles.jpeg"
           imageAlt="Blog et actualités éducatives AMAME"
         />
 

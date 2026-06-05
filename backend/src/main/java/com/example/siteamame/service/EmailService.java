@@ -3,7 +3,9 @@ package com.example.siteamame.service;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -15,6 +17,11 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+
+    // Self-injection via @Lazy pour conserver le proxy @Async sur les appels internes
+    @Lazy
+    @Autowired
+    private EmailService self;
 
     @Value("${app.mail.from}")
     private String mailFrom;
@@ -47,7 +54,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("Email envoyé à {} — sujet : {}", to, subject);
         } catch (Exception e) {
-            log.error("Échec d'envoi d'email à {} : {}", to, e.getMessage());
+            log.error("Échec d'envoi d'email à {} (sujet : {})", to, subject, e);
         }
     }
 
@@ -88,7 +95,7 @@ public class EmailService {
             adminLink
         );
 
-        send(adminEmail, subject, body);
+        self.send(adminEmail, subject, body);
     }
 
     // ── Email : approbation → utilisateur ───────────────────────────────────
@@ -131,7 +138,7 @@ public class EmailService {
             dashboardLink
         );
 
-        send(userEmail, subject, body);
+        self.send(userEmail, subject, body);
     }
 
     // ── Email : rejet → utilisateur ─────────────────────────────────────────
@@ -173,7 +180,7 @@ public class EmailService {
             adhesionLink
         );
 
-        send(userEmail, subject, body);
+        self.send(userEmail, subject, body);
     }
 
     // ── Email : réinitialisation de mot de passe ────────────────────────────
@@ -211,7 +218,7 @@ public class EmailService {
             resetLink
         );
 
-        send(userEmail, subject, body);
+        self.send(userEmail, subject, body);
     }
 
     // ── Template HTML partagé ────────────────────────────────────────────────

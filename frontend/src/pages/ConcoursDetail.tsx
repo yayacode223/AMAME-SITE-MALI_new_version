@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import ExpandableText from "@/components/ExpandableText";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -205,7 +206,9 @@ const ConcoursDetail = () => {
                     </Badge>
                   </div>
                   <h1 className="font-nunito font-black text-2xl lg:text-3xl text-amame-charcoal mb-3 leading-tight">{concours.nom}</h1>
-                  <p className="text-amame-slate leading-relaxed">{concours.description}</p>
+                  {concours.description && (
+                    <ExpandableText text={concours.description} maxWords={50} className="text-amame-slate leading-relaxed" />
+                  )}
                 </div>
 
                 {/* Details */}

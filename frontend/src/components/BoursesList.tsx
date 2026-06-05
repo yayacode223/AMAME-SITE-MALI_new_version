@@ -62,7 +62,7 @@ const BoursesList = ({ defaultCategorie }: BourseListProps) => {
   const hasSearch = Boolean(searchTerm.titre?.trim());
   const hasFilter = Boolean(filter.categorie || filter.niveau || filter.pays);
 
-  const commonParams = { page: currentPage, size: 9, sortBy: "dateLimite", sortDirection: "DESC" };
+  const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "DESC" };
 
   const { data: bourses, isLoading: isBourseLoading } = useGetBourses(commonParams, {
     enabled: !hasSearch && !hasFilter,

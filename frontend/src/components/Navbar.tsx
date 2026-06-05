@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/userType";
-import { Menu, X, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 
 const PROD_URL = "https://amame.ml";
 
@@ -67,8 +67,6 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAuthenticated, user, logout, isLoggingOut, isUserLoading } = useAuth();
   const navigate = useNavigate();
@@ -79,16 +77,6 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    setIsOpen(false);
-    setOpenMobileSection(null);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
 
   const handleLogout = async () => {
     try {
@@ -281,7 +269,7 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile: avatar + burger */}
+            {/* Mobile: avatar uniquement — la navigation est gérée par BottomNav */}
             <div className="flex lg:hidden items-center gap-2">
               {isAuthenticated && user && !isUserLoading && (
                 <DropdownMenu>
@@ -323,99 +311,11 @@ const Navbar = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              <button
-                type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
-                aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-              >
-                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile overlay */}
-      <div
-        className={`fixed inset-x-0 bottom-0 top-16 z-40 lg:hidden bg-black/30 transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        onClick={() => setIsOpen(false)}
-      />
-
-      {/* Mobile menu panel */}
-      <div
-        className={`fixed top-16 left-0 right-0 z-40 lg:hidden bg-white border-b border-gray-200 shadow-xl transition-all duration-300 ease-in-out max-h-[80vh] overflow-y-auto ${
-          isOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="container mx-auto px-4 py-3 space-y-0.5">
-          {NAV_ITEMS.map((item) => {
-            if (!item.children) {
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path!}
-                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    isSectionActive(item)
-                      ? "text-amame-green bg-amame-green-subtle font-semibold"
-                      : "text-gray-700 hover:text-amame-green hover:bg-gray-50"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            }
-
-            const isExpanded = openMobileSection === item.label;
-            const active = isSectionActive(item);
-
-            return (
-              <div key={item.label}>
-                <button
-                  type="button"
-                  onClick={() => setOpenMobileSection(isExpanded ? null : item.label)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    active ? "text-amame-green bg-amame-green-subtle" : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {item.label}
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
-                </button>
-
-                {isExpanded && (
-                  <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-amame-green/20 pl-3">
-                    {item.children.map((sub) => (
-                      <Link
-                        key={sub.path}
-                        to={sub.path}
-                        className={`flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                          isPathActive(sub.path)
-                            ? "text-amame-green font-semibold"
-                            : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
-                        }`}
-                      >
-                        {sub.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Auth mobile */}
-          {!isAuthenticated && (
-            <div className="pt-3 mt-3 border-t border-gray-100 space-y-2">
-              <Button asChild variant="outline" className="w-full border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold">
-                <Link to="/login">Connexion</Link>
-              </Button>
-              <Button asChild className="w-full bg-amame-green hover:bg-amame-green-dark text-white font-semibold shadow-green">
-                <Link to="/adhesion">Adhérer à l'AMAME</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
     </>
   );
 };

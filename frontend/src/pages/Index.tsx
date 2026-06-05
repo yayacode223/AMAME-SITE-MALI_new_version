@@ -15,6 +15,8 @@ import {
   Quote,
 } from "lucide-react";
 
+const IMG_BASE = "/amame-uploads/AMAME-IMAGE";
+
 type AnimatedSectionProps = {
   children: React.ReactNode;
   className?: string;
@@ -43,6 +45,7 @@ const features = [
       "Informations complètes sur les concours nationaux et internationaux, dates limites, critères d'éligibilité et processus d'inscription.",
     icon: BookOpen,
     link: "/concours",
+    image: `${IMG_BASE}/Concours%26Opportunit%C3%A9s.png`,
     accentColor: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
@@ -54,6 +57,7 @@ const features = [
       "Découvrez les différentes filières disponibles, leurs débouchés professionnels et les opportunités de carrière pour bien choisir votre avenir.",
     icon: GraduationCap,
     link: "/orientation",
+    image: `${IMG_BASE}/Orientation%26Fili%C3%A8res.png`,
     accentColor: "text-amame-green",
     bgColor: "bg-amame-green-subtle",
     borderColor: "border-amame-green/20",
@@ -65,6 +69,7 @@ const features = [
       "Accédez aux informations sur les bourses nationales et internationales, les critères d'attribution et les procédures de candidature.",
     icon: Award,
     link: "/bourses",
+    image: `${IMG_BASE}/Boursesd%27%C3%A9tudes.png`,
     accentColor: "text-amame-gold",
     bgColor: "bg-amame-gold-subtle",
     borderColor: "border-amame-gold/20",
@@ -78,6 +83,7 @@ const testimonials = [
     role: "Étudiante en Médecine",
     content:
       "Grâce à AMAME, j'ai pu décrocher une bourse d'études en France. L'accompagnement personnalisé a été déterminant pour ma réussite.",
+    image: `${IMG_BASE}/Fatoumata(M%C3%A9decine).png`,
     initials: "FD",
     color: "bg-rose-100 text-rose-700",
   },
@@ -86,6 +92,7 @@ const testimonials = [
     role: "Étudiant en Informatique",
     content:
       "Les ressources et conseils d'orientation m'ont permis de choisir la filière qui me correspond vraiment. Merci AMAME !",
+    image: `${IMG_BASE}/Coulibaly(Informatique).png`,
     initials: "CY",
     color: "bg-amame-green-light text-amame-green-dark",
   },
@@ -94,6 +101,7 @@ const testimonials = [
     role: "Étudiante en Droit",
     content:
       "La plateforme m'a fourni toutes les informations nécessaires pour réussir les concours d'entrée en faculté de droit.",
+    image: `${IMG_BASE}/A%C3%AFcha(Droit).png`,
     initials: "AT",
     color: "bg-blue-100 text-blue-700",
   },
@@ -123,16 +131,10 @@ const Index = () => {
         <section className="section-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <AnimatedSection className="text-center mb-14">
-              {/* <span className="section-label">Nos services</span> */}
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-nunito font-black text-amame-charcoal mb-4">
                 Tout pour votre{" "}
                 <span className="text-amame-green">réussite académique</span>
               </h2>
-              {/* <p className="text-base sm:text-lg text-amame-muted max-w-2xl mx-auto leading-relaxed">
-                L'AMAME vous aide{" "}
-                <span className="font-bold text-amame-charcoal">BÉNÉVOLEMENT</span>{" "}
-                à accéder aux informations clés pour exceller dans votre parcours.
-              </p> */}
             </AnimatedSection>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -140,26 +142,35 @@ const Index = () => {
                 const Icon = feature.icon;
                 return (
                   <AnimatedSection key={index} delay={index * 0.1} className="group">
-                    <div className={`h-full bg-white rounded-2xl border-2 ${feature.borderColor} p-7 flex flex-col transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1`}>
-                      <div className={`inline-flex items-center justify-center w-12 h-12 ${feature.bgColor} rounded-xl mb-5`}>
-                        <Icon className={`h-6 w-6 ${feature.accentColor}`} />
+                    <Link to={feature.link} className="block h-full">
+                      <div className={`h-full bg-white rounded-2xl border-2 ${feature.borderColor} overflow-hidden flex flex-col transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 cursor-pointer`}>
+                        {/* Image banner */}
+                        <div className="relative h-44 overflow-hidden">
+                          <img
+                            src={feature.image}
+                            alt={feature.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        </div>
+                        {/* Card content */}
+                        <div className="p-6 flex flex-col flex-grow">
+                          <div className={`inline-flex items-center justify-center w-10 h-10 ${feature.bgColor} rounded-xl mb-4`}>
+                            <Icon className={`h-5 w-5 ${feature.accentColor}`} />
+                          </div>
+                          <h3 className="font-nunito font-bold text-lg text-amame-charcoal mb-2">
+                            {feature.title}
+                          </h3>
+                          <p className="text-sm text-amame-muted leading-relaxed flex-grow mb-5">
+                            {feature.description}
+                          </p>
+                          <div className={`mt-auto w-full ${feature.ctaClass} text-white font-semibold rounded-xl py-2.5 flex items-center justify-center gap-2 text-sm transition-all`}>
+                            Découvrir
+                            <ArrowRight className="h-4 w-4" />
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="font-nunito font-bold text-lg text-amame-charcoal mb-3">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm text-amame-muted leading-relaxed flex-grow mb-6">
-                        {feature.description}
-                      </p>
-                      <Button
-                        asChild
-                        className={`w-full ${feature.ctaClass} text-white font-semibold rounded-xl transition-all`}
-                      >
-                        <Link to={feature.link} className="flex items-center justify-center gap-2">
-                          Découvrir
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
+                    </Link>
                   </AnimatedSection>
                 );
               })}
@@ -172,22 +183,16 @@ const Index = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
               <AnimatedSection>
-                {/* <span className="section-label">Pourquoi nous choisir</span> */}
                 <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal mb-6 leading-tight">
                   Une association à{" "}
                   <span className="text-amame-green">100% bénévole</span>{" "}
                   pour les étudiants maliens
                 </h2>
-                {/* <p className="text-amame-muted leading-relaxed mb-8">
-                  Fondée en 2023, l'AMAME est née de la conviction que chaque
-                  étudiant méritant doit pouvoir accéder aux meilleures opportunités,
-                  indépendamment de ses moyens financiers.
-                </p> */}
                 {/* <ul className="space-y-3 mb-8">
                   {whyAmame.map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-amame-green mt-0.5 shrink-0" />
-                      <span className="text-amame-slate text-sm">{item}</span>
+                      <CheckCircle className="h-5 w-5 text-amame-green shrink-0 mt-0.5" />
+                      <span className="text-sm text-amame-slate leading-relaxed">{item}</span>
                     </li>
                   ))}
                 </ul> */}
@@ -199,21 +204,16 @@ const Index = () => {
                 </Button>
               </AnimatedSection>
 
-              {/* <AnimatedSection delay={0.15}>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { value: "500+", label: "Étudiants accompagnés", color: "bg-amame-green text-white" },
-                    { value: "200+", label: "Bourses référencées", color: "bg-amame-gold text-white" },
-                    { value: "100+", label: "Concours disponibles", color: "bg-blue-600 text-white" },
-                    { value: "100%", label: "Gratuit & bénévole", color: "bg-amame-charcoal text-white" },
-                  ].map(({ value, label, color }) => (
-                    <div key={label} className={`${color} rounded-2xl p-6 text-center`}>
-                      <p className="font-nunito font-black text-3xl mb-1">{value}</p>
-                      <p className="text-xs opacity-80 leading-tight">{label}</p>
-                    </div>
-                  ))}
+              <AnimatedSection delay={0.2} className="hidden lg:block">
+                <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                  <img
+                    src={`${IMG_BASE}/SectionB%C3%A9n%C3%A9volat.png`}
+                    alt="Bénévoles AMAME"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-amame-green/30 to-transparent" />
                 </div>
-              </AnimatedSection> */}
+              </AnimatedSection>
             </div>
           </div>
         </section>
@@ -231,20 +231,46 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
               {testimonials.map((testimonial, index) => (
                 <AnimatedSection key={index} delay={index * 0.1} className="group">
-                  <div className="h-full bg-white rounded-2xl border border-amame-border p-6 flex flex-col transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1">
-                    <Quote className="h-6 w-6 text-amame-green/30 mb-4" />
-                    <p className="text-sm text-amame-slate leading-relaxed italic flex-grow mb-5">
-                      "{testimonial.content}"
-                    </p>
-                    <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-                      <div className={`h-9 w-9 rounded-full ${testimonial.color} flex items-center justify-center text-xs font-bold shrink-0`}>
+                  <div className="h-full bg-white rounded-2xl border border-amame-border overflow-hidden flex flex-col transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1">
+
+                    {/* ── Body : photo pleine largeur ── */}
+                    <div className="relative h-52 overflow-hidden bg-amame-green-subtle shrink-0">
+                      <img
+                        src={testimonial.image}
+                        alt={testimonial.name}
+                        className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = "none";
+                          const fallback = target.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      {/* Fallback initiales si l'image échoue */}
+                      <div
+                        className={`absolute inset-0 ${testimonial.color} items-center justify-center text-4xl font-black`}
+                        style={{ display: "none" }}
+                      >
                         {testimonial.initials}
                       </div>
-                      <div>
-                        <p className="font-semibold text-amame-charcoal text-sm">{testimonial.name}</p>
-                        <p className="text-xs text-amame-muted">{testimonial.role}</p>
-                      </div>
+                      {/* Fondu bas pour transition douce vers le corps de carte */}
+                      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
                     </div>
+
+                    {/* ── Body : citation ── */}
+                    <div className="px-5 pt-4 pb-3 flex flex-col flex-grow">
+                      <Quote className="h-5 w-5 text-amame-green/35 mb-3 shrink-0" />
+                      <p className="text-sm text-amame-slate leading-relaxed italic flex-grow">
+                        "{testimonial.content}"
+                      </p>
+                    </div>
+
+                    {/* ── Footer : identité ── */}
+                    <div className="px-5 pb-5 pt-3 border-t border-gray-100">
+                      <p className="font-semibold text-amame-charcoal text-sm">{testimonial.name}</p>
+                      <p className="text-xs text-amame-muted">{testimonial.role}</p>
+                    </div>
+
                   </div>
                 </AnimatedSection>
               ))}

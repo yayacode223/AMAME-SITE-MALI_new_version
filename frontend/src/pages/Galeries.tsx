@@ -18,7 +18,7 @@ const Galeries = () => {
 
   const { data: galeriesPage, isLoading } = useGetAllGaleries({
     page: currentPage,
-    size: 9,
+    size: 6,
     sortBy: "dateCreation",
     sortDirection: "DESC",
   });

@@ -11,17 +11,17 @@ const stats = [
 ];
 
 const floatingBadges = [
-  { icon: Trophy, label: "Concours", color: "bg-amame-gold-subtle border-amame-gold/30 text-amame-gold", delay: 0 },
-  { icon: BookOpen, label: "Orientation", color: "bg-blue-50 border-blue-200 text-blue-600", delay: 0.8 },
-  { icon: GraduationCap, label: "Bourses", color: "bg-amame-green-subtle border-amame-green/30 text-amame-green", delay: 1.6 },
+  { icon: Trophy,        label: "Concours",    color: "bg-amame-gold-subtle border-amame-gold/30 text-amame-gold",    delay: 0   },
+  { icon: BookOpen,      label: "Orientation", color: "bg-blue-50 border-blue-200 text-blue-600",                     delay: 0.8 },
+  { icon: GraduationCap, label: "Bourses",     color: "bg-amame-green-subtle border-amame-green/30 text-amame-green", delay: 1.6 },
 ];
 
 const itemVariants = {
-  hidden: { y: 24, opacity: 0 },
+  hidden: { y: 20, opacity: 0 },
   visible: (i: number) => ({
     y: 0,
     opacity: 1,
-    transition: { duration: 0.55, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] },
   }),
 };
 
@@ -29,66 +29,88 @@ const Hero = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <section
-      className="relative overflow-hidden hero-bg-image"
-      style={{ backgroundImage: "url(/images/heroes/hero-homepage.png)" }}
-    >
-      {/* ── Gradient overlays ── */}
-      {/* Desktop — left→right: opaque white on text side, image reveals on right */}
-      <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-white from-40% via-white/92 to-white/25 pointer-events-none" />
-      {/* Desktop — top→bottom vignette */}
-      <div className="absolute inset-0 hidden lg:block bg-gradient-to-b from-white/40 via-transparent to-white/50 pointer-events-none" />
-      {/* Mobile — gradient vertical: opaque en haut (texte lisible), image visible en bas */}
-      <div className="absolute inset-0 lg:hidden bg-gradient-to-b from-white/88 from-0% via-white/65 via-55% to-white/30 pointer-events-none" />
+    <section className="relative overflow-hidden min-h-[600px] sm:min-h-[680px] lg:min-h-[720px] flex items-end lg:items-center">
 
-      {/* ── Decorative dot grid (very subtle) ── */}
-      <div className="absolute inset-0 opacity-[0.018] hero-dot-grid pointer-events-none" />
+      {/* Layer 1 — Image pleine largeur avec Ken Burns */}
+      <motion.div
+        className="absolute inset-0"
+        initial={{ scale: 1.05 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 8, ease: "easeOut" }}
+        aria-hidden="true"
+      >
+        <img
+          src="/images/heroes/hero-homepage.png"
+          alt=""
+          className="w-full h-full object-cover object-center"
+          loading="eager"
+        />
+      </motion.div>
 
-      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+      {/* Layer 2 — Scrim de lisibilité */}
+      {/* Desktop : dégradé gauche→droite, image dégagée à droite */}
+      <div
+        className="absolute inset-0 hidden lg:block"
+        style={{ background: "linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.12) 70%, transparent 100%)" }}
+        aria-hidden="true"
+      />
+      {/* Mobile : dégradé bas→haut, image visible en haut */}
+      <div
+        className="absolute inset-0 lg:hidden"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.15) 100%)" }}
+        aria-hidden="true"
+      />
 
-          {/* ── Left — Text content ─────────────────────────────── */}
-          <div className="flex-1 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
+      {/* Layer 3 — Contenu */}
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-16 lg:py-28 w-full">
+        <div className="flex flex-col lg:flex-row lg:items-center">
 
-            {/* Badge */}
-            {/* <motion.div
+          {/* Colonne texte */}
+          <div className="lg:w-[52%] lg:pr-12 text-center lg:text-left">
+
+            <motion.h1
               custom={0}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm text-amame-green-dark text-sm font-semibold mb-6 border border-amame-green/25 shadow-sm"
+              className="font-nunito font-black text-4xl sm:text-5xl lg:text-6xl xl:text-7xl
+                         text-white leading-[1.1] mb-4 lg:mb-5"
             >
-              <Star className="h-3.5 w-3.5 text-amame-gold fill-amame-gold" />
-              Excellence Académique au Mali depuis 2023
-            </motion.div> */}
+              Votre Passerelle
+              <span className="block text-amame-green mt-1">vers l'Excellence</span>
+            </motion.h1>
 
-            {/* Headline */}
-            <motion.h1
+            <motion.p
               custom={1}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              className="font-nunito font-black text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-amame-charcoal leading-[1.1] mb-6"
+              className="text-white/80 text-base sm:text-lg leading-relaxed mb-5
+                         max-w-sm mx-auto lg:mx-0 lg:max-w-none"
             >
-              Votre Passerelle
-              <span className="block text-amame-green mt-1">
-                vers l'Excellence
-              </span>
-            </motion.h1>
+              Bourses, concours et orientation pour les étudiants maliens.
+              <span className="hidden sm:inline"> 100&nbsp;% gratuit et bénévole.</span>
+            </motion.p>
 
-            {/* Description */}
-            {/* <motion.p
+            {/* Badges thématiques — mobile uniquement */}
+            <motion.div
               custom={2}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              className="text-base sm:text-lg text-amame-slate leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0"
+              className="flex items-center justify-center gap-2 mb-5 lg:hidden flex-wrap"
             >
-              L'AMAME accompagne{" "}
-              <span className="font-semibold text-amame-green">bénévolement</span>{" "}
-              les élèves et étudiants maliens dans leur parcours académique — bourses,
-              concours, orientation et actualités éducatives.
-            </motion.p> */}
+              {floatingBadges.map(({ icon: Icon, label, color }) => (
+                <div
+                  key={label}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${color}
+                              text-[11px] font-semibold bg-white shadow-sm`}
+                >
+                  <Icon className="h-3 w-3 shrink-0" />
+                  {label}
+                </div>
+              ))}
+            </motion.div>
 
             {/* CTAs */}
             <motion.div
@@ -98,23 +120,21 @@ const Hero = () => {
               animate="visible"
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
             >
-              <Button
+              {/* <Button
                 asChild
                 size="lg"
-                className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold text-base px-7 py-6 rounded-xl shadow-green hover:shadow-lg transition-all"
+                className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold
+                           text-base px-7 py-6 rounded-xl shadow-green hover:shadow-lg transition-all"
               >
-                {/* <Link to="/bourses" className="flex items-center gap-2">
-                  Découvrir les bourses
-                  <ArrowRight className="h-4 w-4" />
-                </Link> */}
-              </Button>
+                <Link to="/bourses">Explorer les bourses</Link>
+              </Button> */}
 
               {!isAuthenticated && (
                 <Button
                   asChild
                   size="lg"
-                  variant="outline"
-                  className="border-2 border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold text-base px-7 py-6 rounded-xl transition-all bg-white/70 backdrop-blur-sm"
+                  className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold
+                           text-base px-7 py-6 rounded-xl shadow-green hover:shadow-lg transition-all"
                 >
                   <Link to="/adhesion">Rejoindre AMAME</Link>
                 </Button>
@@ -127,32 +147,30 @@ const Hero = () => {
               variants={itemVariants}
               initial="hidden"
               animate="visible"
-              className="mt-10 pt-8 border-t border-gray-200/80 grid grid-cols-3 gap-4"
+              className="mt-8 pt-7 border-t border-white/20 grid grid-cols-3 gap-4"
             >
               {stats.map(({ value, label, icon: Icon }) => (
                 <div key={label} className="text-center lg:text-left">
                   <div className="flex items-center justify-center lg:justify-start gap-1.5 mb-0.5">
                     <Icon className="h-3.5 w-3.5 text-amame-gold" />
-                    <span className="font-nunito font-black text-xl sm:text-2xl text-amame-charcoal">
+                    <span className="font-nunito font-black text-xl sm:text-2xl text-white">
                       {value}
                     </span>
                   </div>
-                  <p className="text-xs text-amame-muted leading-tight">{label}</p>
+                  <p className="text-xs text-white/60 leading-tight">{label}</p>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* ── Right — Floating badges over the background image ── */}
-          {/* On desktop, these badges float over the visible background illustration */}
+          {/* Colonne droite — badges flottants sur l'image, desktop uniquement */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="hidden lg:flex flex-1 items-center justify-center relative h-72"
+            className="hidden lg:flex lg:w-[48%] items-center justify-center relative h-72"
           >
-            {/* AMAME logo badge — anchored in center */}
-            <div className="relative z-10 w-20 h-20 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white bg-white">
+            <div className="relative z-10 w-20 h-20 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white/30 bg-white">
               <img
                 src="/amame-uploads/amame-logo.webp"
                 alt="Logo AMAME"
@@ -160,7 +178,6 @@ const Hero = () => {
               />
             </div>
 
-            {/* Floating topic badges */}
             {floatingBadges.map(({ icon: Icon, label, color, delay }, i) => {
               const positions = [
                 "absolute top-0 left-8",
@@ -173,9 +190,10 @@ const Hero = () => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + delay, duration: 0.5 }}
-                  className={`${positions[i]} animate-float z-10 float-delay-${i}`}
+                  className={`${positions[i]} animate-float z-10`}
                 >
-                  <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border ${color} shadow-md backdrop-blur-sm text-xs font-semibold whitespace-nowrap bg-white/80`}>
+                  <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border ${color}
+                                   shadow-md backdrop-blur-sm text-xs font-semibold whitespace-nowrap bg-white/90`}>
                     <Icon className="h-4 w-4" />
                     {label}
                   </div>
@@ -183,9 +201,8 @@ const Hero = () => {
               );
             })}
 
-            {/* Accent pulse dots */}
             <div className="absolute top-6 right-12 w-3 h-3 bg-amame-green rounded-full shadow-green animate-pulse opacity-70" />
-            <div className="absolute bottom-10 left-4 w-2 h-2 bg-amame-gold rounded-full animate-pulse motion-delay-sm opacity-70" />
+            <div className="absolute bottom-10 left-4 w-2 h-2 bg-amame-gold rounded-full animate-pulse opacity-70" />
           </motion.div>
 
         </div>

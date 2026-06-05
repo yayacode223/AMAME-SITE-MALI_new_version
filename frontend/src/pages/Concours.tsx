@@ -74,7 +74,7 @@ const Concours = () => {
   const hasNiveauFilter = Boolean(filter.niveau);
   const hasStatusFilter = Boolean(filter.status);
 
-  const commonParams = { page: currentPage, size: 9, sortBy: "dateLimite", sortDirection: "ASC" };
+  const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "ASC" };
 
   const { data: concours, isLoading: isConcoursLoading } = useConcoursLists(commonParams, { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter });
   const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } = useConcoursFilter({ ...commonParams, ...filter }, { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch });
@@ -124,8 +124,8 @@ const Concours = () => {
       <PageHero
         icon={Trophy}
         label="Compétitions"
-        title="Découvrez vos"
-        titleHighlight="concours idéaux"
+        title="Découvrez les"
+        titleHighlight="concours"
         description="" //Des centaines de concours nationaux et internationaux vous attendent. Filtrez par niveau et type pour trouver l'opportunité parfaite.
         imageSrc="/images/heroes/hero-concours.png"
         imageAlt="Podium académique — étudiants maliens en compétition"

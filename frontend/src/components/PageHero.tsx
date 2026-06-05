@@ -7,7 +7,6 @@ interface PageHeroProps {
   title: string;
   titleHighlight?: string;
   description: string;
-  /** Illustration used as CSS background-image for the hero section */
   imageSrc?: string;
   imageAlt?: string;
 }
@@ -21,21 +20,37 @@ const PageHero = ({
   imageSrc,
 }: PageHeroProps) => {
 
-  /* ── With background image — immersive editorial layout ────── */
+  /* ── With background image — image pleine largeur, texte en overlay ── */
   if (imageSrc) {
     return (
       <section
-        className="relative overflow-hidden border-b border-amame-border py-14 lg:py-20 page-hero-bg-image"
-        style={{ backgroundImage: `url(${imageSrc})` }}
+        className="relative overflow-hidden border-b border-amame-border
+                   min-h-[320px] sm:min-h-[380px] lg:min-h-[420px] flex items-center
+                   py-14 lg:py-20"
         aria-label={`${label ?? title} hero section`}
       >
-        {/* ── Gradient overlays ── */}
-        {/* Desktop — left→right: texte lisible à gauche, image révélée à droite */}
-        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-[#f0fdf4] from-20% via-[#f0fdf4]/88 to-[#f0fdf4]/10 pointer-events-none" />
-        {/* Desktop — vignette top→bottom */}
-        <div className="absolute inset-0 hidden lg:block bg-gradient-to-b from-[#f0fdf4]/50 via-transparent to-[#f0fdf4]/60 pointer-events-none" />
-        {/* Mobile — gradient vertical: fort en haut (lisibilité), image visible en bas */}
-        <div className="absolute inset-0 lg:hidden bg-gradient-to-b from-[#f0fdf4]/85 from-0% via-[#f0fdf4]/60 via-50% to-[#f0fdf4]/25 pointer-events-none" />
+        {/* Image pleine largeur */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <img
+            src={imageSrc}
+            alt=""
+            className="w-full h-full object-cover object-center"
+            loading="eager"
+          />
+        </div>
+
+        {/* Scrim desktop : dégradé gauche→droite, image visible à droite */}
+        <div
+          className="absolute inset-0 hidden lg:block"
+          style={{ background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 42%, rgba(0,0,0,0.10) 75%, transparent 100%)" }}
+          aria-hidden="true"
+        />
+        {/* Scrim mobile : dégradé bas→haut */}
+        <div
+          className="absolute inset-0 lg:hidden"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.22) 100%)" }}
+          aria-hidden="true"
+        />
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -45,19 +60,20 @@ const PageHero = ({
             className="max-w-2xl"
           >
             {/* Icon + label pill */}
-            <div className="inline-flex items-center gap-2.5 bg-white/75 backdrop-blur-sm border border-amame-green/25 rounded-full px-4 py-2 mb-6 shadow-sm">
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-amame-green-light shrink-0">
-                <Icon className="h-3.5 w-3.5 text-amame-green" />
+            <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-2 mb-6 shadow-sm">
+              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 shrink-0">
+                <Icon className="h-3.5 w-3.5 text-white" />
               </div>
               {label && (
-                <span className="text-amame-green font-semibold text-xs tracking-widest uppercase">
+                <span className="text-white font-semibold text-xs tracking-widest uppercase">
                   {label}
                 </span>
               )}
             </div>
 
             {/* Title */}
-            <h1 className="font-nunito font-black text-3xl sm:text-4xl lg:text-5xl xl:text-6xl text-amame-charcoal mb-5 leading-[1.1]">
+            <h1 className="font-nunito font-black text-3xl sm:text-4xl lg:text-5xl xl:text-6xl
+                           text-white mb-5 leading-[1.1]">
               {title}{" "}
               {titleHighlight && (
                 <span className="text-amame-green">{titleHighlight}</span>
@@ -65,16 +81,18 @@ const PageHero = ({
             </h1>
 
             {/* Description */}
-            <p className="text-base sm:text-lg text-amame-slate leading-relaxed max-w-xl">
-              {description}
-            </p>
+            {description && (
+              <p className="text-base sm:text-lg text-white/80 leading-relaxed max-w-xl">
+                {description}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>
     );
   }
 
-  /* ── Without image — original centered layout (unchanged) ──── */
+  /* ── Without image — layout centré original (inchangé) ── */
   return (
     <section className="page-hero">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">

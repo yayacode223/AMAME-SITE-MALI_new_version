@@ -19,32 +19,33 @@ services:
       retries: 5
 
   backend:
-    image: yaya236/amame-web-site:backend-v4.4
+    image: yaya236/amame-web-site:backend-v5
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: amame-backend
-    # ports:
-    #   - "8080:8080"
+    ports:
+      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - JWT_SECRET=ejoVb48DypZtTiMbitoRSVitYSnrICP+ARo1zwg9S/E=
-      - JWT_EXPIRATION=900000
-      - JWT_REFRESH_EXPIRATION=604800000
-      - FRONTEND=https://amame.ml
-      # Cookies — profil prod : domain .amame.ml + Secure (HTTPS)
-      - COOKIE_DOMAIN=.amame.ml
-      - COOKIE_SECURE=true
+      - JWT_SECRET=${JWT_SECRET:-ejoVb48DypZtTiMbitoRSVitYSnrICP+ARo1zwg9S/E=}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-900000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+      - FRONTEND=http://localhost
+      # Cookies — local : sans domaine + pas de Secure (HTTP)
+      - COOKIE_DOMAIN=
+      - COOKIE_SECURE=false
       # ── Email SMTP ──────────────────────────────────────────────────────────
       - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
       - MAIL_PORT=${MAIL_PORT:-587}
-      - MAIL_USERNAME=${MAIL_USERNAME}
-      - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - MAIL_FROM=${MAIL_FROM}
+      - MAIL_USERNAME=${MAIL_USERNAME:?Définir MAIL_USERNAME dans .env}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:?Définir MAIL_PASSWORD dans .env}
+      - MAIL_FROM=${MAIL_FROM:?Définir MAIL_FROM dans .env}
+      - MAIL_DEBUG=${MAIL_DEBUG:-false}
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -62,7 +63,7 @@ services:
     restart: unless-stopped # Ajouté pour résilience
 
   frontend:
-    image: yaya236/amame-web-site:frontend-v4.5
+    image: yaya236/amame-web-site:frontend-v5
     build:
       context: ./frontend
       dockerfile: Dockerfile
