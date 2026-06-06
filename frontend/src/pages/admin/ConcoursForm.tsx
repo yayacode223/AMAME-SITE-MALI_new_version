@@ -31,24 +31,33 @@ const ConcoursForm: React.FC = () => {
       setFormData({
         nom: existingConcours.nom, description: existingConcours.description,
         pays: existingConcours.pays, niveau: existingConcours.niveau,
-        status: existingConcours.status, dateOuverture: existingConcours.dateOuverture,
-        dateLimite: existingConcours.dateLimite, lienOfficiel: existingConcours.lienOfficiel,
+        status: existingConcours.status,
+        dateOuverture: existingConcours.dateOuverture?.slice(0, 10) ?? "",
+        dateLimite: existingConcours.dateLimite?.slice(0, 10) ?? "",
+        lienOfficiel: existingConcours.lienOfficiel,
       });
       setIsAvailable(existingConcours.isAvailable);
     }
   }, [existingConcours, isEditing]);
 
+  const toDateTime = (date: string) => date ? `${date}T00:00:00` : date;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      dateOuverture: toDateTime(formData.dateOuverture),
+      dateLimite: toDateTime(formData.dateLimite),
+    };
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
           id: parseInt(id!),
-          request: { ...formData, id: parseInt(id!), isAvailable } as ConcoursUpdateRequest,
+          request: { ...payload, id: parseInt(id!), isAvailable } as ConcoursUpdateRequest,
           file: selectedFile || undefined,
         });
       } else {
-        await createMutation.mutateAsync({ request: formData, file: selectedFile || undefined });
+        await createMutation.mutateAsync({ request: payload, file: selectedFile || undefined });
       }
       navigate("/admin/concours");
     } catch (error) {

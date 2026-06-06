@@ -20,6 +20,8 @@ import { Link } from "react-router-dom";
 import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
 
+const PROD_URL = "https://amame.ml";
+
 const difficultyConfig: Record<string, { label: string; cls: string }> = {
   TRES_ELEVEE: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
   ELEVEE:      { label: "Élevée",      cls: "bg-orange-50 text-orange-700 border-orange-200" },
@@ -224,7 +226,7 @@ export function Orientation() {
                             <div className="relative h-40 overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
                               {filiere.filePath ? (
                                 <img
-                                  src={`/${filiere.filePath}`}
+                                  src={`${PROD_URL}/${filiere.filePath}`}
                                   alt={filiere.nom}
                                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                   loading="lazy"
