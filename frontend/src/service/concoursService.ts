@@ -10,6 +10,21 @@ import {
   ConcoursUpdateRequest,
 } from "@/types/concoursType";
 
+// Le backend sérialise le booléen `isAvalable` (getter Lombok isAvalable()) en JSON `avalable`.
+// On normalise vers `isAvailable` pour un contrat cohérent côté front (cartes, détail, admin).
+const normalizeConcours = (c: ConcoursResponse): ConcoursResponse => ({
+  ...c,
+  isAvailable:
+    c.isAvailable ?? (c as unknown as { avalable?: boolean }).avalable ?? true,
+});
+
+const normalizePage = (
+  page: ConcoursResponsePaginated,
+): ConcoursResponsePaginated => ({
+  ...page,
+  concours: page.concours.map(normalizeConcours),
+});
+
 // Fonctions API GET
 const concoursLists = async (
   params: ConcoursDefaultSearchParams,
@@ -23,12 +38,12 @@ const concoursLists = async (
   const response = await Api.get<ConcoursResponsePaginated>(
     `/visitor/concours?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`,
   );
-  return response.data;
+  return normalizePage(response.data);
 };
 
 const concoursDetail = async (id: number): Promise<ConcoursResponse> => {
   const response = await Api.get<ConcoursResponse>(`/visitor/concours/${id}`);
-  return response.data;
+  return normalizeConcours(response.data);
 };
 
 const concoursFilter = async (
@@ -56,7 +71,7 @@ const concoursFilter = async (
   const response = await Api.get<ConcoursResponsePaginated>(
     `/visitor/concours/filter?${queryParams.toString()}`,
   );
-  return response.data;
+  return normalizePage(response.data);
 };
 
 const concoursSearch = async (
@@ -81,7 +96,7 @@ const concoursSearch = async (
   const response = await Api.get<ConcoursResponsePaginated>(
     `/visitor/concours/search?${queryParams.toString()}`,
   );
-  return response.data;
+  return normalizePage(response.data);
 };
 
 // Fonctions API POST, PUT, DELETE

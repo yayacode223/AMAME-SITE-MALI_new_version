@@ -42,6 +42,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/refresh", "/api/visitor/**", "/uploads/**").permitAll()
+                        // /error : le forward interne de Spring vers /error ne doit pas exiger
+                        // d'authentification, sinon une vraie 500 (forward → /error) est masquée
+                        // en 401 pour un utilisateur anonyme. permitAll laisse remonter le vrai statut.
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN", "SUPERADMIN", "EDITOR", "MEMBER")
                         // EDITOR inclus : accès au dashboard admin géré par @PreAuthorize sur chaque méthode
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPERADMIN", "EDITOR")

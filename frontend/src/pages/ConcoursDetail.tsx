@@ -40,6 +40,11 @@ const ConcoursDetail = () => {
     return { label: "Clôturé", cls: "bg-gray-100 text-gray-500 border-gray-200" };
   }, [concours]);
 
+  const imageUrl = useMemo(() => {
+    if (!concours?.filePath) return null;
+    return concours.filePath.startsWith("http") ? concours.filePath : `/${concours.filePath}`;
+  }, [concours?.filePath]);
+
   const handleOpenFile = () => {
     if (!concours?.filePath) return;
     const url = concours.filePath.startsWith("http") ? concours.filePath : `/${concours.filePath}`;
@@ -196,19 +201,51 @@ const ConcoursDetail = () => {
               {/* Main content */}
               <div className="lg:col-span-2 space-y-5">
                 {/* Header */}
-                <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
-                  <div className="h-1 -mx-6 lg:-mx-7 -mt-6 lg:-mt-7 mb-5 rounded-t-xl bg-gradient-to-r from-blue-500 to-blue-400" />
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {statusInfo && <Badge className={`text-xs border ${statusInfo.cls}`}>{statusInfo.label}</Badge>}
-                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-xs">{concours.niveau}</Badge>
-                    <Badge className="bg-amame-gold-subtle text-amame-gold border border-amame-gold/20 text-xs">
-                      {concours.status === "NATIONAL" ? "National" : "International"}
-                    </Badge>
-                  </div>
-                  <h1 className="font-nunito font-black text-2xl lg:text-3xl text-amame-charcoal mb-3 leading-tight">{concours.nom}</h1>
-                  {concours.description && (
-                    <ExpandableText text={concours.description} maxWords={50} className="text-amame-slate leading-relaxed" />
+                <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
+                  {imageUrl ? (
+                    /* Bannière image pleine largeur + badges flottants */
+                    <div className="relative w-full h-52 sm:h-64 lg:h-80 bg-gray-100">
+                      <img
+                        src={imageUrl}
+                        alt={concours.nom}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
+                      {statusInfo && (
+                        <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border bg-white/90 backdrop-blur-sm shadow-sm ${statusInfo.cls}`}>
+                          <Clock className="h-3.5 w-3.5" />{statusInfo.label}
+                        </span>
+                      )}
+                      <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold bg-white/90 backdrop-blur-sm text-amame-charcoal shadow-sm">
+                        <Target className="h-3 w-3" />{concours.status === "NATIONAL" ? "National" : "International"}
+                      </span>
+                    </div>
+                  ) : (
+                    /* Pas d'image : accent dégradé (fallback) */
+                    <div className="h-1 w-full bg-gradient-to-r from-blue-500 to-blue-400" />
                   )}
+
+                  <div className="p-6 lg:p-7">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {/* Sans image, les badges statut/type sont affichés ici ;
+                          avec image, ils flottent sur la bannière → on ne garde que le niveau. */}
+                      {!imageUrl && statusInfo && (
+                        <Badge className={`text-xs border ${statusInfo.cls}`}>{statusInfo.label}</Badge>
+                      )}
+                      <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-xs">{concours.niveau}</Badge>
+                      {!imageUrl && (
+                        <Badge className="bg-amame-gold-subtle text-amame-gold border border-amame-gold/20 text-xs">
+                          {concours.status === "NATIONAL" ? "National" : "International"}
+                        </Badge>
+                      )}
+                    </div>
+                    <h1 className="font-nunito font-black text-2xl lg:text-3xl text-amame-charcoal mb-3 leading-tight">{concours.nom}</h1>
+                    {concours.description && (
+                      <ExpandableText text={concours.description} maxWords={50} className="text-amame-slate leading-relaxed" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Details */}

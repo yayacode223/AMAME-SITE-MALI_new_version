@@ -42,12 +42,12 @@ const Partenaires = () => {
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl border border-amame-border p-6 flex items-center gap-4">
-                  <Skeleton className="h-16 w-16 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-2">
+                <div key={i} className="bg-white rounded-2xl border border-amame-border overflow-hidden">
+                  <Skeleton className="h-32 w-full rounded-none" />
+                  <div className="p-5 space-y-3">
                     <Skeleton className="h-5 w-2/3 rounded-md" />
-                    <Skeleton className="h-4 w-1/3 rounded-full" />
                     <Skeleton className="h-4 w-full rounded-md" />
+                    <Skeleton className="h-9 w-full rounded-xl mt-2" />
                   </div>
                 </div>
               ))}
@@ -78,48 +78,50 @@ const Partenaires = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: index * 0.06 }}
                       >
-                        <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 p-5 flex flex-col h-full group">
-                          {/* Logo + nom */}
-                          <div className="flex items-start gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-xl bg-gray-50 border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
-                              {partenaire.filePath ? (
-                                <img
-                                  src={`${PROD_URL}/${partenaire.filePath}`}
-                                  alt={partenaire.nom}
-                                  className="w-full h-full object-contain"
-                                  loading="lazy"
-                                  onError={e => { e.currentTarget.style.display = "none"; }}
-                                />
-                              ) : (
-                                <Globe className="h-6 w-6 text-amame-muted" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-nunito font-bold text-sm text-amame-charcoal group-hover:text-amame-green transition-colors truncate">
-                                {partenaire.nom}
-                              </h3>
-                              <span className="text-xs text-amame-muted bg-gray-50 border border-amame-border px-2 py-0.5 rounded-full mt-1 inline-block">
-                                {partenaire.type || "Partenaire"}
-                              </span>
-                            </div>
+                        <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
+                          {/* Header — logo pleine largeur (object-contain pour ne jamais rogner le logo) */}
+                          <div className="relative h-32 w-full flex items-center justify-center p-5 bg-gradient-to-br from-amame-green-subtle to-white border-b border-amame-border">
+                            {partenaire.filePath ? (
+                              <img
+                                src={`${PROD_URL}/${partenaire.filePath}`}
+                                alt={partenaire.nom}
+                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                                onError={e => { e.currentTarget.style.display = "none"; }}
+                              />
+                            ) : (
+                              <Globe className="h-12 w-12 text-amame-green/30" />
+                            )}
+                            <span className="absolute top-3 right-3 text-xs bg-white/90 backdrop-blur-sm text-amame-green-dark border border-amame-green/15 px-2.5 py-1 rounded-full font-medium shadow-sm">
+                              {partenaire.type || "Partenaire"}
+                            </span>
                           </div>
 
-                          {partenaire.description && (
-                            <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 flex-grow mb-4">
-                              {partenaire.description}
-                            </p>
-                          )}
+                          {/* Body — nom + description */}
+                          <div className="flex flex-col flex-grow p-5">
+                            <h3 className="font-nunito font-bold text-base text-amame-charcoal group-hover:text-amame-green transition-colors line-clamp-2 leading-snug">
+                              {partenaire.nom}
+                            </h3>
+                            {partenaire.description && (
+                              <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mt-2">
+                                {partenaire.description}
+                              </p>
+                            )}
+                          </div>
 
+                          {/* Footer — site web (si présent) */}
                           {partenaire.siteWeb && (
-                            <a
-                              href={partenaire.siteWeb}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-auto inline-flex items-center gap-1.5 text-xs font-semibold text-amame-green hover:text-amame-green-dark transition-colors pt-3 border-t border-amame-border"
-                            >
-                              Visiter le site
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
+                            <div className="px-5 pb-5 mt-auto">
+                              <a
+                                href={partenaire.siteWeb}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex w-full items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold bg-amame-green-subtle text-amame-green-dark border border-amame-green/20 hover:bg-amame-green hover:text-white hover:border-amame-green transition-colors"
+                              >
+                                Visiter le site
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            </div>
                           )}
                         </div>
                       </motion.div>

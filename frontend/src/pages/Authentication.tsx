@@ -16,7 +16,7 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, Loader2, ArrowLeft, Star } from "lucide-react";
+import { Eye, EyeOff, LogIn, Loader2, ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -106,61 +106,35 @@ const Login = () => {
 
         {/* ── Panneau gauche : image hero + branding (desktop) ───────────── */}
         <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-no-repeat [background-position:center_right_10%]">
-          {/* Overlay vert — allégé pour laisser l'image transparaître tout en gardant le texte blanc lisible */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/78 via-amame-green-dark/65 to-amame-green/42 pointer-events-none" />
+          {/* Overlay vert — allégé pour laisser l'image hero respirer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 via-amame-green-dark/55 to-amame-green/35 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
 
-            {/* Logo + retour */}
+            {/* Logo (plus visible) + bouton retour (vert amame, visible) */}
             <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2.5 group">
+              <Link to="/" className="flex items-center gap-3 group">
                 <img
                   src="/amame-uploads/amame-logo.webp"
                   alt="AMAME"
-                  className="h-10 w-10 rounded-full object-cover ring-2 ring-white/25 group-hover:ring-white/50 transition-all"
+                  className="h-14 w-14 rounded-full object-cover ring-4 ring-white/40 shadow-xl group-hover:ring-white/70 transition-all"
                 />
-                <span className="font-nunito font-bold text-xl text-white">AMAME</span>
+                <span className="font-nunito font-black text-2xl text-white tracking-tight drop-shadow">AMAME</span>
               </Link>
               <Link
                 to="/"
-                className="flex items-center gap-1.5 text-white/65 hover:text-white text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 bg-amame-green hover:bg-amame-green-dark text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg ring-1 ring-white/30 transition-all hover:shadow-xl"
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowLeft className="h-4 w-4" />
                 Retour au site
               </Link>
             </div>
 
-            {/* Contenu central */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full mb-7 border border-white/20">
-                <Star className="h-3.5 w-3.5 text-amame-gold fill-amame-gold" />
-                Excellence Académique au Mali depuis 2023
-              </div>
-
-              <h1 className="font-nunito font-black text-4xl xl:text-5xl text-white leading-[1.15] mb-5">
-                Votre Passerelle
-                <span className="block text-amame-gold mt-1">vers l'Excellence</span>
-              </h1>
-
-              <p className="text-white/75 text-base xl:text-lg leading-relaxed max-w-md">
-                Accédez à votre espace membre et profitez de toutes les ressources,
-                bourses et opportunités disponibles pour les étudiants maliens.
-              </p>
-
-              {/* Stats */}
-              <div className="flex gap-8 mt-10 pt-8 border-t border-white/20">
-                {[
-                  { value: "500+", label: "Étudiants accompagnés" },
-                  { value: "200+", label: "Bourses référencées" },
-                  { value: "100%", label: "Gratuit & bénévole" },
-                ].map(({ value, label }) => (
-                  <div key={label}>
-                    <p className="font-nunito font-black text-2xl text-white">{value}</p>
-                    <p className="text-white/55 text-xs mt-0.5 leading-tight">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Centre : uniquement le slogan */}
+            <h1 className="font-nunito font-black text-5xl xl:text-6xl text-white leading-[1.1] drop-shadow-md">
+              Votre Passerelle
+              <span className="block text-amame-gold mt-2">vers l'Excellence</span>
+            </h1>
 
             {/* Pied */}
             <p className="text-white/35 text-xs">
@@ -173,27 +147,36 @@ const Login = () => {
         <div className="flex-1 flex flex-col bg-white">
 
           {/* Bandeau mobile : image + logo */}
-          <div className="lg:hidden relative h-36 overflow-hidden shrink-0 bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 to-amame-green/50" />
+          <div className="lg:hidden relative h-44 overflow-hidden shrink-0 bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 to-amame-green/45" />
             <div className="relative z-10 flex items-center justify-between px-5 pt-5">
-              <Link to="/" className="flex items-center gap-1.5 text-white/75 hover:text-white text-sm transition-colors">
-                <ArrowLeft className="h-4 w-4" />
-                Accueil
+              {/* Logo plus visible */}
+              <Link to="/" className="flex items-center gap-2 group">
+                <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="h-10 w-10 rounded-full ring-2 ring-white/50 shadow-lg object-cover" />
+                <span className="font-nunito font-black text-white text-lg drop-shadow">AMAME</span>
               </Link>
-              <div className="flex items-center gap-2">
-                <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="h-7 w-7 rounded-full ring-2 ring-white/30 object-cover" />
-                <span className="font-nunito font-bold text-white text-sm">AMAME</span>
-              </div>
+              {/* Bouton retour vert amame */}
+              <Link to="/" className="inline-flex items-center gap-1.5 bg-amame-green hover:bg-amame-green-dark text-white text-xs font-semibold px-3 py-2 rounded-full shadow-lg ring-1 ring-white/30 transition-all">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Retour au site
+              </Link>
             </div>
-            <div className="relative z-10 px-5 pt-3">
-              <p className="font-nunito font-black text-2xl text-white leading-tight">Bon retour !</p>
-              <p className="text-white/70 text-xs mt-0.5">Connectez-vous à votre espace</p>
+            <div className="relative z-10 px-5 pt-4">
+              <p className="font-nunito font-black text-xl text-white leading-tight drop-shadow">
+                Votre passerelle <span className="text-amame-gold">vers l'excellence</span>
+              </p>
             </div>
           </div>
 
           {/* Zone formulaire */}
           <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-10 lg:py-0">
             <div className="w-full max-w-[400px]">
+
+              {/* Header mobile — contexte de connexion (le bandeau affiche le slogan) */}
+              <div className="lg:hidden mb-7">
+                <h2 className="font-nunito font-black text-2xl text-amame-charcoal mb-1">Bon retour !</h2>
+                <p className="text-amame-muted text-sm">Connectez-vous à votre espace</p>
+              </div>
 
               {/* Header desktop */}
               <div className="hidden lg:block mb-10">

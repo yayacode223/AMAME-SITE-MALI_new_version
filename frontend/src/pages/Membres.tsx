@@ -15,42 +15,50 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.07 }}
   >
-    <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 p-6 text-center group">
-      {/* Avatar */}
-      <div className="mx-auto mb-4 w-20 h-20 rounded-full overflow-hidden bg-amame-green-subtle border-2 border-amame-green/20 flex items-center justify-center">
+    <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
+      {/* Header — photo pleine largeur */}
+      <div className="relative w-full h-52 overflow-hidden bg-amame-green-subtle">
         {membre.filePath ? (
           <img
             src={`${PROD_URL}/${membre.filePath}`}
             alt={`${membre.prenom} ${membre.nom}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={e => { e.currentTarget.style.display = "none"; }}
           />
         ) : (
-          <span className="font-nunito font-black text-xl text-amame-green">
-            {membre.prenom[0]}{membre.nom[0]}
-          </span>
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
+            <span className="font-nunito font-black text-4xl text-amame-green/70">
+              {membre.prenom?.[0]}{membre.nom?.[0]}
+            </span>
+          </div>
         )}
       </div>
 
-      <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-0.5">
-        {membre.prenom} {membre.nom}
-      </h3>
-      <p className="text-sm font-medium text-amame-green mb-3">{membre.poste}</p>
+      {/* Body — nom + poste + bio */}
+      <div className="flex flex-col flex-grow p-5 text-center">
+        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-0.5">
+          {membre.prenom} {membre.nom}
+        </h3>
+        <p className="text-sm font-medium text-amame-green mb-3">{membre.poste}</p>
+        {membre.bio && (
+          <p className="text-xs text-amame-muted leading-relaxed line-clamp-3">
+            {membre.bio}
+          </p>
+        )}
+      </div>
 
-      {membre.bio && (
-        <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mb-3">
-          {membre.bio}
-        </p>
-      )}
-
+      {/* Footer — email (si présent) */}
       {membre.email && (
-        <a
-          href={`mailto:${membre.email}`}
-          className="inline-flex items-center gap-1.5 text-xs text-amame-muted hover:text-amame-green transition-colors"
-        >
-          <Mail className="h-3.5 w-3.5" />
-          {membre.email}
-        </a>
+        <div className="px-5 pb-5 pt-3 mt-auto border-t border-amame-border">
+          <a
+            href={`mailto:${membre.email}`}
+            className="inline-flex w-full items-center justify-center gap-1.5 text-xs text-amame-muted hover:text-amame-green transition-colors"
+          >
+            <Mail className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{membre.email}</span>
+          </a>
+        </div>
       )}
     </div>
   </motion.div>
@@ -82,11 +90,13 @@ const Membres = () => {
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl border border-amame-border p-6 text-center space-y-3">
-                  <Skeleton className="h-20 w-20 rounded-full mx-auto" />
-                  <Skeleton className="h-5 w-3/4 mx-auto rounded-md" />
-                  <Skeleton className="h-4 w-1/2 mx-auto rounded-md" />
-                  <Skeleton className="h-12 w-full rounded-md" />
+                <div key={i} className="bg-white rounded-2xl border border-amame-border overflow-hidden">
+                  <Skeleton className="h-52 w-full rounded-none" />
+                  <div className="p-5 space-y-2 text-center">
+                    <Skeleton className="h-5 w-3/4 mx-auto rounded-md" />
+                    <Skeleton className="h-4 w-1/2 mx-auto rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-md mt-2" />
+                  </div>
                 </div>
               ))}
             </div>

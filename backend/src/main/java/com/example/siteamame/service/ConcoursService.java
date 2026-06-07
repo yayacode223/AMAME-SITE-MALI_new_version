@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -94,6 +95,7 @@ public class ConcoursService {
     }
 
     //Ajouter un concours
+    @Transactional
     public ConcoursReponseDto ajouterConcours(
             ConcoursRequestDto concoursRequestDto, MultipartFile file
     ) {
@@ -123,6 +125,7 @@ public class ConcoursService {
     }
 
     //Mettre a jour un Concours
+    @Transactional
     public ConcoursReponseDto modifierConcours(Long id, ConcoursRequestDto concoursRequestDto, MultipartFile file) {
         Concours concours = concoursRepository.findById(id)
                 .orElseThrow(
@@ -163,6 +166,7 @@ public class ConcoursService {
     }
 
     // Supprimer un concours
+    @Transactional
     public void deleteConcours(Long id) {
         if(concoursRepository.existsById(id)){
             concoursRepository.deleteById(id);
