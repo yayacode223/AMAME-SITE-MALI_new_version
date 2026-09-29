@@ -4,6 +4,7 @@ import {
   Home, Award, Trophy, Compass, MoreHorizontal,
   Newspaper, Image, Info, Users, Building2,
   LogIn, UserPlus, LayoutDashboard, LogOut,
+  GraduationCap, Link2, BookOpen,
 } from 'lucide-react';
 import {
   Sheet, SheetContent, SheetClose, SheetTrigger,
@@ -12,10 +13,17 @@ import { useAuth } from '@/context/AuthContext';
 
 /* ── Onglets principaux ──────────────────────────────────────────── */
 const PRIMARY_TABS = [
-  { path: '/',           label: 'Accueil',     icon: Home,    exact: true  },
-  { path: '/bourses',    label: 'Bourses',     icon: Award,   exact: false },
-  { path: '/concours',   label: 'Concours',    icon: Trophy,  exact: false },
-  { path: '/orientation',label: 'Orientation', icon: Compass, exact: false },
+  { path: '/',         label: 'Accueil',  icon: Home,   exact: true  },
+  { path: '/bourses',  label: 'Bourses',  icon: Award,  exact: false },
+  { path: '/concours', label: 'Concours', icon: Trophy, exact: false },
+];
+
+/* ── Sous-pages de l'onglet "Orientation" (mirroir du dropdown desktop) ── */
+const ORIENTATION_LINKS = [
+  { path: '/orientation/universites',  label: 'Universités',            icon: Building2,     exact: false },
+  { path: '/orientation',              label: 'Filières',               icon: GraduationCap, exact: true  },
+  { path: '/orientation/liens-utiles', label: 'Liens utiles',           icon: Link2,         exact: false },
+  { path: '/orientation/ressources',   label: 'Ressources académiques', icon: BookOpen,      exact: false },
 ];
 
 /* ── Contenu du menu "Plus" ──────────────────────────────────────── */
@@ -55,7 +63,10 @@ export function BottomNav() {
   const { pathname } = useLocation();
   const { isAuthenticated, user, logout, isLoggingOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [orientationOpen, setOrientationOpen] = useState(false);
   const isActive = useIsActive(pathname);
+
+  const isOrientationActive = pathname.startsWith('/orientation');
 
   const isPlusActive = PLUS_SECTIONS
     .flatMap(s => s.items)
@@ -99,6 +110,54 @@ export function BottomNav() {
             </Link>
           );
         })}
+
+        {/* Onglet "Orientation" → Sheet bottom (sous-pages) */}
+        <Sheet open={orientationOpen} onOpenChange={setOrientationOpen}>
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className={[
+                'flex-1 flex flex-col items-center justify-center gap-0.5',
+                'text-[10px] font-semibold tracking-tight transition-colors',
+                isOrientationActive || orientationOpen ? 'text-amame-green' : 'text-gray-400',
+              ].join(' ')}
+              aria-label="Afficher les pages d'orientation"
+            >
+              <Compass
+                className={[
+                  'h-[22px] w-[22px]',
+                  isOrientationActive || orientationOpen ? 'stroke-[2.5]' : 'stroke-[1.75]',
+                ].join(' ')}
+              />
+              <span>Orientation</span>
+            </button>
+          </SheetTrigger>
+
+          <SheetContent
+            side="bottom"
+            className="rounded-t-2xl p-0 max-h-[82vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))' }}
+          >
+            {/* Poignée visuelle */}
+            <div className="flex justify-center pt-3 pb-1" aria-hidden>
+              <div className="h-1 w-10 rounded-full bg-gray-200" />
+            </div>
+
+            <div className="px-4 pb-4 space-y-0.5">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-4 pb-1.5">
+                Orientations
+              </p>
+              {ORIENTATION_LINKS.map(({ path, label, icon: Icon, exact }) => (
+                <SheetClose asChild key={path}>
+                  <Link to={path} className={itemClass(isActive(path, exact))}>
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {label}
+                  </Link>
+                </SheetClose>
+              ))}
+            </div>
+          </SheetContent>
+        </Sheet>
 
         {/* Onglet "Plus" → Sheet bottom */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

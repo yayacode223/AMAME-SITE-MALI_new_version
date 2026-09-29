@@ -25,6 +25,30 @@ interface NavItem { path?: string; label: string; children?: SubLink[] }
 const NAV_ITEMS: NavItem[] = [
   { path: "/", label: "Accueil" },
   {
+    label: "À Propos",
+    children: [
+      { path: "/a-propos", label: "À Propos" },
+      { path: "/a-propos/membres", label: "Membres" },
+      { path: "/a-propos/partenaires", label: "Partenaires" },
+    ],
+  },
+  {
+    label: "Actualités",
+    children: [
+      { path: "/articles", label: "Articles" },
+      { path: "/galeries", label: "Galeries" },
+    ],
+  },
+  {
+    label: "Orientations",
+    children: [
+      { path: "/orientation/universites", label: "Universités" },
+      { path: "/orientation", label: "Filières" },
+      { path: "/orientation/liens-utiles", label: "Liens Utiles" },
+      { path: "/orientation/ressources", label: "Ressources Académiques" },
+    ],
+  },
+  {
     label: "Bourses",
     children: [
       { path: "/bourses", label: "Toutes les bourses" },
@@ -38,30 +62,6 @@ const NAV_ITEMS: NavItem[] = [
       { path: "/concours", label: "Tous les concours" },
       { path: "/concours/national", label: "Concours National" },
       { path: "/concours/international", label: "Concours International" },
-    ],
-  },
-  {
-    label: "Orientations",
-    children: [
-      { path: "/orientation/universites", label: "Universités" },
-      { path: "/orientation", label: "Filières" },
-      { path: "/orientation/liens-utiles", label: "Liens Utiles" },
-      { path: "/orientation/ressources", label: "Ressources Académiques" },
-    ],
-  },
-  {
-    label: "Actualités",
-    children: [
-      { path: "/articles", label: "Articles" },
-      { path: "/galeries", label: "Galeries" },
-    ],
-  },
-  {
-    label: "À Propos",
-    children: [
-      { path: "/a-propos", label: "À Propos" },
-      { path: "/a-propos/membres", label: "Membres" },
-      { path: "/a-propos/partenaires", label: "Partenaires" },
     ],
   },
 ];

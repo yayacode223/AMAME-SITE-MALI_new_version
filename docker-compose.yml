@@ -19,7 +19,8 @@ services:
       retries: 5
 
   backend:
-    image: yaya236/amame-web-site:backend-v6
+    #image: yaya236/amame-web-site:backend-v7
+    image: yayacode224/amame:backend-v1.0 
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -63,7 +64,8 @@ services:
     restart: unless-stopped # Ajouté pour résilience
 
   frontend:
-    image: yaya236/amame-web-site:frontend-v7
+    #image: yaya236/amame-web-site:frontend-v7
+    image: yayacode224/amame:frontend-v1.0 
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -82,7 +84,8 @@ services:
     restart: unless-stopped
 
   scraper:
-    image: yaya236/amame-web-site:scraper-v2
+    #image: yaya236/amame-web-site:scraper-v2
+    image: yayacode224/amame:scraper-v1.0
     build:
       context: ./scraper
       dockerfile: Dockerfile
