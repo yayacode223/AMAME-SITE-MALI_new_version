@@ -33,7 +33,10 @@ public class UserController {
     }
 
     //Get User by Id
+    // Un profil contient des données personnelles : seuls son propriétaire et les
+    // titulaires de USER_READ_ALL peuvent le lire, pas tout utilisateur connecté.
     @GetMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('USER_READ_ALL') or #id == authentication.principal.user.id")
     public ResponseEntity<UserReponseDto> getUserById(@PathVariable Long id){
         return ResponseEntity.ok(userService.getUserById(id));
     }

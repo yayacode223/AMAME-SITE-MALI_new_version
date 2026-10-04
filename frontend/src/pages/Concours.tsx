@@ -127,7 +127,7 @@ const Concours = () => {
         title="Découvrez les"
         titleHighlight="concours"
         description="" //Des centaines de concours nationaux et internationaux vous attendent. Filtrez par niveau et type pour trouver l'opportunité parfaite.
-        imageSrc="/images/heroes/hero-concours.png"
+        image="heroes/hero-concours"
         imageAlt="Podium académique — étudiants maliens en compétition"
       />
 

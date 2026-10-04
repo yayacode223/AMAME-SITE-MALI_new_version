@@ -1,3 +1,4 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
@@ -16,13 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 # Configuration de la base de données
-DB_CONFIG = {
-    'dbname': 'amame_db',
-    'user': 'postgres',
-    'password': 'postgres',
-    'host': 'database',
-    'port': '5432'
-}
+# Connexion lue dans l'environnement : aucun identifiant dans le code.
+# Format : postgresql://utilisateur:mot_de_passe@hote:port/amame_db
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 class Mina7Scraper:
     def __init__(self, parser='html5lib'):
@@ -43,7 +40,7 @@ class Mina7Scraper:
     def connecter_db(self):
         """Établit la connexion à la base de données PostgreSQL."""
         try:
-            conn = psycopg2.connect(**DB_CONFIG)
+            conn = psycopg2.connect(DATABASE_URL)
             logger.info("Connexion à la base de données PostgreSQL réussie.")
             return conn
         except psycopg2.OperationalError as e:

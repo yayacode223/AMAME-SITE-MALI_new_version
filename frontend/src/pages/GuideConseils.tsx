@@ -38,7 +38,7 @@ const GuideConseils = () => {
         title="Guide &"
         titleHighlight="Conseils"
         description="" //Nos experts vous guident dans votre parcours académique. Conseils pratiques, stratégies d'orientation et recommandations personnalisées.
-        imageSrc="/images/heroes/hero-guide-conseils.png"
+        image="heroes/hero-guide-conseils"
         imageAlt="Mentor et étudiant malien — conseils académiques"
       />
 

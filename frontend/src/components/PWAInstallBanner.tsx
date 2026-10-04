@@ -22,7 +22,7 @@ export function PWAInstallBanner() {
 
         {/* Logo */}
         <img
-          src="/amame-uploads/amame-logo.webp"
+          src="/logo-192.webp"
           alt="AMAME"
           className="h-10 w-10 rounded-xl object-cover shrink-0 ring-2 ring-green-100"
         />

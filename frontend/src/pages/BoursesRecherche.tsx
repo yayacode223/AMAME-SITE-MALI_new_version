@@ -20,7 +20,7 @@ const BoursesRecherche = () => (
       title="Bourses de"
       titleHighlight="Recherche"
       description="" //Financez vos projets de recherche académique. Découvrez les opportunités dédiées aux chercheurs et doctorants maliens.
-      imageSrc="/images/heroes/hero-ressources.png"
+      image="heroes/hero-ressources"
       imageAlt="Bourses de recherche — chercheurs et doctorants maliens"
     />
     <BoursesList defaultCategorie="Bourse de recherche" />

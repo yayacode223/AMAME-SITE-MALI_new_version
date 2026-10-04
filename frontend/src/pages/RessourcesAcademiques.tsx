@@ -100,7 +100,7 @@ const RessourcesAcademiques = () => {
         title="Ressources"
         titleHighlight="Académiques"
         description="" //Téléchargez des documents, guides et ressources pour préparer vos concours, optimiser vos candidatures et réussir vos études.
-        imageSrc="/images/heroes/hero-ressources.png"
+        image="heroes/hero-ressources"
         imageAlt="Ressources académiques — livres et documents pour étudiants maliens"
       />
 

@@ -124,6 +124,15 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
     }
 
+    public byte[] load(String filePath) throws IOException {
+        Path root = Paths.get(uploads).toAbsolutePath().normalize();
+        Path target = Paths.get(StoragePaths.requireSafe(filePath)).toAbsolutePath().normalize();
+        if (!target.startsWith(root)) {
+            throw new IllegalArgumentException("Clé de stockage invalide : " + filePath);
+        }
+        return Files.readAllBytes(target);
+    }
+
     private String getFileExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf(".");
         if (dotIndex < 0) return "bin"; // Retourner "bin" si aucune extension n'est trouvée

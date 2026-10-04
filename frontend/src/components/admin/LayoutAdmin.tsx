@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100 shrink-0">
         <img
-          src="/amame-uploads/amame-logo.webp"
+          src="/logo-192.webp"
           alt="AMAME"
           className="h-7 w-7 rounded-full object-cover ring-2 ring-green-100 shrink-0"
         />
@@ -394,7 +394,7 @@ const AdminLayout: React.FC = () => {
           </button>
           <div className="flex items-center gap-2 min-w-0">
             <img
-              src="/amame-uploads/amame-logo.webp"
+              src="/logo-192.webp"
               alt="AMAME"
               className="h-5 w-5 rounded-full object-cover shrink-0"
             />

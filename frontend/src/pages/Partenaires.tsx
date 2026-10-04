@@ -33,7 +33,7 @@ const Partenaires = () => {
         title="Partenaires &"
         titleHighlight="Collaborateurs"
         description="" //Ils nous font confiance et soutiennent la mission de l'AMAME. Découvrez nos partenaires institutionnels et collaborateurs.
-        imageSrc="/images/heroes/hero-partenaires.png"
+        image="heroes/hero-partenaires"
         imageAlt="Partenaires et collaborateurs AMAME"
       />
 

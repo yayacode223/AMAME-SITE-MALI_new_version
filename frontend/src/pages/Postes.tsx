@@ -50,7 +50,7 @@ const Postes = () => {
         title="Offres de"
         titleHighlight="Postes"
         description="" //Découvrez les offres d'emploi, stages et opportunités professionnelles partagées par l'AMAME pour les étudiants et jeunes diplômés maliens.
-        imageSrc="/images/heroes/hero-postes.png"
+        image="heroes/hero-postes"
         imageAlt="Offres d'emploi et opportunités professionnelles"
       />
 

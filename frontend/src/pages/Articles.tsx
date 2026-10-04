@@ -183,7 +183,7 @@ export function Articles() {
           title="Actualités &"
           titleHighlight="Conseils"
           description="" //Restez informé des dernières opportunités et découvrez nos conseils pour réussir votre parcours académique.
-          imageSrc="/images/heroes/hero-articles.jpeg"
+          image="heroes/hero-articles"
           imageAlt="Blog et actualités éducatives AMAME"
         />
 

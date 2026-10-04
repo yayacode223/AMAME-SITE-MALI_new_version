@@ -20,7 +20,7 @@ const ConcoursInternational = () => (
       title="Concours"
       titleHighlight="Internationaux"
       description="" //Accédez aux concours et compétitions à l'échelle internationale. Des opportunités uniques pour les étudiants maliens ambitieux.
-      imageSrc="/images/heroes/hero-concours.png"
+      image="heroes/hero-concours"
       imageAlt="Concours internationaux pour étudiants maliens"
     />
     <ConcoursListing defaultStatus="INTERNATIONAL" />

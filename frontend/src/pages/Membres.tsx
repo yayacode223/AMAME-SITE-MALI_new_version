@@ -81,7 +81,7 @@ const Membres = () => {
         title="Nos"
         titleHighlight="Membres"
         description="" //Découvrez les membres bénévoles qui font vivre l'AMAME et qui s'engagent chaque jour pour accompagner les étudiants maliens vers l'excellence.
-        imageSrc="/images/heroes/hero-membres.png"
+        image="heroes/hero-membres"
         imageAlt="Équipe bénévole AMAME"
       />
 

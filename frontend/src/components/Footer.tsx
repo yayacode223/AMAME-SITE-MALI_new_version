@@ -81,7 +81,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2.5 mb-4 group">
               <img
-                src="/amame-uploads/amame-logo.webp"
+                src="/logo-192.webp"
                 alt="AMAME"
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20"
               />

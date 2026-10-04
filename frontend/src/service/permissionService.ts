@@ -128,6 +128,21 @@ export const useRemoveOverrideMutation = (userId: number) => {
   });
 };
 
+/**
+ * Variante pour un utilisateur dont l'identifiant n'est connu qu'au moment de l'appel
+ * (compte tout juste créé). Sans toast : l'appelant décide du message.
+ */
+export const useChangeUserRoleMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: changeRole,
+    onSuccess: (_data, { userId }) => {
+      qc.invalidateQueries({ queryKey: permissionKeys.user(userId) });
+      qc.invalidateQueries({ queryKey: ["auth"] });
+    },
+  });
+};
+
 export const useChangeRoleMutation = (userId: number) => {
   const qc = useQueryClient();
   return useMutation({

@@ -433,7 +433,7 @@ const Register = () => {
 
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
                 <img
-                  src="/amame-uploads/amame-logo.webp"
+                  src="/logo-192.webp"
                   alt="AMAME Logo"
                   className="w-6 h-6 sm:w-8 sm:h-8"
                 />

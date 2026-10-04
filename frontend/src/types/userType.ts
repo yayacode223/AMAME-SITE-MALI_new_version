@@ -27,6 +27,16 @@ export const ROLE_LABELS: Record<Role, string> = {
   VISITOR:    "Visiteur",
 };
 
+/** Rang hiérarchique des rôles — même échelle que PermissionService.roleRank côté backend. */
+export const ROLE_RANK: Record<Role, number> = {
+  SUPERADMIN: 6,
+  ADMIN:      5,
+  EDITOR:     4,
+  MEMBER:     3,
+  USER:       2,
+  VISITOR:    1,
+};
+
 // ── Permissions (nom exact de l'enum Java) ───────────────────────────────────
 export type Permission =
   | "DASHBOARD_ACCESS"
@@ -121,8 +131,12 @@ export interface RegisterResponse {
   sexe: Sexe;
   adresse?: string;
   imagePath?: string;
+  /** URL de la photo (endpoint authentifié) — à utiliser à la place de imagePath. */
+  imageUrl?: string;
   phone?: string;
   cvPath?: string;
+  /** URL du CV (endpoint authentifié) — à utiliser à la place de cvPath. */
+  cvUrl?: string;
   role?: Role;
   pays?: string;
   niveauEtude?: NiveauType;

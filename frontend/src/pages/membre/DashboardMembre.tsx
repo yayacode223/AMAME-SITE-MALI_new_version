@@ -16,8 +16,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon as CheckBadgeSolid } from "@heroicons/react/24/solid";
 
-const PROD_URL = "https://amame.ml";
-
 const QUICK_LINKS = [
   { icon: AcademicCapIcon, label: "Bourses d'études",     href: "/bourses",          color: "bg-blue-50 text-blue-600" },
   { icon: TrophyIcon,      label: "Concours",             href: "/concours",         color: "bg-purple-50 text-purple-600" },
@@ -73,9 +71,9 @@ export default function DashboardMembre() {
         <div className="bg-gradient-to-br from-amame-green-darker to-amame-green py-10">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
             <div className="flex items-center gap-5">
-              {user?.imagePath ? (
+              {user?.imageUrl ? (
                 <img
-                  src={`${PROD_URL}/${user.imagePath}`}
+                  src={user.imageUrl}
                   alt={user.prenom}
                   className="h-20 w-20 rounded-full object-cover ring-2 ring-white/40 shrink-0"
                 />

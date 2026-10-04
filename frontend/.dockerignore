@@ -4,3 +4,6 @@ dist/
 uploads/
 *.log
 .DS_Store
+# Originaux des images statiques et outillage : hors de l'image Docker
+image-sources/
+scripts/

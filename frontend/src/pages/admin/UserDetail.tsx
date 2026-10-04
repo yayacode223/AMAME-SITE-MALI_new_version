@@ -16,8 +16,6 @@ import { useAuth } from "@/context/AuthContext";
 import UserPermissionsPanel from "@/components/admin/UserPermissionsPanel";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
-const url = "https://amame.ml";
-
 const ROLE_COLORS: Record<string, string> = {
   SUPERADMIN: "bg-red-100 text-red-800",
   ADMIN:      "bg-purple-100 text-purple-800",
@@ -95,9 +93,9 @@ const UserDetail: React.FC = () => {
         <div className="bg-amame-green px-6 py-8">
           <div className="flex items-center gap-5">
             <div className="shrink-0">
-              {user.imagePath ? (
+              {user.imageUrl ? (
                 <img className="h-20 w-20 rounded-full object-cover ring-2 ring-white"
-                  src={`${url}/${user.imagePath}`} alt={`${user.prenom} ${user.nom}`} />
+                  src={user.imageUrl} alt={`${user.prenom} ${user.nom}`} />
               ) : (
                 <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center">
                   <UserIcon className="h-10 w-10 text-white" />
@@ -179,8 +177,8 @@ const UserDetail: React.FC = () => {
             {/* Documents */}
             <div className="mt-5">
               <h3 className="text-sm font-medium text-gray-900 mb-2">Documents</h3>
-              {user.cvPath ? (
-                <a href={`${url}/${user.cvPath}`} target="_blank" rel="noopener noreferrer"
+              {user.cvUrl ? (
+                <a href={user.cvUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <DocumentIcon className="h-5 w-5 text-gray-400 shrink-0" />

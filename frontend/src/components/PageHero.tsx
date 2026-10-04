@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import type { StaticImageName } from "@/generated/staticImages";
+import StaticImage from "@/components/StaticImage";
 import { LucideIcon } from "lucide-react";
 
 interface PageHeroProps {
@@ -7,7 +9,8 @@ interface PageHeroProps {
   title: string;
   titleHighlight?: string;
   description: string;
-  imageSrc?: string;
+  /** Image de fond : nom d'une image statique (src/generated/staticImages.ts). */
+  image?: StaticImageName;
   imageAlt?: string;
 }
 
@@ -17,11 +20,11 @@ const PageHero = ({
   title,
   titleHighlight,
   description,
-  imageSrc,
+  image,
 }: PageHeroProps) => {
 
   /* ── With background image — image pleine largeur, texte en overlay ── */
-  if (imageSrc) {
+  if (image) {
     return (
       <section
         className="relative overflow-hidden border-b border-amame-border
@@ -31,11 +34,11 @@ const PageHero = ({
       >
         {/* Image pleine largeur */}
         <div className="absolute inset-0" aria-hidden="true">
-          <img
-            src={imageSrc}
-            alt=""
+          <StaticImage
+            name={image}
+            sizes="100vw"
+            priority
             className="w-full h-full object-cover object-center"
-            loading="eager"
           />
         </div>
 

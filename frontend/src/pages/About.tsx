@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
+import StaticImage from "@/components/StaticImage";
 import { Target, BookOpen, GraduationCap, Eye, Mail, Phone, MapPin, Clock, ArrowRight, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-const IMG_APROPOS = "/amame-uploads/A-propos";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -19,7 +19,7 @@ const services = [
     title: "Orientation Scolaire",
     description: "Guidance dans le choix des filières et établissements",
     features: ["Tests d'orientation", "Fiches métiers", "Conseils personnalisés"],
-    image: `${IMG_APROPOS}/orientation.png`,
+    image: "about/orientation" as const,
     accentColor: "text-blue-600",
     borderColor: "border-blue-100",
     link: "/orientation",
@@ -29,7 +29,7 @@ const services = [
     title: "Bourses d'Études",
     description: "Accès aux opportunités de financement international",
     features: ["Base de données exhaustive", "Alertes personnalisées", "Aide aux candidatures"],
-    image: `${IMG_APROPOS}/bourse.png`,
+    image: "about/bourse" as const,
     accentColor: "text-amame-green",
     borderColor: "border-amame-green/20",
     link: "/bourses",
@@ -39,7 +39,7 @@ const services = [
     title: "Concours & Opportunités",
     description: "Information sur les concours et programmes spéciaux",
     features: ["Calendrier des concours", "Préparation aux épreuves", "Simulations"],
-    image: `${IMG_APROPOS}/concours.png`,
+    image: "about/concours" as const,
     accentColor: "text-amame-gold",
     borderColor: "border-amame-gold/20",
     link: "/concours",
@@ -70,8 +70,8 @@ export function About() {
                             min-h-[320px] sm:min-h-[380px] lg:min-h-[420px] flex items-center
                             py-14 lg:py-20">
           <div className="absolute inset-0" aria-hidden="true">
-            <img src="/images/heroes/hero-about.png" alt=""
-              className="w-full h-full object-cover object-center" loading="eager" />
+            <StaticImage name="heroes/hero-about" sizes="100vw" priority
+              className="w-full h-full object-cover object-center" />
           </div>
           <div className="absolute inset-0 hidden lg:block" aria-hidden="true"
             style={{ background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 42%, rgba(0,0,0,0.10) 75%, transparent 100%)" }} />
@@ -118,8 +118,9 @@ export function About() {
               </motion.div>
 
               <motion.div {...fadeUp(0.15)} className="rounded-2xl overflow-hidden shadow-xl border border-amame-border">
-                <img
-                  src={`${IMG_APROPOS}/goal.png`}
+                <StaticImage
+                  name="about/goal"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   alt="Notre vision — étudiants AMAME"
                   className="w-full h-80 object-cover object-center"
                 />
@@ -146,8 +147,9 @@ export function About() {
 
                       {/* Image pleine largeur en body */}
                       <div className="relative h-48 overflow-hidden shrink-0">
-                        <img
-                          src={s.image}
+                        <StaticImage
+                          name={s.image}
+                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                           alt={s.title}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />

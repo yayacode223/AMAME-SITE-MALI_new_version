@@ -73,7 +73,7 @@ const LiensUtiles = () => {
         title="Liens"
         titleHighlight="Utiles"
         description="" //Une sélection de ressources en ligne pour votre parcours : sites officiels, plateformes d'opportunités et portails éducatifs.
-        imageSrc="/images/heroes/hero-liens-utiles.png"
+        image="heroes/hero-liens-utiles"
         imageAlt="Ressources en ligne pour étudiants maliens"
       />
 

@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import type { StaticImageName } from "@/generated/staticImages";
+import StaticImage from "@/components/StaticImage";
 import ExpandableText from "@/components/ExpandableText";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,22 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetBourseDetail } from "@/service/bourseService";
 
-const FLAG_BASE = "/amame-uploads/bourses";
-const flagMap: Record<string, string> = {
-  "france":      "france.png",
-  "canada":      "canada.png",
-  "états-unis":  "etats-unis.png",
-  "allemagne":   "allemagne.png",
-  "royaume-uni": "angleterre.png",
-  "angleterre":  "angleterre.png",
-  "australie":   "australie.png",
-  "suisse":      "suisse.png",
-  "suède":       "suede.png",
+const flagMap: Record<string, StaticImageName> = {
+  "france":      "bourses/france",
+  "canada":      "bourses/canada",
+  "états-unis":  "bourses/etats-unis",
+  "allemagne":   "bourses/allemagne",
+  "royaume-uni": "bourses/angleterre",
+  "angleterre":  "bourses/angleterre",
+  "australie":   "bourses/australie",
+  "suisse":      "bourses/suisse",
+  "suède":       "bourses/suede",
 };
-const getFlagSrc = (pays?: string) => {
+const getFlagImage = (pays?: string): StaticImageName | null => {
   if (!pays) return null;
-  const file = flagMap[pays.toLowerCase()];
-  return file ? `${FLAG_BASE}/${file}` : null;
+  return flagMap[pays.toLowerCase()] ?? null;
 };
 
 const BoursesDetail = () => {
@@ -135,9 +135,10 @@ const BoursesDetail = () => {
 
                     {/* Image drapeau */}
                     <div className="relative h-48 overflow-hidden bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
-                      {getFlagSrc(bourse.paysHote) && (
-                        <img
-                          src={getFlagSrc(bourse.paysHote)!}
+                      {getFlagImage(bourse.paysHote) && (
+                        <StaticImage
+                          name={getFlagImage(bourse.paysHote)!}
+                          sizes="(min-width: 1024px) 66vw, 100vw"
                           alt={bourse.paysHote ?? ""}
                           className="w-full h-full object-cover"
                         />

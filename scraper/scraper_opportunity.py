@@ -4,6 +4,7 @@
 # ==============================================================================
 
 # 1. Imports nécessaires
+import os
 import requests
 from bs4 import BeautifulSoup
 import psycopg2 # Le driver pour PostgreSQL
@@ -12,24 +13,20 @@ import re
 import time
 
 # 2. CONFIGURATION DE LA BASE DE DONNÉES
-DB_CONFIG = {
-    'dbname': 'amame_db',   # <-- AJOUTEZ
-    'user': 'postgres',      # <-- AJOUTEZ
-    'password': 'postgres',    # <-- AJOUTEZ
-    'host': 'localhost',
-    'port': '5454'
-}
+# Connexion lue dans l'environnement : aucun identifiant dans le code.
+# Format : postgresql://utilisateur:mot_de_passe@hote:port/amame_db
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # 3. FONCTIONS UTILES
 def connecter_db():
     """Établit la connexion à la base de données PostgreSQL."""
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(DATABASE_URL)
         print("-> Connexion à la base de données PostgreSQL réussie.")
         return conn
     except psycopg2.OperationalError as e:
         print(f"ERREUR CRITIQUE : Impossible de se connecter à la base de données : {e}")
-        print("Veuillez vérifier les informations dans DB_CONFIG.")
+        print("Veuillez vérifier la variable d'environnement DATABASE_URL.")
         return None
 
 def extraire_annee_du_texte(texte):

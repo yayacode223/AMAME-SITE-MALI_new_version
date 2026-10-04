@@ -30,8 +30,12 @@ public class UserReponseDto {
     private SexeType sexe;
     private String adresse;
     private String imagePath;
+    /** URL de la photo : endpoint authentifié /api/user/files/{id}. */
+    private String imageUrl;
     private String phone;
     private String cvPath;
+    /** URL du CV : endpoint authentifié /api/user/files/{id}. */
+    private String cvUrl;
     @Enumerated(EnumType.STRING)
     private RoleType role;
     private String pays;

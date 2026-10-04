@@ -134,7 +134,7 @@ export function Orientation() {
           title="Guide d'"
           titleHighlight="Orientation"
           description=""
-          imageSrc="/images/heroes/hero-orientation.png"
+          image="heroes/hero-orientation"
           imageAlt="Étudiant malien choisissant sa voie professionnelle"
         />
 

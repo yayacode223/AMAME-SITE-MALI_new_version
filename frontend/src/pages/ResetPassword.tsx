@@ -116,7 +116,7 @@ export default function ResetPassword() {
               </Link>
             </Button>
             <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-              <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="w-7 h-7" />
+              <img src="/logo-192.webp" alt="AMAME" className="w-7 h-7" />
             </div>
           </div>
 

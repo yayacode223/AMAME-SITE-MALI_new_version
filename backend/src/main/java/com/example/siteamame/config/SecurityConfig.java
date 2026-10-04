@@ -41,6 +41,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // CV et photos des inscrits : jamais servis en statique, même à un utilisateur
+                        // connecté. Ils passent par /api/user/files/{id}, qui vérifie le droit d'accès.
+                        // Doit rester AVANT le permitAll sur /uploads/**.
+                        .requestMatchers("/uploads/utilisateur/**").denyAll()
                         .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/refresh", "/api/visitor/**", "/uploads/**").permitAll()
                         // /error : le forward interne de Spring vers /error ne doit pas exiger
                         // d'authentification, sinon une vraie 500 (forward → /error) est masquée

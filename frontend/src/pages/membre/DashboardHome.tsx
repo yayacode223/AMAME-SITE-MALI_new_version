@@ -16,8 +16,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon as CheckBadgeSolid } from "@heroicons/react/24/solid";
 
-const PROD_URL = "https://amame.ml";
-
 const QUICK_LINKS = [
   { icon: AcademicCapIcon, label: "Bourses",      href: "/bourses",     color: "bg-blue-50 text-blue-600" },
   { icon: TrophyIcon,      label: "Concours",     href: "/concours",    color: "bg-purple-50 text-purple-600" },
@@ -40,9 +38,9 @@ export default function DashboardHome() {
     <div className="space-y-6">
       {/* ── Profil banner ── */}
       <div className="bg-gradient-to-br from-amame-green-darker to-amame-green rounded-2xl p-6 flex items-center gap-4">
-        {user?.imagePath ? (
+        {user?.imageUrl ? (
           <img
-            src={`${PROD_URL}/${user.imagePath}`}
+            src={user.imageUrl}
             alt={user.prenom}
             className="h-16 w-16 rounded-full object-cover ring-2 ring-white/30 shrink-0"
           />

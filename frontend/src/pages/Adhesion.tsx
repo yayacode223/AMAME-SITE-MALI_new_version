@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { staticImageUrl } from "@/utils/staticImage";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -441,7 +442,7 @@ export default function Adhesion() {
         {/* Hero */}
         <div
           className="relative overflow-hidden py-16 sm:py-24 hero-bg-image"
-          style={{ backgroundImage: "url(/images/heroes/hero-adhesion.png)" }}
+          style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-adhesion")})` }}
         >
           {/* Overlay vert allégé — image visible en texture, texte blanc lisible */}
           <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 via-amame-green-dark/58 to-amame-green/42 pointer-events-none" />

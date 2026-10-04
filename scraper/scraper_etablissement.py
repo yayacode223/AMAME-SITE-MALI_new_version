@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import time
 import re # On importe re en haut du fichier pour la propreté
@@ -7,19 +8,15 @@ import pandas as pd
 import psycopg2
 
 # 1. CONFIGURATION DE LA BASE DE DONNÉES
-DB_CONFIG = {
-    'dbname': 'amame_db',
-    'user': 'postgres',
-    'password': 'postgres',
-    'host': 'localhost',
-    'port': '5454'
-}
+# Connexion lue dans l'environnement : aucun identifiant dans le code.
+# Format : postgresql://utilisateur:mot_de_passe@hote:port/amame_db
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # 2. FONCTIONS
 def connecter_db():
     """Établit la connexion à la base de données PostgreSQL."""
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(DATABASE_URL)
         print("-> Connexion à la base réussie.")
         return conn
     except Exception as e:

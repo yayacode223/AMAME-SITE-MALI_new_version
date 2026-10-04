@@ -1,4 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
+import { staticImageUrl } from "@/utils/staticImage";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
@@ -105,7 +106,8 @@ const Login = () => {
       <div className="min-h-screen flex flex-col lg:flex-row">
 
         {/* ── Panneau gauche : image hero + branding (desktop) ───────────── */}
-        <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-no-repeat [background-position:center_right_10%]">
+        <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-cover bg-no-repeat [background-position:center_right_10%]"
+          style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
           {/* Overlay vert — allégé pour laisser l'image hero respirer */}
           <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 via-amame-green-dark/55 to-amame-green/35 pointer-events-none" />
 
@@ -115,7 +117,7 @@ const Login = () => {
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-3 group">
                 <img
-                  src="/amame-uploads/amame-logo.webp"
+                  src="/logo-192.webp"
                   alt="AMAME"
                   className="h-14 w-14 rounded-full object-cover ring-4 ring-white/40 shadow-xl group-hover:ring-white/70 transition-all"
                 />
@@ -147,12 +149,13 @@ const Login = () => {
         <div className="flex-1 flex flex-col bg-white">
 
           {/* Bandeau mobile : image + logo */}
-          <div className="lg:hidden relative h-44 overflow-hidden shrink-0 bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-center">
+          <div className="lg:hidden relative h-44 overflow-hidden shrink-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage", 640)})` }}>
             <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 to-amame-green/45" />
             <div className="relative z-10 flex items-center justify-between px-5 pt-5">
               {/* Logo plus visible */}
               <Link to="/" className="flex items-center gap-2 group">
-                <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="h-10 w-10 rounded-full ring-2 ring-white/50 shadow-lg object-cover" />
+                <img src="/logo-192.webp" alt="AMAME" className="h-10 w-10 rounded-full ring-2 ring-white/50 shadow-lg object-cover" />
                 <span className="font-nunito font-black text-white text-lg drop-shadow">AMAME</span>
               </Link>
               {/* Bouton retour vert amame */}

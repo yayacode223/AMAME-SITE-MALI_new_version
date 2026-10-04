@@ -1,25 +1,25 @@
 import { BourseSummary } from "@/types/bourseType";
+import type { StaticImageName } from "@/generated/staticImages";
+import StaticImage from "@/components/StaticImage";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const FLAG_BASE = "/amame-uploads/bourses";
 
-const flagMap: Record<string, string> = {
-  "france":      "france.png",
-  "canada":      "canada.png",
-  "états-unis":  "etats-unis.png",
-  "allemagne":   "allemagne.png",
-  "royaume-uni": "angleterre.png",
-  "angleterre":  "angleterre.png",
-  "australie":   "australie.png",
-  "suisse":      "suisse.png",
-  "suède":       "suede.png",
+const flagMap: Record<string, StaticImageName> = {
+  "france":      "bourses/france",
+  "canada":      "bourses/canada",
+  "états-unis":  "bourses/etats-unis",
+  "allemagne":   "bourses/allemagne",
+  "royaume-uni": "bourses/angleterre",
+  "angleterre":  "bourses/angleterre",
+  "australie":   "bourses/australie",
+  "suisse":      "bourses/suisse",
+  "suède":       "bourses/suede",
 };
 
-const getFlagSrc = (pays?: string): string | null => {
+const getFlagImage = (pays?: string): StaticImageName | null => {
   if (!pays) return null;
-  const file = flagMap[pays.toLowerCase()];
-  return file ? `${FLAG_BASE}/${file}` : null;
+  return flagMap[pays.toLowerCase()] ?? null;
 };
 
 const formatDate = (dateString?: string) => {
@@ -44,7 +44,7 @@ const isDeadlineNear = (dateString?: string) => {
 };
 
 const BourseCardItem = ({ id, titre, descriptionCourte, paysHote, dateLimite }: BourseSummary) => {
-  const flagSrc    = getFlagSrc(paysHote);
+  const flagImage  = getFlagImage(paysHote);
   const nearDeadline = isDeadlineNear(dateLimite);
 
   return (
@@ -53,9 +53,10 @@ const BourseCardItem = ({ id, titre, descriptionCourte, paysHote, dateLimite }: 
 
         {/* Header — Drapeau */}
         <div className="relative h-36 overflow-hidden shrink-0 bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
-          {flagSrc ? (
-            <img
-              src={flagSrc}
+          {flagImage ? (
+            <StaticImage
+              name={flagImage}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               alt={paysHote ?? ""}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />

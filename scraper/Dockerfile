@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY scraping_site_web_mina7.py .
+COPY *.py ./
 
 
 CMD ["python", "scraping_site_web_mina7.py"]

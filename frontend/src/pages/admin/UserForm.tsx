@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import { useRegisterMutation, useUpdateMutation, useGetUserById } from "@/service/userService";
-import { RegisterType, RegisterPayload, RegisterUpdatePayload, Sexe, Role } from "@/types/userType";
+import { useChangeUserRoleMutation } from "@/service/permissionService";
+import { RegisterType, RegisterPayload, RegisterUpdatePayload, Sexe, Role, ROLE_LABELS, ROLE_RANK } from "@/types/userType";
 import { NiveauType } from "@/types/concoursType";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface UserFormData extends Omit<RegisterType, "password"> {
   role?: Role;
@@ -19,9 +21,18 @@ const UserForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
   const { data: existingUser } = useGetUserById(isEditing ? parseInt(id!) : 0, { enabled: isEditing });
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const registerMutation = useRegisterMutation();
   const updateMutation = useUpdateMutation();
+  const changeRoleMutation = useChangeUserRoleMutation();
+
+  // Le backend n'accepte qu'un rôle strictement inférieur à celui de l'administrateur,
+  // et seulement sur un utilisateur lui-même de rang inférieur.
+  const myRank = user?.role ? ROLE_RANK[user.role] : 0;
+  const initialRole: Role = isEditing ? existingUser?.role ?? "USER" : "USER";
+  const canEditRole = hasPermission("USER_MANAGE_ROLES") && ROLE_RANK[initialRole] < myRank;
+  const assignableRoles = (["USER", "EDITOR", "ADMIN"] as Role[]).filter((r) => ROLE_RANK[r] < myRank);
+  const roleOptions = assignableRoles.includes(initialRole) ? assignableRoles : [initialRole, ...assignableRoles];
 
   const [formData, setFormData] = useState<UserFormData>({
     nom: "", prenom: "", email: "", birthDate: "", ville: "",
@@ -52,19 +63,32 @@ const UserForm: React.FC = () => {
     if (!isEditing && !password) { alert("Le mot de passe est obligatoire"); return; }
     if (password && password !== confirmPassword) { alert("Les mots de passe ne correspondent pas"); return; }
     try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          id: parseInt(id!),
-          user: { ...formData, password: password || undefined },
-          cv: selectedCV || undefined,
-          image: selectedImage || undefined,
-        } as RegisterUpdatePayload);
-      } else {
-        await registerMutation.mutateAsync({
-          user: { ...formData, password },
-          cv: selectedCV || undefined,
-          image: selectedImage || undefined,
-        } as RegisterPayload);
+      // Le rôle ne voyage plus avec le profil : le backend l'ignore à l'inscription
+      // comme à la mise à jour. Il se change par l'endpoint dédié, qui vérifie la hiérarchie.
+      const { role, ...profile } = formData;
+      const saved = isEditing
+        ? await updateMutation.mutateAsync({
+            id: parseInt(id!),
+            user: { ...profile, password: password || undefined },
+            cv: selectedCV || undefined,
+            image: selectedImage || undefined,
+          } as RegisterUpdatePayload)
+        : await registerMutation.mutateAsync({
+            user: { ...profile, password },
+            cv: selectedCV || undefined,
+            image: selectedImage || undefined,
+          } as RegisterPayload);
+
+      if (canEditRole && role && role !== initialRole) {
+        try {
+          await changeRoleMutation.mutateAsync({ userId: saved.id, role });
+        } catch {
+          toast({
+            title: "Utilisateur enregistré, mais son rôle n'a pas été modifié",
+            description: "Le rôle peut être changé depuis la fiche de l'utilisateur.",
+            variant: "destructive",
+          });
+        }
       }
       navigate("/admin/users");
     } catch (error) {
@@ -72,7 +96,7 @@ const UserForm: React.FC = () => {
     }
   };
 
-  const isLoading = registerMutation.isPending || updateMutation.isPending;
+  const isLoading = registerMutation.isPending || updateMutation.isPending || changeRoleMutation.isPending;
 
   return (
     <FormWrapper
@@ -185,16 +209,15 @@ const UserForm: React.FC = () => {
                 <option value="AUTRE">Autre</option>
               </select>
             </div>
-            {(user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
+            {canEditRole && (
               <div>
                 <label htmlFor="role" className={labelCls}>Rôle *</label>
                 <select id="role" required value={formData.role}
                   onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value as Role }))}
                   className={inputCls}>
-                  <option value="USER">Utilisateur</option>
-                  <option value="EDITOR">Éditeur</option>
-                  <option value="ADMIN">Administrateur</option>
-                  {user?.role === "SUPERADMIN" && <option value="SUPERADMIN">Super administrateur</option>}
+                  {roleOptions.map((r) => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
                 </select>
               </div>
             )}

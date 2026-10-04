@@ -16,8 +16,6 @@ import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/userType";
 import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 
-const PROD_URL = "https://amame.ml";
-
 /* ---------- Structure de navigation ---------- */
 interface SubLink { path: string; label: string }
 interface NavItem { path?: string; label: string; children?: SubLink[] }
@@ -118,7 +116,7 @@ const Navbar = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
               <img
-                src="/amame-uploads/amame-logo.webp"
+                src="/logo-192.webp"
                 alt="AMAME"
                 className="h-9 w-9 rounded-full object-cover ring-2 ring-green-100 group-hover:ring-green-200 transition-all"
               />
@@ -194,7 +192,7 @@ const Navbar = () => {
                     <button type="button" className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors group">
                       <Avatar className="h-8 w-8 ring-2 ring-green-100">
                         <AvatarImage
-                          src={user.imagePath ? `${PROD_URL}/${user.imagePath}` : undefined}
+                          src={user.imageUrl}
                           alt={`${user.prenom} ${user.nom}`}
                           className="object-cover"
                         />

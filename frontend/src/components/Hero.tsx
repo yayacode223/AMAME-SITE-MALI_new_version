@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import StaticImage from "@/components/StaticImage";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, GraduationCap, Trophy, Users, Award } from "lucide-react";
@@ -39,11 +40,11 @@ const Hero = () => {
         transition={{ duration: 8, ease: "easeOut" }}
         aria-hidden="true"
       >
-        <img
-          src="/images/heroes/hero-homepage.png"
-          alt=""
+        <StaticImage
+          name="heroes/hero-homepage"
+          sizes="100vw"
+          priority
           className="w-full h-full object-cover object-center"
-          loading="eager"
         />
       </motion.div>
 
@@ -172,7 +173,7 @@ const Hero = () => {
           >
             <div className="relative z-10 w-20 h-20 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white/30 bg-white">
               <img
-                src="/amame-uploads/amame-logo.webp"
+                src="/logo-192.webp"
                 alt="Logo AMAME"
                 className="w-full h-full object-cover"
               />

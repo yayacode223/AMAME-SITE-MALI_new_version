@@ -21,6 +21,9 @@ public class UserMapperDto {
     private final PasswordEncoder passwordEncoder;
     private final FiliereRepository filiereRepo;
 
+    /** Les fichiers d'un utilisateur sont privés : ils ne se lisent que par cet endpoint authentifié. */
+    private static final String PRIVATE_FILE_URL = "/api/user/files/";
+
     public UserReponseDto UserToDto(User user) {
         UserReponseDto userReponseDto = new UserReponseDto();
         userReponseDto.setId(user.getId());
@@ -43,8 +46,10 @@ public class UserMapperDto {
             user.getFiles().forEach(file -> {
                 if (file.getFileType() == FileType.IMAGE) {
                     userReponseDto.setImagePath(file.getFilePath());
+                    userReponseDto.setImageUrl(PRIVATE_FILE_URL + file.getId());
                 } else if (file.getFileType() == FileType.DOCUMENT) {
                     userReponseDto.setCvPath(file.getFilePath());
+                    userReponseDto.setCvUrl(PRIVATE_FILE_URL + file.getId());
                 }
             });
         }
@@ -62,9 +67,7 @@ public class UserMapperDto {
         user.setVille(userRequestDto.getVille());
         user.setAdresse(userRequestDto.getAdresse());
         user.setPhone(userRequestDto.getPhone());
-        if(userRequestDto.getRole() != null) {
-            user.setRole(userRequestDto.getRole());
-        }
+        // Le rôle n'est jamais lu dans la requête : il est fixé par le service appelant.
 
         user.setSexe(userRequestDto.getSexe());
         user.setPays(userRequestDto.getPays());
@@ -87,9 +90,8 @@ public class UserMapperDto {
         user.setPays(userRequestDto.getPays());
         user.setNiveauEtude(userRequestDto.getNiveauEtude());
         user.setCodePostal(userRequestDto.getCodePostal());
-        if(userRequestDto.getRole() != null) {
-            user.setRole(userRequestDto.getRole());
-        }
+        // Le rôle ne change jamais ici : seul /api/admin/users/{id}/role peut le modifier,
+        // après vérification de la hiérarchie des rôles (PermissionService.changeRole).
         return user;
     }
 

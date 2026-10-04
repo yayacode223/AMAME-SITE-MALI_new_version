@@ -30,11 +30,17 @@ Ce document sert a:
 ```
 
 ## Architecture des services (Docker)
-Le fichier `docker-compose.yml` definit 4 services:
+Le fichier `docker-compose.yml` (stack `amame`) definit l'application:
 - `database`: PostgreSQL
 - `backend`: API Spring Boot
 - `frontend`: application servie par Nginx
-- `scraper`: service ponctuel pour executer les scripts Python
+- `pgadmin`, `prometheus`, `grafana`, `postgres-exporter`: outils, accessibles sur `127.0.0.1` uniquement
+
+Le fichier `ops/docker-compose.yml` (stack `amame-ops`) definit l'exploitation:
+- `backup`: sauvegardes planifiees de la base et des fichiers, tests de restauration
+- `scraper`: conteneur en veille, pour lancer les scripts Python a la demande
+
+Mode d'emploi de la stack d'exploitation: `ops/README.md`.
 
 Port expose actuellement:
 - Frontend: `80` (hote) -> `80` (conteneur)
@@ -62,19 +68,15 @@ cd AMAME-SITE-WEB
 ```
 
 ### 2) Configurer les variables d'environnement
-Il n'y a pas de fichier `.env.example` versionne actuellement.
+Copier `.env.example` en `.env` a la racine, puis remplir les valeurs. Ce fichier `.env` n'est jamais commite.
 
-Les variables importantes pour le backend sont:
-- `JWT_SECRET`
-- `JWT_EXPIRATION`
-- `FRONTEND`
-
-Exemple minimal PowerShell:
-```powershell
-$env:JWT_SECRET="change-me"
-$env:JWT_EXPIRATION="2592000000"
-$env:FRONTEND="http://localhost"
+```bash
+cp .env.example .env
 ```
+
+Variables obligatoires pour `docker compose up`: `POSTGRES_PASSWORD`, `JWT_SECRET`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `PGADMIN_PASSWORD`, `GRAFANA_ADMIN_PASSWORD`. Le fichier `.env.example` explique chacune.
+
+Premier administrateur: aucun compte par defaut n'est cree. Sur une base vide, renseigner `BOOTSTRAP_ADMIN_EMAIL` et `BOOTSTRAP_ADMIN_PASSWORD` pour le premier demarrage, puis les retirer.
 
 ### 3) Lancer toute la plateforme avec Docker
 ```bash
@@ -153,17 +155,34 @@ Scripts disponibles dans `scraper/`:
 - `scraper_etablissement.py`
 - `scraper_opportunity.py`
 
-Attention:
-- les scripts actuels pointent par defaut vers PostgreSQL en `localhost:5454`
-- adapter `DB_CONFIG` avant execution selon votre environnement
+Les scripts lisent la connexion dans la variable d'environnement `DATABASE_URL`. Aucun identifiant n'est ecrit dans le code.
 
 Execution locale (hors Docker) exemple:
 ```bash
 cd scraper
 pip install -r requirements.txt
+export DATABASE_URL="postgresql://postgres:<mot de passe>@localhost:5454/amame_db"
 python scraper_etablissement.py
 python scraper_opportunity.py
 ```
+
+En production, les scripts se lancent depuis la console du conteneur `amame-scraper` (voir `ops/README.md`).
+
+## Images statiques du site
+Les images du site (heroes, illustrations) ne sont pas deposees a la main dans `public/`.
+
+- Originaux: `frontend/image-sources/<groupe>/<nom>.png` (noms en minuscules, sans accent ni espace)
+- Fichiers servis: `frontend/public/static/`, generes en WebP et en plusieurs largeurs
+- Affichage: composant `<StaticImage name="<groupe>/<nom>" sizes="..." />`
+
+Apres avoir ajoute ou remplace un original:
+```bash
+cd frontend
+pip install Pillow
+python scripts/optimize_images.py
+```
+
+Le script regenere `public/static/` et `src/generated/staticImages.ts`. Les deux se commitent.
 
 ## Tests et qualite
 Backend:
@@ -181,7 +200,6 @@ npm run build
 ```
 
 ## Points d'amelioration recommandes
-- ajouter un vrai `.env.example` a la racine
 - separer clairement `docker-compose.dev.yml` et `docker-compose.prod.yml`
 - externaliser les secrets (Vault, variables CI/CD, ou gestionnaire de secrets)
 - documenter une strategie de sauvegarde/restauration PostgreSQL

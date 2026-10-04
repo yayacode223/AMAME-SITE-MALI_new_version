@@ -140,7 +140,7 @@ const Bourses = () => {
         title="Trouvez les"
         titleHighlight="bourses"
         description="" //Des centaines d'opportunités de bourses nationales et internationales. Filtrez par pays et niveau d'études pour trouver celle qui vous correspond.
-        imageSrc="/images/heroes/hero-bourses.png"
+        image="heroes/hero-bourses"
         imageAlt="Étudiante malienne avec bourse d'études"
       />
 

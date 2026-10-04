@@ -76,9 +76,9 @@ public class UserService {
             throw new RuntimeException("L'utilisateur existe deja");
 
         User user = userMapper.DtoToUser(userRequestDto);
-        if(userRequestDto.getRole() == null) {
-            user.setRole(RoleType.USER);
-        }
+        // Endpoint public : tout compte naît USER, quel que soit le rôle envoyé dans la requête.
+        // Un rôle supérieur s'attribue ensuite par /api/admin/users/{id}/role.
+        user.setRole(RoleType.USER);
 
         List<File> files = new ArrayList<>();
 

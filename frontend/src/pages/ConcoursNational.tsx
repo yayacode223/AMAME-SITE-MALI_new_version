@@ -20,7 +20,7 @@ const ConcoursNational = () => (
       title="Concours"
       titleHighlight="Nationaux"
       description="" //Découvrez les concours organisés au Mali. Préparez-vous et candidatez aux meilleures opportunités nationales.
-      imageSrc="/images/heroes/hero-concours.png"
+      image="heroes/hero-concours"
       imageAlt="Concours nationaux — étudiants maliens"
     />
     <ConcoursListing defaultStatus="NATIONAL" />

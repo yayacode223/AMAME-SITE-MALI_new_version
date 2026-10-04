@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailIgnoreCase(String email);
     List<User> findAllByRole(RoleType role);
+    boolean existsByIdAndFiles_Id(Long userId, Long fileId);
 }

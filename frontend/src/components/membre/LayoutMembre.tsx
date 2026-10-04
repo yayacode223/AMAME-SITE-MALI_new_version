@@ -15,8 +15,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { LogOut } from "lucide-react";
 
-const PROD_URL = "https://amame.ml";
-
 interface NavItem {
   href: string;
   label: string;
@@ -57,7 +55,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-100 shrink-0">
         <img
-          src="/amame-uploads/amame-logo.webp"
+          src="/logo-192.webp"
           alt="AMAME"
           className="h-7 w-7 rounded-full object-cover ring-2 ring-green-100 shrink-0"
         />
@@ -104,9 +102,9 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       <div className="shrink-0 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2 px-2 py-2.5 rounded-lg bg-gray-50">
           {/* Avatar */}
-          {user?.imagePath ? (
+          {user?.imageUrl ? (
             <img
-              src={`${PROD_URL}/${user.imagePath}`}
+              src={user.imageUrl}
               alt={user.prenom}
               className="h-7 w-7 rounded-full object-cover shrink-0 ring-1 ring-green-100"
             />
@@ -206,7 +204,7 @@ export default function LayoutMembre() {
           </button>
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <img
-              src="/amame-uploads/amame-logo.webp"
+              src="/logo-192.webp"
               alt="AMAME"
               className="h-5 w-5 rounded-full object-cover shrink-0"
             />

@@ -6,8 +6,6 @@ import Pagination from "@/components/Pagination";
 import { useGetAllUsers, useDeleteUserMutation } from "@/service/userService";
 import { RegisterResponse, Sexe, Role, ROLE_LABELS } from "@/types/userType";
 
-const url = "https://amame.ml";
-
 const ROLE_COLORS: Record<string, string> = {
   SUPERADMIN: "bg-red-100 text-red-800",
   ADMIN: "bg-purple-100 text-purple-800",
@@ -36,11 +34,12 @@ const UsersManagement: React.FC = () => {
       label: "Utilisateur",
       render: (_: string, row: RegisterResponse) => (
         <div className="flex items-center gap-3">
-          {row.imagePath ? (
+          {row.imageUrl ? (
             <img
               className="h-9 w-9 rounded-full object-cover shrink-0"
-              src={`${url}/${row.imagePath}`}
+              src={row.imageUrl}
               alt={`${row.prenom} ${row.nom}`}
+              loading="lazy"
             />
           ) : (
             <div className="h-9 w-9 rounded-full bg-amame-green-subtle flex items-center justify-center shrink-0">

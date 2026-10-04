@@ -135,6 +135,12 @@ export default defineConfig(({ mode }) => {
           globIgnores: ['**/amame-uploads/**', 'images/**'],
           runtimeCaching: [
             {
+              // Fichiers privés (CV, photos des inscrits) : jamais dans le cache du
+              // service worker. Doit rester AVANT la règle générale /api/.
+              urlPattern: /\/api\/user\/files\//i,
+              handler: 'NetworkOnly',
+            },
+            {
               urlPattern: /^https?:\/\/.*\/api\/.*/i,
               handler: 'NetworkFirst',
               options: {
@@ -146,7 +152,7 @@ export default defineConfig(({ mode }) => {
               },
             },
             {
-              urlPattern: /\/amame-uploads\/.*/i,
+              urlPattern: /\/(amame-uploads|static)\/.*/i,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'amame-images-cache',

@@ -20,7 +20,7 @@ const BoursesEtude = () => (
       title="Bourses d'"
       titleHighlight="Étude"
       description="" //Financez vos études à l'étranger. Retrouvez toutes les bourses pour étudiants maliens souhaitant poursuivre un cursus universitaire.
-      imageSrc="/images/heroes/hero-bourses.png"
+      image="heroes/hero-bourses"
       imageAlt="Bourses d'études pour étudiants maliens"
     />
     <BoursesList defaultCategorie="Bourse d'études" />

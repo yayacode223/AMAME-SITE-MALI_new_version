@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -51,6 +52,20 @@ public class GlobalHandlerException {
         String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
         ApiError error = new ApiError(status, message, req.getRequestURI(), List.of(message));
         return new ResponseEntity<>(error, status);
+    }
+
+    // ── Refus d'un @PreAuthorize → 403 Forbidden ────────────────────────────
+    // Sans ce gestionnaire, le refus tombait dans le gestionnaire générique et sortait en 500.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDeniedException(
+            AccessDeniedException ex, HttpServletRequest req) {
+        ApiError error = new ApiError(
+                HttpStatus.FORBIDDEN,
+                "Accès refusé",
+                req.getRequestURI(),
+                List.of("Accès refusé")
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     // ── Erreurs de validation @Valid → 400 Bad Request ──────────────────────

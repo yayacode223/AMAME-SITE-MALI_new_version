@@ -66,7 +66,7 @@ const Universites = () => {
         title="Universités &"
         titleHighlight="Établissements"
         description="" //Explorez les universités et établissements d'enseignement supérieur disponibles pour les étudiants maliens.
-        imageSrc="/images/heroes/hero-universites.png"
+        image="heroes/hero-universites"
         imageAlt="Universités et établissements supérieurs"
       />
 

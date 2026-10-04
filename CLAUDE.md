@@ -9,6 +9,11 @@ AMAME is a platform for Malian students (scholarships, competitions, academic or
 - `frontend/` — React 18 + Vite + TypeScript + Tailwind CSS (deployed via Nginx + Docker)
 - `backend/` — Java 21 + Spring Boot 3 + Spring Security (JWT) + PostgreSQL 15
 - `scraper/` — Python scripts for data import
+- `ops/` — operations stack `amame-ops`: scheduled backups, restore tests, on-demand scrapers (see `ops/README.md`)
+
+## Ongoing migration: database → Neon, files → Bunny
+
+The migration is implemented step by step. `docs/03-implementation-migration-neon-bunny.md` is both the design reference and the **tracking file**: read its section "Suivi de l'implémentation" first (current step, next action, pending manual actions, deviations), and update it after every implementation.
 
 ## Commands
 
@@ -37,14 +42,27 @@ docker compose logs -f frontend
 docker compose down
 ```
 
-Frontend: `http://localhost` — pgAdmin: `http://localhost:5050` — Grafana: `http://localhost:3001`
+A root `.env` is required (copy `.env.example`): the compose file refuses to start without `POSTGRES_PASSWORD`, `JWT_SECRET`, `MAIL_*`, `PGADMIN_PASSWORD` and `GRAFANA_ADMIN_PASSWORD`.
 
-### Scraper (one-shot, not a long-running service)
+Frontend: `http://localhost` — pgAdmin: `http://localhost:5050` — Grafana: `http://localhost:3001` (the last two, and Prometheus, listen on `127.0.0.1` only)
+
+### Operations stack (`amame-ops`)
+```bash
+docker compose -f ops/docker-compose.yml --env-file .env build   # backup image + scraper image
+docker compose -f ops/docker-compose.yml --env-file .env up -d
+docker exec amame-ops-backup backup.sh          # coupled backup: database dump + uploaded files
+docker exec amame-ops-backup restore-test.sh    # restore the latest dump in a throwaway PostgreSQL and check the files
+```
+
+### Scraper (on demand, never at deploy time)
+The scripts read the connection from the `DATABASE_URL` environment variable — no credentials in code.
 ```bash
 cd scraper && pip install -r requirements.txt
+export DATABASE_URL="postgresql://postgres:<password>@localhost:5454/amame_db"
 python scraper_etablissement.py   # import universities/etablissements
 python scraper_opportunity.py     # import bourses/concours from mina7
 ```
+In production they run from the console of the idle `amame-scraper` container (stack `amame-ops`).
 
 ## Architecture
 
@@ -65,6 +83,12 @@ python scraper_opportunity.py     # import bourses/concours from mina7
 - Refresh token (7 days) — rotated on each `/api/auth/refresh` call
 
 **File uploads**: stored on disk at `backend/uploads/`, served by the backend at `/uploads/**`, and bind-mounted into the frontend Nginx container so they are accessible under `https://amame.ml/uploads/`.
+
+**Private files**: everything under `uploads/utilisateur/` (CVs and photos of registered users) is private. Nginx answers 404 on `/uploads/utilisateur/` and `/amame-uploads/utilisateur/`, Spring Security denies the static path, and the only way to read such a file is `GET /api/user/files/{id}` (`PrivateFileController`: the owner, or a holder of `USER_READ_ALL`). `UserReponseDto` exposes `imageUrl` and `cvUrl` for that purpose — the frontend must use them, never build a URL from `imagePath`/`cvPath`.
+
+**Roles**: a role is never read from a request body. Registration (`/api/visitor/register`, public) always creates a `USER`, and profile update never changes the role. A role changes only through `PUT /api/admin/users/{id}/role` (`PermissionService.changeRole`: requires `USER_MANAGE_ROLES`, and only for roles strictly below the caller's rank).
+
+**First administrator**: no default account. On an empty `users` table, an `ADMIN` is created at startup only if `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` are set.
 
 **Profiles**: `application.properties` (common) + `application-dev.properties` + `application-prod.properties`. Active profile set via `SPRING_PROFILES_ACTIVE` env var (defaults to `dev`).
 
@@ -92,22 +116,28 @@ python scraper_opportunity.py     # import bourses/concours from mina7
 
 **Icons**: `lucide-react` v0.446.0 — use named imports.
 
+**Static images** (heroes, illustrations): never put a large image in `public/` and never write an image path by hand. Originals live in `frontend/image-sources/<group>/<name>.png` (not served, excluded from the Docker build). `python scripts/optimize_images.py` (requires Pillow) generates WebP variants in `public/static/` and the typed manifest `src/generated/staticImages.ts`. Display them with `<StaticImage name="<group>/<name>" sizes="…" />` (srcset, intrinsic dimensions, lazy loading; `priority` for the page's main image), or `staticImageUrl(name)` for a CSS background. The logo used by the UI is `/logo-192.webp`; `public/amame-uploads/amame-logo.webp` stays only because Open Graph and JSON-LD tags point to it.
+
 ### Docker compose services summary
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yaya236/amame-web-site:frontend-v4.6` | 80 |
-| backend | `yaya236/amame-web-site:backend-v4.4` | internal only |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.1`) | 80 |
+| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.1`) | internal only |
 | database | postgres:15-alpine | internal only |
-| pgadmin | dpage/pgadmin4 | 5050 |
-| prometheus | prom/prometheus | 9090 |
-| grafana | grafana/grafana-oss | 3001 |
+| pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
+| prometheus | prom/prometheus | 127.0.0.1:9090 |
+| grafana | grafana/grafana-oss | 127.0.0.1:3001 |
 
-Update image tags in `docker-compose.yml` before `docker compose up --build` when pushing a new version.
+Stack `amame-ops` (`ops/docker-compose.yml`): `backup` (`yayacode224/amame:${OPS_IMAGE_TAG}`, default `ops-v1.0`) and `scraper` (`yayacode224/amame:${SCRAPER_IMAGE_TAG}`, default `scraper-v1.1`), no exposed port.
+
+Bump the default tags (or set the `*_IMAGE_TAG` variables) before `docker compose up --build` when pushing a new version. Tags are versioned, never `latest`: rolling back means putting the previous tag back.
 
 ## Critical constraints
 
-- **Never commit secrets.** `JWT_SECRET`, `MAIL_PASSWORD`, `POSTGRES_PASSWORD` must come from environment variables — never hardcoded.
+- **Never commit secrets.** `JWT_SECRET`, `MAIL_PASSWORD`, `POSTGRES_PASSWORD`, `BACKUP_PASSPHRASE` and the Bunny zone keys must come from environment variables — never hardcoded, and never with a default value in a compose file. In production they are Portainer stack variables; `.env.example` documents all of them.
+- **Never commit user data.** `backend/uploads/` and every `.env` are ignored by Git and must stay untracked.
+- **Backup keys stay in `amame-ops`.** `BUNNY_BACKUP_ZONE_KEY` and `BACKUP_PASSPHRASE` must never be added to the application stack.
 - **Cookie domain**: In production, cookies use `COOKIE_DOMAIN=.amame.ml` + `COOKIE_SECURE=true`. In local dev (`application-dev.properties`), these values differ — verify before testing auth locally.
 - **CORS**: The backend allows `FRONTEND` env var origin + `https://*.amame.ml`. Adding a new local origin requires updating `SecurityConfig.java` or the env var.
 - **File serving**: Uploaded files must be accessible to Nginx. The `./backend/uploads` directory is bind-mounted into both backend and frontend containers — do not change the volume path without updating both entries in `docker-compose.yml`.

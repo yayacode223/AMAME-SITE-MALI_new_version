@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { staticImageUrl } from "@/utils/staticImage";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,7 +60,8 @@ export default function ForgotPassword() {
         <title>Mot de passe oublié — AMAME</title>
       </Helmet>
 
-      <div className="min-h-screen flex items-center py-8 relative overflow-hidden bg-[url('/images/heroes/hero-homepage.png')] bg-cover bg-center">
+      <div className="min-h-screen flex items-center py-8 relative overflow-hidden bg-cover bg-center"
+        style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
         <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/90 via-amame-green-dark/82 to-amame-green/65 pointer-events-none" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-6 relative z-10">
 
@@ -72,7 +74,7 @@ export default function ForgotPassword() {
               </Link>
             </Button>
             <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-              <img src="/amame-uploads/amame-logo.webp" alt="AMAME" className="w-7 h-7" />
+              <img src="/logo-192.webp" alt="AMAME" className="w-7 h-7" />
             </div>
           </div>
 

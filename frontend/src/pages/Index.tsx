@@ -1,4 +1,5 @@
 import SEO from "../components/SEO";
+import StaticImage from "@/components/StaticImage";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
@@ -14,8 +15,6 @@ import {
   CheckCircle,
   Quote,
 } from "lucide-react";
-
-const IMG_BASE = "/amame-uploads/AMAME-IMAGE";
 
 type AnimatedSectionProps = {
   children: React.ReactNode;
@@ -45,7 +44,7 @@ const features = [
       "Informations complètes sur les concours nationaux et internationaux, dates limites, critères d'éligibilité et processus d'inscription.",
     icon: BookOpen,
     link: "/concours",
-    image: `${IMG_BASE}/Concours%26Opportunit%C3%A9s.png`,
+    image: "home/concours-opportunites" as const,
     accentColor: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
@@ -57,7 +56,7 @@ const features = [
       "Découvrez les différentes filières disponibles, leurs débouchés professionnels et les opportunités de carrière pour bien choisir votre avenir.",
     icon: GraduationCap,
     link: "/orientation",
-    image: `${IMG_BASE}/Orientation%26Fili%C3%A8res.png`,
+    image: "home/orientation-filieres" as const,
     accentColor: "text-amame-green",
     bgColor: "bg-amame-green-subtle",
     borderColor: "border-amame-green/20",
@@ -69,7 +68,7 @@ const features = [
       "Accédez aux informations sur les bourses nationales et internationales, les critères d'attribution et les procédures de candidature.",
     icon: Award,
     link: "/bourses",
-    image: `${IMG_BASE}/Boursesd%27%C3%A9tudes.png`,
+    image: "home/bourses-etudes" as const,
     accentColor: "text-amame-gold",
     bgColor: "bg-amame-gold-subtle",
     borderColor: "border-amame-gold/20",
@@ -83,7 +82,7 @@ const testimonials = [
     role: "Étudiante en Médecine",
     content:
       "Grâce à AMAME, j'ai pu décrocher une bourse d'études en France. L'accompagnement personnalisé a été déterminant pour ma réussite.",
-    image: `${IMG_BASE}/Fatoumata(M%C3%A9decine).png`,
+    image: "home/temoignage-fatoumata" as const,
     initials: "FD",
     color: "bg-rose-100 text-rose-700",
   },
@@ -92,7 +91,7 @@ const testimonials = [
     role: "Étudiant en Informatique",
     content:
       "Les ressources et conseils d'orientation m'ont permis de choisir la filière qui me correspond vraiment. Merci AMAME !",
-    image: `${IMG_BASE}/Coulibaly(Informatique).png`,
+    image: "home/temoignage-coulibaly" as const,
     initials: "CY",
     color: "bg-amame-green-light text-amame-green-dark",
   },
@@ -101,7 +100,7 @@ const testimonials = [
     role: "Étudiante en Droit",
     content:
       "La plateforme m'a fourni toutes les informations nécessaires pour réussir les concours d'entrée en faculté de droit.",
-    image: `${IMG_BASE}/A%C3%AFcha(Droit).png`,
+    image: "home/temoignage-aicha" as const,
     initials: "AT",
     color: "bg-blue-100 text-blue-700",
   },
@@ -146,8 +145,9 @@ const Index = () => {
                       <div className={`h-full bg-white rounded-2xl border-2 ${feature.borderColor} overflow-hidden flex flex-col transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 cursor-pointer`}>
                         {/* Image banner */}
                         <div className="relative h-44 overflow-hidden">
-                          <img
-                            src={feature.image}
+                          <StaticImage
+                            name={feature.image}
+                            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                             alt={feature.title}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
@@ -206,8 +206,9 @@ const Index = () => {
 
               <AnimatedSection delay={0.2} className="hidden lg:block">
                 <div className="relative rounded-2xl overflow-hidden shadow-xl">
-                  <img
-                    src={`${IMG_BASE}/SectionB%C3%A9n%C3%A9volat.png`}
+                  <StaticImage
+                    name="home/section-benevolat"
+                    sizes="(min-width: 1024px) 50vw, 100vw"
                     alt="Bénévoles AMAME"
                     className="w-full h-full object-cover"
                   />
@@ -235,8 +236,9 @@ const Index = () => {
 
                     {/* ── Body : photo pleine largeur ── */}
                     <div className="relative h-52 overflow-hidden bg-amame-green-subtle shrink-0">
-                      <img
-                        src={testimonial.image}
+                      <StaticImage
+                        name={testimonial.image}
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         alt={testimonial.name}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
