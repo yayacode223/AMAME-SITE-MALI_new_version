@@ -7,6 +7,7 @@ import com.example.siteamame.service.RessourceAcademiqueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class RessourceAcademiqueController {
 
     private final RessourceAcademiqueService ressourceService;
 
+    @PublicListCache
     @GetMapping("/visitor/ressources")
     public ResponseEntity<PageResponse<RessourceAcademiqueDto>> getAllRessourcesActives(
             @RequestParam(defaultValue = "0") int page,

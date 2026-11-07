@@ -13,7 +13,8 @@ import com.example.siteamame.model.Concours;
 import com.example.siteamame.model.File;
 import com.example.siteamame.repository.ConcoursRepository;
 import com.example.siteamame.repository.FileRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
+import com.example.siteamame.service.file.InvalidUploadException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +32,7 @@ import java.time.LocalDateTime;
 public class ConcoursService {
     private final ConcoursRepository concoursRepository;
     private final ConcoursMapper concoursMapper;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
 
@@ -44,7 +45,7 @@ public class ConcoursService {
 
         Page<ConcoursReponseDto> concoursReponseDtoPage=  concoursRepository.findValideConcoursAvecPagination(
                 LocalDateTime.now(), pageable
-        );
+        ).map(concoursMapper::withFileUrl);
         return new ConcoursPageResponse(concoursReponseDtoPage);
     }
 
@@ -66,7 +67,7 @@ public class ConcoursService {
                 niveau,
                 status,
                 pageable
-        );
+        ).map(concoursMapper::withFileUrl);
         return new ConcoursPageResponse(concoursReponseDtoPage);
     }
 
@@ -83,7 +84,7 @@ public class ConcoursService {
         Page<ConcoursReponseDto> concoursReponseDtoPage=  concoursRepository.findValideConcoursBySearch(
                 LocalDateTime.now(), search,
                 pageable
-        );
+        ).map(concoursMapper::withFileUrl);
         return new ConcoursPageResponse(concoursReponseDtoPage);
     }
 
@@ -106,6 +107,9 @@ public class ConcoursService {
                 File fileToSave = fileMapper.convertDtoToFile(fileDto);
                 File savedFile = fileRepository.save(fileToSave);
                 concours.setFile(savedFile);
+            }catch (InvalidUploadException e){
+                // Fichier refusé : l'erreur 400 et son message doivent parvenir à l'utilisateur
+                throw e;
             }catch (Exception e){
                 throw new RuntimeException("Impossible de stocker ce fichier: "+e.getMessage());
             }

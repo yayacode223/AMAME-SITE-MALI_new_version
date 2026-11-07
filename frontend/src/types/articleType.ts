@@ -28,6 +28,8 @@ export interface ArticleSummaryResponse {
   auteur: string;
   categorie: string;
   filePath: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de filePath. */
+  fileUrl?: string;
   vues: number;
   tempsLecture: number;
   datePublication: string;
@@ -43,6 +45,8 @@ export interface ArticleDetailResponse {
   auteur: string;
   categorie: string;
   filePath: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de filePath. */
+  fileUrl?: string;
   vues: number;
   tempsLecture: number;
   datePublication: string;

@@ -4,6 +4,7 @@ import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.exception.user.PasswordNotMatchException;
 import com.example.siteamame.exception.user.UserAlreadyExistsException;
 import com.example.siteamame.exception.user.UserNotFoundException;
+import com.example.siteamame.service.file.InvalidUploadException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.dao.DataAccessException;
@@ -52,6 +53,19 @@ public class GlobalHandlerException {
         String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
         ApiError error = new ApiError(status, message, req.getRequestURI(), List.of(message));
         return new ResponseEntity<>(error, status);
+    }
+
+    // ── Fichier refusé à l'upload → 400 Bad Request ─────────────────────────
+    @ExceptionHandler(InvalidUploadException.class)
+    public ResponseEntity<ApiError> handleInvalidUploadException(
+            InvalidUploadException ex, HttpServletRequest req) {
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                req.getRequestURI(),
+                List.of(ex.getMessage())
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     // ── Refus d'un @PreAuthorize → 403 Forbidden ────────────────────────────

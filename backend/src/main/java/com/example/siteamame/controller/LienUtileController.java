@@ -7,6 +7,7 @@ import com.example.siteamame.service.LienUtileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class LienUtileController {
 
     private final LienUtileService lienUtileService;
 
+    @PublicListCache
     @GetMapping("/visitor/liens-utiles")
     public ResponseEntity<List<LienUtileDto>> getAllLiensActifs() {
         return ResponseEntity.ok(lienUtileService.getAllLiensActifs());

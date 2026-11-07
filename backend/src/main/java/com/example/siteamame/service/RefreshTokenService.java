@@ -80,9 +80,10 @@ public class RefreshTokenService {
     }
 
     /**
-     * Nettoyage automatique des tokens expirés et révoqués — toutes les 24h.
+     * Nettoyage des tokens expirés et révoqués, une fois par nuit dans la fenêtre commune aux
+     * tâches qui touchent la base (02:30 UTC par défaut) : la base n'est réveillée qu'une fois.
      */
-    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000)
+    @Scheduled(cron = "${app.auth.refresh-token-cleanup-cron}", zone = "UTC")
     @Transactional
     public void cleanupExpiredTokens() {
         refreshTokenRepository.deleteExpiredAndRevokedTokens(LocalDateTime.now());

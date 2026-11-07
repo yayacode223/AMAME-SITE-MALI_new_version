@@ -3,12 +3,15 @@ package com.example.siteamame.mapper;
 import com.example.siteamame.dto.galerie.GalerieDto;
 import com.example.siteamame.dto.galerie.GalerieSummaryDto;
 import com.example.siteamame.model.Galerie;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
 public class GalerieMapper {
+
+    private final MediaUrlResolver mediaUrlResolver;
 
     public GalerieSummaryDto toSummary(Galerie galerie) {
         String descriptionCourte = galerie.getDescription() != null && galerie.getDescription().length() > 150
@@ -27,7 +30,8 @@ public class GalerieMapper {
                 galerie.getDateEvenement(),
                 galerie.getEstPublie(),
                 galerie.getDateCreation(),
-                coverPath
+                coverPath,
+                mediaUrlResolver.urlOf(galerie.getCoverImage())
         );
     }
 
@@ -45,7 +49,8 @@ public class GalerieMapper {
                 galerie.getEstPublie(),
                 galerie.getDateCreation(),
                 galerie.getDateModification(),
-                coverPath
+                coverPath,
+                mediaUrlResolver.urlOf(galerie.getCoverImage())
         );
     }
 }

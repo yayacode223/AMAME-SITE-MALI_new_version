@@ -11,7 +11,8 @@ import com.example.siteamame.model.File;
 import com.example.siteamame.model.Membre;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.MembreRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,9 +29,10 @@ import java.util.stream.Collectors;
 public class MembreBureauService {
 
     private final MembreRepository membreRepository;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
+    private final MediaUrlResolver mediaUrlResolver;
 
     @Transactional(readOnly = true)
     public List<MembreDto> getAllMembresActifs() {
@@ -109,7 +111,8 @@ public class MembreBureauService {
                 membre.getEmail(),
                 membre.getOrdre(),
                 membre.getIsActif(),
-                filePath
+                filePath,
+                mediaUrlResolver.urlOf(membre.getFile())
         );
     }
 }

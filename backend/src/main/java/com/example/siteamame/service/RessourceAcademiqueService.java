@@ -11,7 +11,8 @@ import com.example.siteamame.model.File;
 import com.example.siteamame.model.RessourceAcademique;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.RessourceAcademiqueRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,9 +29,10 @@ import java.util.stream.Collectors;
 public class RessourceAcademiqueService {
 
     private final RessourceAcademiqueRepository ressourceRepository;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
+    private final MediaUrlResolver mediaUrlResolver;
 
     @Transactional(readOnly = true)
     public List<RessourceAcademiqueDto> getAllRessourcesActives() {
@@ -120,7 +122,8 @@ public class RessourceAcademiqueService {
         String filePath = r.getFile() != null ? r.getFile().getFilePath() : null;
         return new RessourceAcademiqueDto(
                 r.getId(), r.getTitre(), r.getDescription(),
-                r.getType(), r.getNiveau(), r.getOrdre(), r.getIsActif(), filePath
+                r.getType(), r.getNiveau(), r.getOrdre(), r.getIsActif(), filePath,
+                mediaUrlResolver.urlOf(r.getFile())
         );
     }
 }

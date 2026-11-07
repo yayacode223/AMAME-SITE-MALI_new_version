@@ -7,6 +7,8 @@ export interface RessourceAcademique {
   ordre?: number;
   isActif?: boolean;
   filePath?: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de filePath. */
+  fileUrl?: string;
 }
 
 export interface RessourceAcademiqueRequest {

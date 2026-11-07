@@ -3,8 +3,8 @@ import { format, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { ConcoursResponse } from "@/types/concoursType";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
+import { mediaUrl } from "@/utils/media";
 
 const NIVEAU_LABELS: Record<string, string> = {
   BACHELIER: "Bachelier",
@@ -32,6 +32,7 @@ const ConcoursCardItem = ({
   dateOuverture,
   dateLimite,
   filePath,
+  fileUrl,
   isAvailable,
 }: ConcoursResponse) => {
   const now = new Date();
@@ -53,11 +54,7 @@ const ConcoursCardItem = ({
       : { label: "Ouvert", dot: "bg-amame-green", text: "text-amame-green-dark" };
 
   const isNational = status === "NATIONAL";
-  const imageUrl = filePath
-    ? filePath.startsWith("http")
-      ? filePath
-      : `${PROD_URL}/${filePath}`
-    : null;
+  const imageUrl = mediaUrl(fileUrl ?? filePath);
 
   return (
     <Link
@@ -68,10 +65,11 @@ const ConcoursCardItem = ({
       {/* ── Header : image pleine largeur + badges flottants ── */}
       <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-gray-100">
         {imageUrl ? (
-          <img
+          <MediaImage
             src={imageUrl}
+            maxWidth={640}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={nom}
-            loading="lazy"
             className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isClosed ? "grayscale" : ""}`}
             onError={(e) => {
               e.currentTarget.style.display = "none";

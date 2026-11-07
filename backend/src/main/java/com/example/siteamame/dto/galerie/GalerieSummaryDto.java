@@ -20,4 +20,6 @@ public class GalerieSummaryDto {
     private Boolean estPublie;
     private LocalDateTime dateCreation;
     private String coverImagePath;
+    /** URL d'affichage, calculée par le backend à partir de la clé : à utiliser à la place de coverImagePath. */
+    private String coverImageUrl;
 }

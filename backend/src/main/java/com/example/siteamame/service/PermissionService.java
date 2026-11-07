@@ -9,6 +9,8 @@ import com.example.siteamame.repository.UserPermissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import com.example.siteamame.config.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -66,6 +68,7 @@ public class PermissionService {
      *   2. Avoir un rang de rôle strictement supérieur à celui du target
      *   3. Posséder lui-même la permission qu'il accorde
      */
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void grantPermission(User target, Permission permission, User grantedBy) {
         validateGrantorAuthority(grantedBy, target, permission);
@@ -76,6 +79,7 @@ public class PermissionService {
      * Révoque une permission individuelle d'un utilisateur.
      * Mêmes contraintes que grantPermission.
      */
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void revokePermission(User target, Permission permission, User revokedBy) {
         validateGrantorAuthority(revokedBy, target, permission);
@@ -86,6 +90,7 @@ public class PermissionService {
      * Supprime un override individuel, ramenant l'utilisateur aux permissions
      * par défaut de son rôle pour cette permission.
      */
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void removeOverride(User target, Permission permission, User removedBy) {
         validateGrantorAuthority(removedBy, target, permission);
@@ -99,6 +104,7 @@ public class PermissionService {
      * Le changer doit avoir USER_MANAGE_ROLES et un rang supérieur au target ET
      * au rôle cible.
      */
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void changeRole(User target, RoleType newRole, User changedBy) {
         Set<Permission> changerPerms = getEffectivePermissions(changedBy);

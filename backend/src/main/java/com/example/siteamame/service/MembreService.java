@@ -17,6 +17,8 @@ import com.example.siteamame.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.siteamame.config.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -58,6 +60,7 @@ public class MembreService {
 
     // ── Mot de passe ─────────────────────────────────────────────────────────
 
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)

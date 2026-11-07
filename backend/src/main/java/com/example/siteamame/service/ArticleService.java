@@ -13,7 +13,7 @@ import com.example.siteamame.model.Article;
 import com.example.siteamame.model.File;
 import com.example.siteamame.repository.ArticleRepository;
 import com.example.siteamame.repository.FileRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +38,7 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final ArticleMapper articleMapper;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
 
@@ -155,12 +156,10 @@ public class ArticleService {
     }
 
 
-    public List<String> getCategoriesWithCount() {
-        return articleRepository.findDistinctCategories();
-    }
-
-    public Long getArticleCountByCategorie(String categorie) {
-        return articleRepository.countByCategorie(categorie);
+    @Transactional(readOnly = true)
+    public Map<String, Long> getCategoriesWithCount() {
+        return articleRepository.countPublishedByCategorie().stream()
+                .collect(Collectors.toMap(row -> (String) row[0], row -> (Long) row[1]));
     }
 
 

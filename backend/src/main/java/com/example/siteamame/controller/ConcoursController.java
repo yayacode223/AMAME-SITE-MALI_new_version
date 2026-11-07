@@ -8,6 +8,7 @@ import com.example.siteamame.enumeration.StatusType;
 import com.example.siteamame.service.ConcoursService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ConcoursController {
     private final ConcoursService concoursService;
 
+    @PublicListCache
     @GetMapping("/visitor/concours")
     public ResponseEntity<ConcoursPageResponse> getAllConcours(
             @RequestParam(defaultValue = "0") int page,
@@ -33,6 +35,7 @@ public class ConcoursController {
         return ResponseEntity.ok(concoursPageResponse);
     }
 
+    @PublicListCache
     @GetMapping("/visitor/concours/filter")
     public ResponseEntity<ConcoursPageResponse> getConcoursByNieauOrByStatus(
             @RequestParam(defaultValue = "0") int page,
@@ -53,6 +56,7 @@ public class ConcoursController {
         return ResponseEntity.ok(concoursPageResponse);
     }
 
+    @PublicListCache
     @GetMapping("/visitor/concours/search")
     public ResponseEntity<ConcoursPageResponse> getConcoursBySearch(
             @RequestParam(defaultValue = "0") int page,

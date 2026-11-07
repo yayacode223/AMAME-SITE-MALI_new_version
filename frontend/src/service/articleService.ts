@@ -143,49 +143,6 @@ const deleteArticle = async (id: number): Promise<void> => {
   await Api.delete(`/admin/articles/${id}`);
 };
 
-// Fonctions utilitaires (identiques)
-export const openArticleFile = (filePath: string) => {
-  if (!filePath) return;
-
-  let fileUrl = filePath;
-
-  if (!filePath.startsWith("http")) {
-    const baseUrl = process.env.REACT_APP_API_URL || "";
-    fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-  }
-
-  window.open(fileUrl, "_blank");
-};
-
-export const downloadArticleFile = async (
-  filePath: string,
-  articleTitle: string,
-) => {
-  if (!filePath) return;
-
-  try {
-    let fileUrl = filePath;
-
-    if (!filePath.startsWith("http")) {
-      const baseUrl = process.env.REACT_APP_API_URL || "";
-      fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-    }
-
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.setAttribute(
-      "download",
-      `${articleTitle.replace(/\s+/g, "_")}_image.jpg`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error("Erreur lors du téléchargement:", error);
-    openArticleFile(filePath);
-  }
-};
-
 // Query keys
 export const articleKeys = {
   all: ["articles"] as const,

@@ -12,8 +12,7 @@ import Pagination from "../components/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetAllArticles } from "../service/articleService";
 import { adaptArticleForNews } from "@/utils/articleAdapter";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const CATEGORIES = [
   { id: "all", label: "Toutes" },
@@ -63,12 +62,13 @@ const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArtic
       <div className="flex flex-col sm:flex-row sm:min-h-[190px]">
         {/* Image */}
         <div className="sm:w-56 shrink-0 relative overflow-hidden bg-gradient-to-br from-amame-green-subtle to-green-100">
-          {article.filePath ? (
-            <img
-              src={`${PROD_URL}/${article.filePath}`}
+          {(article.fileUrl ?? article.filePath) ? (
+            <MediaImage
+              src={article.fileUrl ?? article.filePath}
+              maxWidth={640}
+              sizes="(min-width: 640px) 224px, 100vw"
               alt={article.titre}
               className="w-full h-52 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              loading="lazy"
             />
           ) : (
             <div className="w-full h-52 sm:h-full flex items-center justify-center">
@@ -314,9 +314,9 @@ export function Articles() {
                         <Link key={a.id} to={`/articles/${a.slug}`}
                           className="flex gap-3 group p-2 rounded-xl hover:bg-amame-green-subtle/50 transition-colors">
                           <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-green-100 flex items-center justify-center">
-                            {a.filePath ? (
-                              <img src={`${PROD_URL}/${a.filePath}`} alt={a.titre}
-                                className="w-full h-full object-cover" loading="lazy" />
+                            {(a.fileUrl ?? a.filePath) ? (
+                              <MediaImage src={a.fileUrl ?? a.filePath} maxWidth={320} sizes="64px" alt={a.titre}
+                                className="w-full h-full object-cover" />
                             ) : (
                               <Newspaper className="h-5 w-5 text-amame-green/30" />
                             )}

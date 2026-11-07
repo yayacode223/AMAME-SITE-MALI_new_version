@@ -6,8 +6,7 @@ import PageHero from "../components/PageHero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useGetPartenaires } from "@/service/partenaireService";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const Partenaires = () => {
   const { data: partenaires, isLoading } = useGetPartenaires();
@@ -81,12 +80,13 @@ const Partenaires = () => {
                         <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
                           {/* Header — logo pleine largeur (object-contain pour ne jamais rogner le logo) */}
                           <div className="relative h-32 w-full flex items-center justify-center p-5 bg-gradient-to-br from-amame-green-subtle to-white border-b border-amame-border">
-                            {partenaire.filePath ? (
-                              <img
-                                src={`${PROD_URL}/${partenaire.filePath}`}
+                            {(partenaire.fileUrl ?? partenaire.filePath) ? (
+                              <MediaImage
+                                src={partenaire.fileUrl ?? partenaire.filePath}
+                                maxWidth={320}
+                                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                                 alt={partenaire.nom}
                                 className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy"
                                 onError={e => { e.currentTarget.style.display = "none"; }}
                               />
                             ) : (

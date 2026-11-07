@@ -7,6 +7,7 @@ import com.example.siteamame.dto.galerie.GalerieSummaryDto;
 import com.example.siteamame.service.GalerieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class GalerieController {
     /* ── Endpoints visiteur (publics) ──────────────────────────────── */
 
     @Transactional(readOnly = true)
+    @PublicListCache
     @GetMapping("/visitor/galeries")
     public ResponseEntity<PageResponse<GalerieSummaryDto>> getAllGaleries(
             @RequestParam(defaultValue = "0") int page,

@@ -274,7 +274,7 @@ const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <button type="button" className="p-1 rounded-full hover:bg-gray-50 transition-colors">
                       <Avatar className="h-8 w-8 ring-2 ring-green-100">
-                        <AvatarImage src={user.imagePath ?? undefined} alt={`${user.prenom} ${user.nom}`} className="object-cover" />
+                        <AvatarImage src={user.imageUrl} alt={`${user.prenom} ${user.nom}`} className="object-cover" />
                         <AvatarFallback className="bg-amame-green text-white text-xs font-bold">{getUserInitials()}</AvatarFallback>
                       </Avatar>
                     </button>

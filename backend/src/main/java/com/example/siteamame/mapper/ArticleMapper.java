@@ -3,6 +3,7 @@ package com.example.siteamame.mapper;
 import com.example.siteamame.dto.article.ArticleDto;
 import com.example.siteamame.dto.article.ArticleSummaryDto;
 import com.example.siteamame.model.Article;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Component
 public class ArticleMapper {
+
+    private final MediaUrlResolver mediaUrlResolver;
 
     public ArticleSummaryDto convertToSummaryDTO(Article article) {
         String resume = article.getContenu() != null && article.getContenu().length() > 150
@@ -29,6 +32,7 @@ public class ArticleMapper {
                 article.getAuteur(),
                 article.getCategorie(),
                 filePath,
+                mediaUrlResolver.urlOf(article.getFile()),
                 article.getVues(),
                 article.getTempsLecture(),
                 article.getDatePublication(),
@@ -54,6 +58,7 @@ public class ArticleMapper {
                 article.getAuteur(),
                 article.getCategorie(),
                 filePath,
+                mediaUrlResolver.urlOf(article.getFile()),
                 article.getVues(),
                 article.getTempsLecture(),
                 article.getDatePublication(),

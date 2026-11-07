@@ -21,4 +21,6 @@ public class GalerieDto {
     private LocalDateTime dateCreation;
     private LocalDateTime dateModification;
     private String coverImagePath;
+    /** URL d'affichage, calculée par le backend à partir de la clé : à utiliser à la place de coverImagePath. */
+    private String coverImageUrl;
 }

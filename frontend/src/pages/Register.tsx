@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -943,7 +944,7 @@ const Register = () => {
                                     <div className="flex-1">
                                       <Input
                                         type="file"
-                                        accept="image/*"
+                                        accept={IMAGE_ACCEPT}
                                         onChange={(e) => {
                                           const file =
                                             e.target.files?.[0] || null;

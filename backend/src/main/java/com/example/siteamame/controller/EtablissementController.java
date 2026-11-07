@@ -7,6 +7,7 @@ import com.example.siteamame.service.EtablissementService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class EtablissementController {
 
     /* ── Routes publiques ── */
 
+    @PublicListCache
     @GetMapping("/visitor/etablissements")
     public ResponseEntity<PageResponse<EtablissementDto>> getAllEtablissements(
             @RequestParam(defaultValue = "0") int page,

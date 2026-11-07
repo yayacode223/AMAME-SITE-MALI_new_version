@@ -11,6 +11,7 @@ export const adaptArticleForNews = (article: ArticleSummaryResponse) => ({
   categorie: article.categorie,
   date_publication: article.datePublication,
   filePath: article.filePath,
+  fileUrl: article.fileUrl,
   vues: article.vues,
   temps_lecture: article.tempsLecture
 });
@@ -25,6 +26,7 @@ export const adaptArticleForDetail = (article: ArticleDetailResponse) => ({
   categorie: article.categorie,
   date_publication: article.datePublication,
   filePath: article.filePath,
+  fileUrl: article.fileUrl,
   vues: article.vues,
   temps_lecture: article.tempsLecture,
   tags: article.tags,

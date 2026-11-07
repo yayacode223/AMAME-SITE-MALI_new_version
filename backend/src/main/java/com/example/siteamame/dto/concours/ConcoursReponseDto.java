@@ -2,7 +2,6 @@ package com.example.siteamame.dto.concours;
 
 import com.example.siteamame.enumeration.NiveauType;
 import com.example.siteamame.enumeration.StatusType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +12,6 @@ import java.util.Set;
 
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 public class ConcoursReponseDto {
     private Long id;
@@ -27,5 +25,23 @@ public class ConcoursReponseDto {
     private LocalDateTime dateLimite;
     private String lienOfficiel;
     private String filePath;
+    /** URL d'affichage, calculée par le backend à partir de la clé : à utiliser à la place de filePath. */
+    private String fileUrl;
 
+    /** Constructeur des requêtes JPQL de ConcoursRepository : fileUrl est calculé ensuite, hors de la base. */
+    public ConcoursReponseDto(Long id, String nom, String description, String pays, NiveauType niveau,
+                              StatusType status, boolean isAvalable, LocalDateTime dateOuverture,
+                              LocalDateTime dateLimite, String lienOfficiel, String filePath) {
+        this.id = id;
+        this.nom = nom;
+        this.description = description;
+        this.pays = pays;
+        this.niveau = niveau;
+        this.status = status;
+        this.isAvalable = isAvalable;
+        this.dateOuverture = dateOuverture;
+        this.dateLimite = dateLimite;
+        this.lienOfficiel = lienOfficiel;
+        this.filePath = filePath;
+    }
 }

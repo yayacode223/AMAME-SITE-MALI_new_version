@@ -9,8 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useGetAllArticles } from "@/service/articleService";
 import { adaptArticleForNews } from "@/utils/articleAdapter";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const GuideConseils = () => {
   const { data: allArticles, isLoading } = useGetAllArticles();
@@ -83,12 +82,13 @@ const GuideConseils = () => {
                     <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden group">
                       <div className="md:flex">
                         <div className="md:w-56 md:shrink-0 bg-amame-green-subtle flex items-center justify-center overflow-hidden">
-                          {article.filePath ? (
-                            <img
-                              src={`${PROD_URL}/${article.filePath}`}
+                          {(article.fileUrl ?? article.filePath) ? (
+                            <MediaImage
+                              src={article.fileUrl ?? article.filePath}
+                              maxWidth={640}
+                              sizes="(min-width: 768px) 224px, 100vw"
                               alt={article.titre}
                               className="w-full h-44 md:h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
                             />
                           ) : (
                             <Newspaper className="h-10 w-10 text-amame-green/30 m-10" />

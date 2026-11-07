@@ -44,6 +44,8 @@ export interface FiliereSummaryResponse {
   dureeEtudes: string;
   debouches: string[];
   filePath: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de filePath. */
+  fileUrl?: string;
 }
 
 export interface FiliereDetailResponse {
@@ -65,6 +67,8 @@ export interface FiliereDetailResponse {
   universites: string[];
   prerequis: string[];
   filePath: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de filePath. */
+  fileUrl?: string;
 }
 
 // DTOs pour la création et modification

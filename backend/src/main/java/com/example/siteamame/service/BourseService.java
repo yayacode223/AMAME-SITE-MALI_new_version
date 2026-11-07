@@ -12,7 +12,7 @@ import com.example.siteamame.model.Bourse;
 import com.example.siteamame.model.File;
 import com.example.siteamame.repository.BourseRepository;
 import com.example.siteamame.repository.FileRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 public class BourseService {
     private final BourseRepository bourseRepository;
     private final BourseMapper bourseMapper;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
 

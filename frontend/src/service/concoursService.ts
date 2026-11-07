@@ -163,52 +163,6 @@ const deleteConcours = async (id: number): Promise<void> => {
   await Api.delete(`/admin/concours/${id}`);
 };
 
-// Fonctions utilitaires pour les fichiers
-export const openConcoursFile = (filePath: string, fileName?: string) => {
-  if (!filePath) return;
-
-  let fileUrl = filePath;
-
-  // Construire l'URL complète si nécessaire
-  if (!filePath.startsWith("http")) {
-    const baseUrl = process.env.REACT_APP_API_URL || "";
-    fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-  }
-
-  // Ouvrir dans un nouvel onglet
-  window.open(fileUrl, "_blank");
-};
-
-export const downloadConcoursFile = async (
-  filePath: string,
-  concoursName: string,
-) => {
-  if (!filePath) return;
-
-  try {
-    let fileUrl = filePath;
-
-    if (!filePath.startsWith("http")) {
-      const baseUrl = process.env.REACT_APP_API_URL || "";
-      fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-    }
-
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.setAttribute(
-      "download",
-      `${concoursName.replace(/\s+/g, "_")}_document.pdf`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error("Erreur lors du téléchargement:", error);
-    // Fallback: ouvrir dans un nouvel onglet
-    openConcoursFile(filePath);
-  }
-};
-
 // Clés de cache
 export const concoursKeys = {
   all: ["concours"] as const,

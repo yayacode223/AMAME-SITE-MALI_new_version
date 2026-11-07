@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetRessources } from "@/service/ressourceAcademiqueService";
-
-const PROD_URL = "https://amame.ml";
+import { mediaUrl } from "@/utils/media";
 
 const TYPE_COLORS: Record<string, string> = {
   Cours: "bg-blue-50 text-blue-700 border-blue-200",
@@ -201,9 +200,9 @@ const RessourcesAcademiques = () => {
                         {ressource.description && (
                           <p className="text-xs text-amame-muted leading-relaxed line-clamp-2 mb-4">{ressource.description}</p>
                         )}
-                        {ressource.filePath ? (
+                        {(ressource.fileUrl ?? ressource.filePath) ? (
                           <a
-                            href={`${PROD_URL}/${ressource.filePath}`}
+                            href={mediaUrl(ressource.fileUrl ?? ressource.filePath)}
                             target="_blank"
                             rel="noopener noreferrer"
                             download

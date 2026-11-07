@@ -8,6 +8,7 @@ import com.example.siteamame.enumeration.DomaineFiliereSerieType;
 import com.example.siteamame.service.FiliereService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class FiliereController {
 
     private final FiliereService filiereService;
 
+    @PublicListCache
     @GetMapping("/visitor/filieres")
     public ResponseEntity<PageResponse<FiliereSummaryDto>> getAllFilieres(
             @RequestParam(defaultValue = "0") int page,
@@ -38,6 +40,7 @@ public class FiliereController {
         return ResponseEntity.ok(filiereService.getFiliereById(id));
     }
 
+    @PublicListCache
     @GetMapping("/visitor/filieres/search")
     public ResponseEntity<PageResponse<FiliereSummaryDto>> searchFilieres(
             @RequestParam(defaultValue = "0") int page,
@@ -48,6 +51,7 @@ public class FiliereController {
         return ResponseEntity.ok(filiereService.searchFilieresPage(search, page, size, sortBy, sortDirection));
     }
 
+    @PublicListCache
     @GetMapping("/visitor/filieres/domaine/{domaine}")
     public ResponseEntity<PageResponse<FiliereSummaryDto>> getFilieresByDomaine(
             @PathVariable DomaineFiliereSerieType domaine,
@@ -58,6 +62,7 @@ public class FiliereController {
         return ResponseEntity.ok(filiereService.getFilieresByDomainePage(domaine, page, size, sortBy, sortDirection));
     }
 
+    @PublicListCache
     @GetMapping("/visitor/filieres/domaines")
     public ResponseEntity<List<String>> getAvailableDomaines() {
         List<String> domaines = List.of(

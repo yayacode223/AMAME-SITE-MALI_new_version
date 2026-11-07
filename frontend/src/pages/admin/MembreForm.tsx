@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import { useGetAllMembresAdmin, useCreateMembre, useUpdateMembre } from "@/service/membreService";
@@ -168,7 +169,7 @@ const MembreForm: React.FC = () => {
           <label className="block text-sm font-semibold text-amame-charcoal mb-1.5">Photo de profil</label>
           <input
             type="file"
-            accept="image/*"
+            accept={IMAGE_ACCEPT}
             onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
             className="w-full text-sm text-amame-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amame-green-subtle file:text-amame-green hover:file:bg-amame-green-light transition-colors cursor-pointer"
           />

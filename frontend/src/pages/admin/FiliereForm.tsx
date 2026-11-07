@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import { useCreateFiliere, useUpdateFiliere, useGetFiliereById } from "@/service/orientationService";
@@ -228,7 +229,7 @@ const FiliereForm: React.FC = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="file" className={labelCls}>Image illustrative</label>
-            <input type="file" id="file" accept="image/*"
+            <input type="file" id="file" accept={IMAGE_ACCEPT}
               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
               className="mt-1 block w-full text-sm text-amame-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amame-green-subtle file:text-amame-green hover:file:bg-amame-green-light transition-colors" />
           </div>

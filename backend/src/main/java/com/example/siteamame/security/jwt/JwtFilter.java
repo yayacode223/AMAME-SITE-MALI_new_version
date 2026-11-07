@@ -1,7 +1,7 @@
 package com.example.siteamame.security.jwt;
 
 import com.example.siteamame.security.CustomUserDetails;
-import com.example.siteamame.service.user.CustomUserDetailsService;
+import com.example.siteamame.service.user.RequestUserLoader;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,7 +22,7 @@ import java.util.Optional;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final RequestUserLoader requestUserLoader;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -50,16 +51,20 @@ public class JwtFilter extends OncePerRequestFilter {
             if (usernameOpt.isPresent()) {
                 String username = usernameOpt.get();
                 if (jwtUtil.validateToken(token, username)) {
-                    CustomUserDetails userDetails =
-                            (CustomUserDetails) customUserDetailsService.loadUserByUsername(username);
+                    try {
+                        // Lu dans un cache de 60 s : la base n'est pas interrogée à chaque requête
+                        CustomUserDetails userDetails = requestUserLoader.load(username);
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } catch (UsernameNotFoundException e) {
+                        // Jeton encore valide mais compte supprimé : pas d'authentification, donc 401
+                    }
                 }
                 // Token expiré ou invalide → pas d'auth → Spring Security renverra 401
                 // Le frontend interceptera ce 401 et tentera le refresh

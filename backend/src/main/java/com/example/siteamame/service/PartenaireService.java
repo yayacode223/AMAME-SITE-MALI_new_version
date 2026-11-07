@@ -11,7 +11,8 @@ import com.example.siteamame.model.File;
 import com.example.siteamame.model.Partenaire;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.PartenaireRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,9 +29,10 @@ import java.util.stream.Collectors;
 public class PartenaireService {
 
     private final PartenaireRepository partenaireRepository;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileMapper fileMapper;
     private final FileRepository fileRepository;
+    private final MediaUrlResolver mediaUrlResolver;
 
     @Transactional(readOnly = true)
     public List<PartenaireDto> getAllPartenairesActifs() {
@@ -117,7 +119,8 @@ public class PartenaireService {
                 partenaire.getSiteWeb(),
                 partenaire.getOrdre(),
                 partenaire.getIsActif(),
-                filePath
+                filePath,
+                mediaUrlResolver.urlOf(partenaire.getFile())
         );
     }
 }

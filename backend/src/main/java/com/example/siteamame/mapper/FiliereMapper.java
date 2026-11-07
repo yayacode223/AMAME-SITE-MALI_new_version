@@ -3,6 +3,7 @@ package com.example.siteamame.mapper;
 import com.example.siteamame.dto.filiere.FiliereDto;
 import com.example.siteamame.dto.filiere.FiliereSummaryDto;
 import com.example.siteamame.model.Filiere;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 public class FiliereMapper {
+
+    private final MediaUrlResolver mediaUrlResolver;
 
     public FiliereSummaryDto convertToSummaryDTO(Filiere filiere) {
         if (filiere == null) return null;
@@ -32,6 +35,7 @@ public class FiliereMapper {
                 filiere.getNom(),
                 filiere.getDescriptionCourte(),
                 filePath,
+                mediaUrlResolver.urlOf(filiere.getFile()),
                 filiere.getDomaine(),
                 filiere.getDifficulte(),
                 filiere.getDemande(),
@@ -71,6 +75,7 @@ public class FiliereMapper {
                 filiere.getDescriptionCourte(),
                 filiere.getDescriptionLongue(),
                 filePath,
+                mediaUrlResolver.urlOf(filiere.getFile()),
                 filiere.getDomaine(),
                 filiere.getDifficulte(),
                 filiere.getDemande(),

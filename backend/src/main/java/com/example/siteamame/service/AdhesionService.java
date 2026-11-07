@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.siteamame.config.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -132,6 +134,7 @@ public class AdhesionService {
 
     // ── Approbation ─────────────────────────────────────────────────────────
 
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public AdhesionDto approveAdhesion(Long adhesionId) {
         Adhesion adhesion = adhesionRepository.findById(adhesionId)
@@ -158,6 +161,7 @@ public class AdhesionService {
 
     // ── Rejet ────────────────────────────────────────────────────────────────
 
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public AdhesionDto rejectAdhesion(Long adhesionId, String reason) {
         Adhesion adhesion = adhesionRepository.findById(adhesionId)

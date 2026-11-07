@@ -28,5 +28,8 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Écrit config.js à chaque démarrage, à partir de MEDIA_BASE_URL et MEDIA_OPTIMIZER_ENABLED :
+# une même image sert en développement, en recette et en production.
+COPY --chmod=755 docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

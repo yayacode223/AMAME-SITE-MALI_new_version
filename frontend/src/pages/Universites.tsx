@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetEtablissement } from "@/service/etablissementService";
 
-const PROD_URL = "https://amame.ml";
-
 const CardSkeleton = () => (
   <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
     <Skeleton className="h-32 w-full rounded-none" />

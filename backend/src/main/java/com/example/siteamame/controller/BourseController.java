@@ -6,6 +6,7 @@ import com.example.siteamame.dto.bourse.BoursePageResponse;
 import com.example.siteamame.service.BourseService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class BourseController {
     private final BourseService bourseService;
 
     // Méthodes GET existantes
+    @PublicListCache
     @GetMapping("/visitor/bourses")
     public ResponseEntity<BoursePageResponse> getBoursesValides(
             @RequestParam(defaultValue="0") int page,
@@ -29,6 +31,7 @@ public class BourseController {
         return ResponseEntity.ok(boursePageResponse);
     }
 
+    @PublicListCache
     @GetMapping("/visitor/bourses/filter")
     public ResponseEntity<BoursePageResponse> getBoursesValidesAndFiltere(
             @RequestParam(defaultValue = "0") int page,
@@ -47,6 +50,7 @@ public class BourseController {
         return ResponseEntity.ok(boursePageResponse);
     }
 
+    @PublicListCache
     @GetMapping("/visitor/bourses/search")
     public ResponseEntity<BoursePageResponse> getBySearchBourses(
             @RequestParam(defaultValue = "0") int page,

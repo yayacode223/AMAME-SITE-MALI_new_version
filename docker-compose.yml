@@ -23,7 +23,7 @@ services:
 
   backend:
     #image: yaya236/amame-web-site:backend-v7
-    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.1}
+    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.2}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -31,10 +31,32 @@ services:
     # Pas de port publié : le backend n'est joignable que par Nginx, sur le réseau interne.
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/amame_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      # ── Base de données ─────────────────────────────────────────────────────
+      # Tant que la base est sur le VPS, les valeurs par défaut suffisent : le backend se
+      # connecte à « database » avec le compte postgres et POSTGRES_PASSWORD.
+      # Bascule vers une autre base : renseigner ces cinq variables dans la stack, sans nouvelle image.
+      # Le schéma est géré par Flyway (compte DATABASE_MIGRATION_*) ; Hibernate ne le modifie plus.
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://database:5432/amame_db}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
+      - DATABASE_MIGRATION_USERNAME=${DATABASE_MIGRATION_USERNAME:-postgres}
+      - DATABASE_MIGRATION_PASSWORD=${DATABASE_MIGRATION_PASSWORD:-${POSTGRES_PASSWORD}}
+      # Retour arrière de l'étape 1 par le seul tag d'image : backend-v1.1 lit encore ce nom.
+      # Toujours égal à DATABASE_PASSWORD, donc sans effet sur backend-v1.2. À retirer à l'étape 2.
+      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
+      # Pool de connexions : profil « veille » par défaut (voir .env.example pour « toujours actif »)
+      - DB_POOL_MAX_SIZE=${DB_POOL_MAX_SIZE:-10}
+      - DB_POOL_MIN_IDLE=${DB_POOL_MIN_IDLE:-0}
+      - DB_POOL_IDLE_TIMEOUT=${DB_POOL_IDLE_TIMEOUT:-60000}
+      - DB_POOL_KEEPALIVE_TIME=${DB_POOL_KEEPALIVE_TIME:-0}
+      # ── Fichiers ────────────────────────────────────────────────────────────
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      # Même valeur que pour le frontend ci-dessous. Vide : URL relatives (/uploads/…).
+      - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
+      # ── Réveils de la base ──────────────────────────────────────────────────
+      - PUBLIC_LISTS_CACHE_TTL=${PUBLIC_LISTS_CACHE_TTL:-0}
+      - AUTH_TOKEN_CLEANUP_SCHEDULE=${AUTH_TOKEN_CLEANUP_SCHEDULE:-0 30 2 * * *}
+      # ── JWT ─────────────────────────────────────────────────────────────────
       - JWT_SECRET=${JWT_SECRET:?Définir JWT_SECRET (openssl rand -base64 32)}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-900000}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
@@ -71,7 +93,7 @@ services:
 
   frontend:
     #image: yaya236/amame-web-site:frontend-v7
-    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.1}
+    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.2}
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -86,11 +108,17 @@ services:
       - ./frontend/dist:/app/dist
       - ./backend/uploads:/app/uploads
     environment:
-      - VITE_API_URL=
+      # Lues au démarrage du conteneur, pas à la construction de l'image : les changer puis
+      # mettre la stack à jour suffit. MEDIA_BASE_URL : même valeur que pour le backend.
+      - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
+      - MEDIA_OPTIMIZER_ENABLED=${MEDIA_OPTIMIZER_ENABLED:-false}
     restart: unless-stopped
 
   # Le scraper a quitté cette stack : il se lance à la demande depuis la stack
   # « amame-ops » (ops/docker-compose.yml), plus jamais à chaque déploiement.
+
+  # La supervision (Prometheus, Grafana, postgres-exporter) a été retirée le 4 octobre 2026 :
+  # voir docs/03-implementation-migration-neon-bunny.md, écart E14, pour la remettre en place.
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -109,52 +137,6 @@ services:
       database:
         condition: service_healthy
 
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: amame-postgres-exporter
-    environment:
-      DATA_SOURCE_URI: "database:5432/amame_db?sslmode=disable"
-      DATA_SOURCE_USER: postgres
-      DATA_SOURCE_PASS: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD}
-    networks:
-      - common_net
-    depends_on:
-      database:
-        condition: service_healthy
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: amame-prometheus
-    ports:
-      - "127.0.0.1:9090:9090" # accès par tunnel SSH uniquement
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-    networks:
-      - common_net
-    depends_on:
-      - postgres-exporter
-      - backend
-
-  grafana:
-    image: grafana/grafana-oss:latest
-    container_name: amame-grafana
-    ports:
-      - "127.0.0.1:3001:3000" # accès par tunnel SSH uniquement
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      # N'est appliqué qu'à la création du volume grafana_data.
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Définir GRAFANA_ADMIN_PASSWORD}
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
-    networks:
-      - common_net
-    depends_on:
-      - prometheus
-
 networks:
   common_net:
     driver: bridge
@@ -162,8 +144,6 @@ networks:
 volumes:
   database_data:
   pgadmin_data:
-  prometheus_data:
-  grafana_data:
 
 # networks:
 #   common_net:

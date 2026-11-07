@@ -6,8 +6,7 @@ import PageHero from "../components/PageHero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useGetMembres } from "@/service/membreService";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
   <motion.div
@@ -18,12 +17,13 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
     <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
       {/* Header — photo pleine largeur */}
       <div className="relative w-full h-52 overflow-hidden bg-amame-green-subtle">
-        {membre.filePath ? (
-          <img
-            src={`${PROD_URL}/${membre.filePath}`}
+        {(membre.fileUrl ?? membre.filePath) ? (
+          <MediaImage
+            src={membre.fileUrl ?? membre.filePath}
+            maxWidth={640}
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
             alt={`${membre.prenom} ${membre.nom}`}
             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
         ) : (

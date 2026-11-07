@@ -9,8 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useGetLiensUtiles } from "@/service/lienUtileService";
 
-const PROD_URL = "https://amame.ml";
-
 const CATEGORY_COLORS: Record<string, string> = {
   Bourses: "bg-amame-gold-subtle text-amame-gold border-amame-gold/20",
   Concours: "bg-blue-50 text-blue-700 border-blue-200",

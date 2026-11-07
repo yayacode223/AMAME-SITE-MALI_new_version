@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetAllGaleries } from "@/service/galerieService";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const Galeries = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,12 +124,13 @@ const Galeries = () => {
                       className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden group"
                     >
                       <div className="relative h-48 bg-amame-green-subtle overflow-hidden">
-                        {galerie.coverImagePath ? (
-                          <img
-                            src={`${PROD_URL}/${galerie.coverImagePath}`}
+                        {(galerie.coverImageUrl ?? galerie.coverImagePath) ? (
+                          <MediaImage
+                            src={galerie.coverImageUrl ?? galerie.coverImagePath}
+                            maxWidth={640}
+                            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                             alt={galerie.titre}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

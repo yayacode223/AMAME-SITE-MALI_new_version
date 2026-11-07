@@ -107,49 +107,6 @@ const deleteFiliere = async (id: number): Promise<void> => {
   await Api.delete(`/admin/filieres/${id}`);
 };
 
-export const openFiliereFile = (filePath: string) => {
-  if (!filePath) return;
-
-  let fileUrl = filePath;
-
-  // Construire l'URL complète si nécessaire
-  if (!filePath.startsWith("http")) {
-    const baseUrl = process.env.REACT_APP_API_URL || "";
-    fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-  }
-
-  window.open(fileUrl, "_blank");
-};
-
-export const downloadFiliereFile = async (
-  filePath: string,
-  filiereName: string,
-) => {
-  if (!filePath) return;
-
-  try {
-    let fileUrl = filePath;
-
-    if (!filePath.startsWith("http")) {
-      const baseUrl = process.env.REACT_APP_API_URL || "";
-      fileUrl = `${baseUrl}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
-    }
-
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.setAttribute(
-      "download",
-      `${filiereName.replace(/\s+/g, "_")}_image.jpg`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error("Erreur lors du téléchargement:", error);
-    openFiliereFile(filePath);
-  }
-};
-
 // Query keys
 export const orientationKeys = {
   all: ["orientation"] as const,

@@ -19,6 +19,8 @@ public class ArticleDto {
     private String auteur;
     private String categorie;
     private String filePath;
+    /** URL d'affichage, calculée par le backend à partir de la clé : à utiliser à la place de filePath. */
+    private String fileUrl;
     private Integer vues;
     private Integer tempsLecture;
     private LocalDateTime datePublication;

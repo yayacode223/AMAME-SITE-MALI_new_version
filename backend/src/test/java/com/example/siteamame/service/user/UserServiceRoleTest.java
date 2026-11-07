@@ -9,7 +9,9 @@ import com.example.siteamame.model.User;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.FiliereRepository;
 import com.example.siteamame.repository.UserRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.config.StorageProperties;
+import com.example.siteamame.service.file.FileStorageService;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +40,7 @@ class UserServiceRoleTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private FileStorageServiceImpl fileStorageService;
+    private FileStorageService fileStorageService;
     @Mock
     private FileRepository fileRepository;
     @Mock
@@ -52,7 +54,8 @@ class UserServiceRoleTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, new UserMapperDto(passwordEncoder, filiereRepository),
+        userService = new UserService(userRepository, new UserMapperDto(passwordEncoder, filiereRepository,
+                        new MediaUrlResolver(new StorageProperties("local", "", new StorageProperties.Local("uploads")))),
                 fileStorageService, fileRepository, fileMapper);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }

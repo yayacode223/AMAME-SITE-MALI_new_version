@@ -12,7 +12,7 @@ import com.example.siteamame.model.File;
 import com.example.siteamame.model.Galerie;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.GalerieRepository;
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -30,7 +30,7 @@ public class GalerieService {
 
     private final GalerieRepository galerieRepository;
     private final GalerieMapper galerieMapper;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
 

@@ -6,6 +6,7 @@ import com.example.siteamame.dto.partenaire.PartenaireRequestDto;
 import com.example.siteamame.service.PartenaireService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ public class PartenaireController {
 
     private final PartenaireService partenaireService;
 
+    @PublicListCache
     @GetMapping("/visitor/partenaires")
     public ResponseEntity<List<PartenaireDto>> getAllPartenairesActifs() {
         return ResponseEntity.ok(partenaireService.getAllPartenairesActifs());

@@ -7,6 +7,8 @@ export interface GalerieSummary {
   estPublie: boolean;
   dateCreation: string;
   coverImagePath?: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de coverImagePath. */
+  coverImageUrl?: string;
 }
 
 export interface GalerieDetail {
@@ -19,6 +21,8 @@ export interface GalerieDetail {
   dateCreation: string;
   dateModification?: string;
   coverImagePath?: string;
+  /** URL d'affichage calculée par le backend — à utiliser à la place de coverImagePath. */
+  coverImageUrl?: string;
 }
 
 export interface GalerieCreationRequest {

@@ -19,8 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
 
 const difficultyConfig: Record<string, { label: string; cls: string }> = {
   TRES_ELEVEE: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
@@ -224,12 +223,13 @@ export function Orientation() {
 
                             {/* Header — image pleine largeur */}
                             <div className="relative h-40 overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
-                              {filiere.filePath ? (
-                                <img
-                                  src={`${PROD_URL}/${filiere.filePath}`}
+                              {(filiere.fileUrl ?? filiere.filePath) ? (
+                                <MediaImage
+                                  src={filiere.fileUrl ?? filiere.filePath}
+                                  maxWidth={640}
+                                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                                   alt={filiere.nom}
                                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                  loading="lazy"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">

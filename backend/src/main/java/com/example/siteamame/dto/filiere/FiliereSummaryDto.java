@@ -19,6 +19,8 @@ public class FiliereSummaryDto {
     private String nom;
     private String descriptionCourte;
     private String filePath;
+    /** URL d'affichage, calculée par le backend à partir de la clé : à utiliser à la place de filePath. */
+    private String fileUrl;
     private DomaineFiliereSerieType domaine;
     private DifficulteType difficulte;
     private DemandeType demande;

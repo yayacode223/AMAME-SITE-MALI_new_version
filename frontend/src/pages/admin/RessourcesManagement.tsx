@@ -5,8 +5,7 @@ import DataTable from "@/components/admin/DataTable";
 import Pagination from "@/components/Pagination";
 import { useGetRessourcesAdmin, useDeleteRessource } from "@/service/ressourceAcademiqueService";
 import { RessourceAcademique } from "@/types/ressourceAcademiqueType";
-
-const PROD_URL = "https://amame.ml";
+import { mediaUrl } from "@/utils/media";
 
 const RessourcesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -38,9 +37,9 @@ const RessourcesManagement: React.FC = () => {
     {
       key: "filePath",
       label: "Document",
-      render: (v: string) =>
+      render: (v: string, row: RessourceAcademique) =>
         v ? (
-          <a href={`${PROD_URL}/${v}`} target="_blank" rel="noopener noreferrer"
+          <a href={mediaUrl(row.fileUrl ?? v)} target="_blank" rel="noopener noreferrer"
             className="text-amame-green hover:underline text-xs">
             Voir le fichier
           </a>

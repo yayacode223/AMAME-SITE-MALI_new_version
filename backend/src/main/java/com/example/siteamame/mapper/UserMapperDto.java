@@ -7,6 +7,7 @@ import com.example.siteamame.model.User;
 import com.example.siteamame.enumeration.FileType;
 import com.example.siteamame.enumeration.RoleType;
 import com.example.siteamame.repository.FiliereRepository;
+import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -20,9 +21,7 @@ import java.util.Optional;
 public class UserMapperDto {
     private final PasswordEncoder passwordEncoder;
     private final FiliereRepository filiereRepo;
-
-    /** Les fichiers d'un utilisateur sont privés : ils ne se lisent que par cet endpoint authentifié. */
-    private static final String PRIVATE_FILE_URL = "/api/user/files/";
+    private final MediaUrlResolver mediaUrlResolver;
 
     public UserReponseDto UserToDto(User user) {
         UserReponseDto userReponseDto = new UserReponseDto();
@@ -41,15 +40,15 @@ public class UserMapperDto {
         userReponseDto.setCodePostal(user.getCodePostal());
         userReponseDto.setRole(user.getRole());
 
-        //Filtrage des fichiers
+        // Les fichiers d'un utilisateur sont privés : leur URL est l'endpoint authentifié /api/user/files/{id}.
         if (user.getFiles() != null) {
             user.getFiles().forEach(file -> {
                 if (file.getFileType() == FileType.IMAGE) {
                     userReponseDto.setImagePath(file.getFilePath());
-                    userReponseDto.setImageUrl(PRIVATE_FILE_URL + file.getId());
+                    userReponseDto.setImageUrl(mediaUrlResolver.urlOf(file));
                 } else if (file.getFileType() == FileType.DOCUMENT) {
                     userReponseDto.setCvPath(file.getFilePath());
-                    userReponseDto.setCvUrl(PRIVATE_FILE_URL + file.getId());
+                    userReponseDto.setCvUrl(mediaUrlResolver.urlOf(file));
                 }
             });
         }

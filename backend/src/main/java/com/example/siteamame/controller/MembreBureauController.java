@@ -6,6 +6,7 @@ import com.example.siteamame.dto.membre.MembreRequestDto;
 import com.example.siteamame.service.MembreBureauService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ public class MembreBureauController {
 
     private final MembreBureauService membreBureauService;
 
+    @PublicListCache
     @GetMapping("/visitor/membres")
     public ResponseEntity<List<MembreDto>> getAllMembresActifs() {
         return ResponseEntity.ok(membreBureauService.getAllMembresActifs());

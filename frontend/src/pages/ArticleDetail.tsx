@@ -9,8 +9,8 @@ import { motion } from "framer-motion";
 import SEO from "../components/SEO";
 import { useGetAllArticles, useGetArticleBySlug } from "@/service/articleService";
 import { adaptArticleForDetail, adaptArticleForNews } from "@/utils/articleAdapter";
-
-const PROD_URL = "https://amame.ml";
+import MediaImage from "@/components/MediaImage";
+import { mediaUrl } from "@/utils/media";
 
 const CATEGORY_STYLES: Record<string, string> = {
   Conseils: "bg-amame-green-light text-amame-green-dark border-amame-green/20",
@@ -121,7 +121,7 @@ export function ArticleDetail() {
         description={article.metaDescription || article.contenu?.slice(0, 155) || `Article AMAME : ${article.titre}`}
         path={`/articles/${article.slug}`}
         type="article"
-        image={article.filePath ? `${PROD_URL}/${article.filePath}` : undefined}
+        image={mediaUrl(article.fileUrl ?? article.filePath)}
       />
       <Navbar />
       <div className="min-h-screen bg-amame-surface flex flex-col">
@@ -190,14 +190,15 @@ export function ArticleDetail() {
               >
                 <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
                   {/* Image hero */}
-                  {article.filePath && (
+                  {(article.fileUrl ?? article.filePath) && (
                     <div className="w-full overflow-hidden bg-amame-green-subtle">
-                      <img
-                        src={`${PROD_URL}/${article.filePath}`}
+                      <MediaImage
+                        src={article.fileUrl ?? article.filePath}
+                        maxWidth={1280}
+                        sizes="(min-width: 1024px) 66vw, 100vw"
                         alt={article.titre}
                         className="w-full object-cover"
                         style={{ aspectRatio: "16 / 7", objectPosition: "center" }}
-                        loading="lazy"
                       />
                     </div>
                   )}
@@ -273,10 +274,10 @@ export function ArticleDetail() {
                         <Link key={a.id} to={`/articles/${a.slug}`}
                           className="group bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
                           <div className="overflow-hidden bg-gradient-to-br from-amame-green-subtle to-green-100">
-                            {a.filePath ? (
-                              <img src={`${PROD_URL}/${a.filePath}`} alt={a.titre}
-                                className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500"
-                                loading="lazy" />
+                            {(a.fileUrl ?? a.filePath) ? (
+                              <MediaImage src={a.fileUrl ?? a.filePath} alt={a.titre} maxWidth={640}
+                                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                                className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
                             ) : (
                               <div className="w-full h-36 flex items-center justify-center">
                                 <Newspaper className="h-8 w-8 text-amame-green/20" />
@@ -316,8 +317,8 @@ export function ArticleDetail() {
                         <Link key={a.id} to={`/articles/${a.slug}`}
                           className="flex gap-3 group p-2 rounded-xl hover:bg-amame-green-subtle/50 transition-colors">
                           <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-green-100 flex items-center justify-center">
-                            {a.filePath
-                              ? <img src={`${PROD_URL}/${a.filePath}`} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+                            {(a.fileUrl ?? a.filePath)
+                              ? <MediaImage src={a.fileUrl ?? a.filePath} maxWidth={320} sizes="56px" alt={a.titre} className="w-full h-full object-cover" />
                               : <Newspaper className="h-4 w-4 text-amame-green/30" />}
                           </div>
                           <div className="flex-1 min-w-0">

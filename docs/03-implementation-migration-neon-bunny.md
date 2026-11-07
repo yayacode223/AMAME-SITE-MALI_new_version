@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Date** | 2 octobre 2026 |
-| **Version** | 3 : intègre les décisions du 2 octobre 2026 (VPS piloté par Portainer, Neon en plan Free au démarrage, région Francfort partout, abonnement Bunny existant, Optimizer reporté, socle d'abord puis fonctionnalités avancées par vagues) |
+| **Version** | 4 : version 3 (décisions du 2 octobre 2026 : VPS piloté par Portainer, Neon en plan Free au démarrage, région Francfort partout, abonnement Bunny existant, Optimizer reporté, socle d'abord puis fonctionnalités avancées par vagues), complétée par la décision du 4 octobre 2026 : supervision (Prometheus, Grafana, postgres-exporter) retirée de la stack pour le moment |
 | **Base** | branche `main`, commit `0e43556` |
 | **Rapports sources** | Neon : [01 — État des lieux](neon/01-etat-des-lieux-base-de-donnees.md) · [02 — Plan de migration](neon/02-plan-migration-neon.md) — Bunny : [01 — État des lieux](bunny/01-etat-des-lieux-stockage.md) · [02 — Plan d'implémentation](bunny/02-plan-implementation-bunny.md) |
 | **Nature** | rapport d'implémentation unifié **et fichier de suivi** : ordre des étapes, choix et justifications, puis état d'avancement réel. Ce rapport ne contient pas de code : les esquisses restent dans les deux plans 02, et le code livré est référencé depuis le suivi ci-dessous. |
@@ -15,7 +15,7 @@
 
 > **À lire en premier à chaque nouvelle session.** Cette section dit où en est la migration, ce qui reste à faire et ce qui a été décidé en cours de route. Le reste du rapport (§1 à §13) est la référence de conception : il ne change que si une décision change.
 
-**Dernière mise à jour : 3 octobre 2026.**
+**Dernière mise à jour : 5 octobre 2026.**
 
 ### Comment reprendre le travail
 
@@ -37,15 +37,17 @@
 
 | Étape | Contenu | Code (dépôt) | Production | Critères de sortie |
 | --- | --- | --- | --- | --- |
-| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local, **non commité** | ⬜ rien n'est déployé | 0 / 8 |
-| **1** | Socle de code commun | ⬜ (plusieurs éléments déjà livrés, voir « Notes pour les étapes suivantes ») | ⬜ | 0 / 7 |
+| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; figé dans la branche `sauvegarde/etape-0`, **pas encore sur `main`** | ⬜ rien n'est déployé | 0 / 8 |
+| **1** | Socle de code commun | 🟡 écrit et vérifié en local, **non commité** | ⬜ rien n'est déployé | 0 / 7 |
 | **2** | Contrat de métadonnées et garde-fous en base | ⬜ | ⬜ | 0 / 6 |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
 | **6** | Exploitation et nettoyage | ⬜ | ⬜ | §9 |
 
-### Étape en cours : 0 — détail
+### Étape 0 — détail
+
+Code figé dans la branche locale `sauvegarde/etape-0` (commit `b14e7dd`). Rien n'est déployé : tout ce qui suit attend les actions manuelles A à F.
 
 | # | Action (§5, étape 0) | Dépôt | Ce qui a été livré | Reste à faire en production |
 | --- | --- | --- | --- | --- |
@@ -57,24 +59,45 @@
 | 0.6 | Durcissement | 🟡 | `restart` sur la base ; pgAdmin, Grafana et Prometheus sur `127.0.0.1` ; port 8080 non publié ; mémoire JVM mesurée et bornée sous la limite du conteneur ; limitation de débit de l'inscription sur la vraie IP | vérifier que la limite s'applique bien par visiteur |
 | 0.7 | Images statiques | 🟡 | 34 images converties en 70 fichiers WebP (2,9 Mo au lieu de 67 Mo) ; 128 fichiers jamais référencés et `favicon.svg` supprimés ; `public/` passe de 92 Mo à 6,4 Mo ; composant [StaticImage.tsx](../frontend/src/components/StaticImage.tsx) (`srcset`, dimensions, chargement différé) ; logo de 9 Ko au lieu de 292 Ko | mesurer le poids réel de l'accueil |
 
+### Étape 1 — détail
+
+Code écrit et vérifié en local les 4 et 5 octobre 2026, **avant** que les critères de l'étape 0 soient constatés en production, à la demande de l'équipe (écart E15). L'ordre de déploiement ne change pas : l'étape 0 d'abord.
+
+| # | Action (§5, étape 1) | Dépôt | Ce qui a été livré | Reste à faire en production |
+| --- | --- | --- | --- | --- |
+| 1.1 | Configuration externalisée | 🟡 | connexion lue dans `DATABASE_*`, sans valeur en dur ; Flyway avec son propre compte ; propriétés typées `app.storage.*` ([StorageProperties.java](../backend/src/main/java/com/example/siteamame/config/StorageProperties.java)) ; pool piloté par `DB_POOL_*`, profil « veille » par défaut ; [.env.example](../.env.example) et [docker-compose.yml](../docker-compose.yml) à jour ; tags `backend-v1.2` et `frontend-v1.2` | aucune variable nouvelle n'est obligatoire tant que la base est sur le VPS (action I) |
+| 1.2 | Flyway | 🟡 | [V1__baseline.sql](../backend/src/main/resources/db/migration/V1__baseline.sql) (25 tables) ; base existante marquée « en V1 » sans rien exécuter ; Hibernate en `validate` ; test de démarrage sur un vrai PostgreSQL (Testcontainers) | **comparer le schéma de production à V1 avant de déployer** (action G.1) ; constater la baseline dans le journal du backend |
+| 1.3 | Abstraction du stockage | 🟡 | les 9 services injectent l'interface `FileStorageService` ; [LocalFileStorageService.java](../backend/src/main/java/com/example/siteamame/service/file/LocalFileStorageService.java) lit enfin sa propriété ; [UploadValidator.java](../backend/src/main/java/com/example/siteamame/service/file/UploadValidator.java) (octets de signature, WebP accepté) ; [MediaUrlResolver.java](../backend/src/main/java/com/example/siteamame/service/file/MediaUrlResolver.java) et champs `fileUrl` ou `coverImageUrl` dans 10 DTO ; `ConcoursMapper` et `ConcoursRepository` corrigés | recette : concours sans fichier, upload, affichage |
+| 1.4 | Frontend | 🟡 | [media.ts](../frontend/src/utils/media.ts) et [MediaImage.tsx](../frontend/src/components/MediaImage.tsx) ; plus aucune constante `PROD_URL` ni chemin `/${filePath}` ; avatar de la Navbar corrigé ; `config.js` écrit au démarrage du conteneur ([40-runtime-config.sh](../frontend/docker/40-runtime-config.sh)) et exclu du précache de la PWA ; paramètres d'Optimizer prévus et désactivés ; code mort retiré ; attributs `accept` alignés sur le backend | changer `MEDIA_BASE_URL`, mettre la stack à jour, constater le changement (action J) |
+| 1.5 | Accès SQL et réveils de la base | 🟡 | chargements groupés ; catégories comptées en une requête ; cache de 60 s du filtre JWT ; auto-commit désactivé et seuil de fuite à 60 s ; plus aucune sonde de santé n'interroge la base ; cache des listes publiques prêt et désactivé ; nettoyage des jetons déplacé dans la fenêtre de nuit | — |
+| — | Supervision retirée (décision du 4 octobre, écart E14) | 🟡 | services `prometheus`, `grafana` et `postgres-exporter`, leurs volumes, `GRAFANA_ADMIN_PASSWORD`, le dossier `monitoring/` et l'export Prometheus du backend | supprimer les 3 conteneurs et les 2 volumes devenus orphelins (action I.4) |
+| — | Mémoire du backend remesurée (écart E22) | 🟡 | lecture des fichiers par blocs, deux bornes sur la mémoire native, tas ramené de 40 % à 30 % : 396 Mio sur 512 sous charge, contre 482 pour l'étape 0 | relever `docker stats` après quelques jours (action J.4) |
+
 ### Prochaine action
 
-**Côté équipe** : relire, commiter, puis dérouler les actions manuelles ci-dessous. L'étape 1 ne commence qu'une fois les 8 critères de sortie de l'étape 0 constatés en production.
+**Côté équipe**, dans cet ordre :
+
+1. **Tout de suite** : ne lancer aucun `git pull` sur le serveur avant d'avoir mis les fichiers à l'abri (action A.1). Le commit qui retire `backend/uploads/` du suivi est déjà sur GitHub.
+2. Régulariser Git (action A.2), relire, commiter l'étape 1.
+3. Dérouler les actions manuelles de l'étape 0 (A à F), puis celles de l'étape 1 (G à J).
+4. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
 
 **Côté implémentation, à la prochaine session** :
 
-1. Reporter dans ce suivi ce que l'équipe a constaté en production : faits relevés, critères cochés avec leur date.
-2. Si les critères de l'étape 0 sont remplis : commencer l'étape 1 par les actions 1 et 2 (configuration externalisée, puis Flyway en *baseline*), qui conditionnent toute la suite (DT3).
-3. Sinon : traiter ce qui bloque.
+1. Reporter dans ce suivi les faits relevés et cocher les critères constatés, pour les étapes 0 et 1.
+2. Si la comparaison de l'action G.1 montre un écart entre la production et `V1__baseline.sql` : corriger V1 avant tout déploiement de l'étape 1.
+3. Si les critères de l'étape 1 sont remplis en production : commencer l'étape 2 par l'inventaire croisé (2.1), qui se lit en production et conditionne les migrations V2 et V3.
+4. Sinon : traiter ce qui bloque.
 
 ### Actions manuelles en attente
 
-À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local.
+À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1.
+
+**Deux façons de déployer.** Le plan demande de déployer l'étape 0, de constater ses 8 critères, puis de déployer l'étape 1 : un incident n'a alors qu'une cause possible. Déployer les deux ensemble reste possible (actions A à C et E.1, puis directement G à J avec les images `v1.2`), mais les critères des deux étapes se vérifient alors en même temps. Le choix se consigne dans les faits relevés.
 
 #### A. Avant tout déploiement
 
-1. **Relire et commiter.** Rien n'est commité. `git status` montre 202 suppressions : 39 sont le retrait du suivi des `.env` et des uploads (les fichiers restent sur le disque), 163 sont des images déplacées ou supprimées.
-2. **Protéger les fichiers du serveur avant de récupérer ce commit.** Sur toute machine où le dépôt est cloné, `git pull` **efface du disque** les fichiers qui cessent d'être suivis : les 37 fichiers de `backend/uploads/` et les deux `.env`. Avant le `pull` :
+1. **Protéger les fichiers du serveur. À faire en premier : le commit concerné est déjà publié.** Le commit `f5252df` est déjà sur GitHub (constaté le 5 octobre : `origin/main` pointe dessus). Il retire du suivi Git les 37 fichiers de `backend/uploads/` et les deux `.env`. Sur toute machine où le dépôt est cloné, le prochain `git pull` **efface ces fichiers du disque**. Ne lancer aucun `git pull` sur le serveur, et suspendre toute mise à jour automatique d'une stack Portainer déployée depuis Git, avant d'avoir fait ceci :
 
    ```bash
    cp -a backend/uploads /root/uploads-avant-etape0
@@ -87,6 +110,17 @@
    Si `git pull` refuse d'écraser des modifications locales de ces fichiers, lancer d'abord `git checkout -- backend/.env frontend/.env` : les copies ci-dessus contiennent les valeurs du serveur.
 
    La même précaution vaut pour le dossier de travail de Portainer s'il déploie depuis Git, et pour le poste de chaque développeur.
+2. **Régulariser Git.** Le commit `f5252df` ne contient que ces 39 retraits : le code de l'étape 0 n'y est pas. Pour que les deux étapes restent séparées, l'état exact du dépôt à la fin de l'étape 0 a été figé dans une branche locale, `sauvegarde/etape-0` (commit `b14e7dd`, dont le parent est `f5252df`), sans toucher à `main`. Depuis la racine du dépôt, sur `main` :
+
+   ```bash
+   git reset sauvegarde/etape-0     # main avance sur le commit de l'étape 0 ; aucun fichier du disque n'est modifié
+   git status                       # ne montre plus que les changements de l'étape 1
+   git add -A
+   git commit -m "Etape 1 : socle de code commun"
+   git push                         # avance simple : aucun push forcé n'est nécessaire
+   ```
+
+   La branche `sauvegarde/etape-0` peut ensuite être supprimée (`git branch -d sauvegarde/etape-0`).
 3. **Relever les faits** du tableau « Faits relevés en production », en particulier le chemin réel des uploads.
 
 #### B. Sécurité, sans attendre le déploiement
@@ -104,7 +138,7 @@
    - mot de passe d'application Gmail : le révoquer, en créer un nouveau ;
    - `JWT_SECRET` : `openssl rand -base64 32`. Les utilisateurs connectés devront peut-être se reconnecter ;
    - mot de passe de la base, **dans cet ordre** : `ALTER USER postgres PASSWORD '…'` dans le conteneur de la base, puis la même valeur dans `POSTGRES_PASSWORD`, puis mise à jour de la stack. Une variable différente du mot de passe réel empêche le backend de démarrer ;
-   - Grafana : changer le mot de passe du compte `admin` dans l'interface. La variable ne s'applique qu'à un volume neuf.
+   - Grafana : sans objet dès que la supervision est retirée (action I.4). D'ici là, changer le mot de passe du compte `admin` dans l'interface : la variable ne s'applique qu'à un volume neuf.
 
 #### C. Bunny
 
@@ -122,10 +156,20 @@
 
    Tags produits : `backend-v1.1`, `frontend-v1.1`, `ops-v1.0`, `scraper-v1.1`.
 
+   Les images `backend-v1.1` et `frontend-v1.1` se construisent **depuis le commit de l'étape 0**, et non depuis `main` une fois l'étape 1 commitée : ses tags par défaut sont `v1.2`. Le plus simple est un second dossier de travail :
+
+   ```bash
+   git worktree add ../amame-etape-0 b14e7dd
+   cp .env ../amame-etape-0/.env && cd ../amame-etape-0
+   docker compose build backend frontend && docker compose push backend frontend
+   ```
+
+   Les images `ops-v1.0` et `scraper-v1.1` sont les mêmes pour les deux étapes.
+
 #### E. Portainer
 
 1. **Sécuriser Portainer** : interface non exposée publiquement (tunnel SSH ou VPN), mot de passe fort, version à jour (§3.1).
-2. **Stack `amame`** : ajouter les variables `POSTGRES_PASSWORD`, `JWT_SECRET`, `PGADMIN_PASSWORD`, `GRAFANA_ADMIN_PASSWORD`, `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE`, les `MAIL_*`, et les deux tags d'image. Mettre la stack à jour.
+2. **Stack `amame`** : ajouter les variables `POSTGRES_PASSWORD`, `JWT_SECRET`, `PGADMIN_PASSWORD`, `GRAFANA_ADMIN_PASSWORD`, `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE`, les `MAIL_*`, et les deux tags d'image. Mettre la stack à jour. Si l'étape 0 est déployée seule, le compose à utiliser est celui de son commit (`git show b14e7dd:docker-compose.yml`) : il déclare encore la supervision, et `GRAFANA_ADMIN_PASSWORD` n'est à saisir que dans ce cas. La supervision disparaît avec le compose de l'étape 1 (écart E14).
 3. **Supprimer l'ancien conteneur `amame-scraper`**, devenu orphelin : la stack `amame-ops` crée un conteneur du même nom.
 4. **Stack `amame-ops`** : la créer avec les variables décrites dans [ops/README.md](../ops/README.md), puis lancer `backup.sh` et `restore-test.sh` depuis la console du conteneur `amame-ops-backup`.
 5. **Conserver `BACKUP_PASSPHRASE` hors du serveur.** Sans elle, aucune sauvegarde n'est lisible.
@@ -141,6 +185,66 @@ Constater les critères de sortie de l'étape 0 (§5), puis les cocher avec leur
 
 Remettre `BACKEND_IMAGE_TAG=backend-v1.0` et `FRONTEND_IMAGE_TAG=frontend-v1.0` dans la stack, les deux ensemble. Les images `v1.0` rouvrent l'accès public aux fichiers privés et la faille des rôles : à n'utiliser que le temps de corriger.
 
+#### G. Avant de déployer l'étape 1
+
+1. **Comparer le schéma de production à `V1__baseline.sql`.** Ce fichier a été produit à partir des entités, sur un PostgreSQL 15 neuf, et non à partir de la production, à laquelle l'implémentation n'a pas accès (écart E16). Sur le serveur :
+
+   ```bash
+   docker exec amame-database pg_dump -U postgres --schema-only --no-owner --no-privileges amame_db > schema-production.sql
+   ```
+
+   Le fichier obtenu ne contient aucune donnée, seulement la structure. Le copier à la racine du dépôt, sans le commiter, puis :
+
+   ```bash
+   diff <(grep -vE '^(SET |SELECT pg_catalog|\\|--|$)' schema-production.sql) \
+        <(grep -vE '^(--|$)' backend/src/main/resources/db/migration/V1__baseline.sql)
+   ```
+
+   - **aucune différence** : rien à faire ;
+   - **une table ou une colonne absente en production** : le backend de l'étape 1 refuserait de démarrer (`validate`). Ne pas déployer, transmettre la différence ;
+   - **une colonne en trop, une contrainte `CHECK` plus ancienne, un nom de contrainte différent** : sans effet sur le démarrage, mais V1 doit décrire la production. Transmettre la différence pour corriger V1 avant le déploiement.
+
+   Le résultat se consigne dans les faits relevés.
+2. **Relever la mémoire du backend actuel** : `docker stats --no-stream amame-backend`. Elle servira de point de comparaison (écart E22).
+
+#### H. Images de l'étape 1
+
+Depuis `main`, une fois l'étape 1 commitée :
+
+```bash
+docker compose build backend frontend && docker compose push backend frontend
+```
+
+Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scraper-v1.1` ne changent pas.
+
+#### I. Stack `amame` dans Portainer
+
+1. **Compose.** Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par [docker-compose.yml](../docker-compose.yml). Vérifier que `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` et `SPRING_JPA_HIBERNATE_DDL_AUTO` n'y figurent plus : `SPRING_JPA_HIBERNATE_DDL_AUTO=update` rendrait à Hibernate le droit de modifier le schéma.
+2. **Variables.** Retirer `GRAFANA_ADMIN_PASSWORD`. Passer `BACKEND_IMAGE_TAG=backend-v1.2` et `FRONTEND_IMAGE_TAG=frontend-v1.2`. Aucune variable nouvelle n'est obligatoire : tant que la base est sur le VPS, le backend se connecte avec `POSTGRES_PASSWORD`. Laisser `MEDIA_BASE_URL` vide et `STORAGE_PROVIDER` à `local`.
+3. **Mettre la stack à jour.** Si Portainer refuse le compose sur une erreur d'interpolation à propos de `${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}`, sa version de Compose est trop ancienne pour les valeurs par défaut imbriquées : mettre Portainer à jour, ou définir `DATABASE_PASSWORD` et `DATABASE_MIGRATION_PASSWORD` avec la valeur de `POSTGRES_PASSWORD`.
+4. **Supervision.** Supprimer les conteneurs `amame-prometheus`, `amame-grafana` et `amame-postgres-exporter` s'ils existent encore, puis les volumes `prometheus_data` et `grafana_data` de la stack. Ils ne contiennent aucune donnée métier.
+
+#### J. Vérifications après le déploiement de l'étape 1
+
+1. **Journal du backend**, au premier démarrage : `Successfully baselined schema with version: 1`, puis `Schema "public" is up to date`, puis `Started SiteAmameApplication`. Une erreur `Schema-validation` signale un écart entre la production et les entités : revenir en arrière (ci-dessous) et transmettre le message.
+2. **Journal du frontend** : `40-runtime-config.sh : mediaBaseUrl="", mediaOptimizerEnabled=false`.
+3. **Critères de sortie de l'étape 1** (§5), à cocher avec leur date :
+
+   | Critère | Comment le constater |
+   | --- | --- |
+   | Baseline Flyway, `validate` sans erreur | journal du backend, point 1 |
+   | Recette identique à avant | pages publiques, connexion et déconnexion, création puis suppression d'un article de test avec image, inscription d'un compte de test avec CV et photo |
+   | 2 à 3 requêtes SQL par liste publique | mesuré en local : 1 à 3 (journal du 5 octobre). En production, la recette suffit |
+   | Concours sans fichier visibles | créer un concours sans fichier depuis l'administration : il apparaît dans la liste publique et sa page s'ouvre |
+   | Avatar de la Navbar | compte avec photo, fenêtre de largeur tablette |
+   | Développement local sous Windows | constaté le 5 octobre sur un poste Windows : ce critère ne se vérifie pas en production |
+   | URL des médias changée sans nouvelle image | mettre `MEDIA_BASE_URL=https://amame.ml` (valeur sans risque : les fichiers restent servis par le site), puis mettre la stack à jour. `https://amame.ml/config.js` affiche la valeur et les images des articles pointent vers `https://amame.ml/uploads/…`. Remettre la variable vide ensuite |
+4. **Mémoire** : `docker stats --no-stream amame-backend` après 24 heures, puis après une semaine. Valeur attendue : environ 400 Mio sur 512. Au-delà de 460 Mio, le signaler avant d'aller plus loin.
+
+#### Retour arrière de l'étape 1
+
+Remettre `BACKEND_IMAGE_TAG=backend-v1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1` dans la stack, les deux ensemble, sans changer le compose : il transmet encore le nom de variable que lit `backend-v1.1`. La table `flyway_schema_history` reste en base, sans effet sur l'ancienne version. Rejoué en local le 5 octobre : l'ancien backend, lancé avec les variables du compose de l'étape 1 sur une base déjà passée par l'étape 1, démarre, répond, et ne touche pas au schéma.
+
 ### Faits relevés en production
 
 Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivantes.
@@ -155,6 +259,11 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | La production définissait-elle `JWT_SECRET`, ou utilisait-elle la valeur par défaut du compose ? | *à vérifier dans les variables de la stack* | — |
 | Comptes `SUPERADMIN`, `ADMIN` et `EDITOR` : tous connus ? | *à vérifier (action B.1)* | — |
 | Poids des images de l'accueil, mesuré en production | *à mesurer ; estimation locale : 270 à 300 Ko pour la page entière* | — |
+| Déploiement de l'étape 0 seule, ou avec l'étape 1 ? | *à consigner* | — |
+| Le serveur ou Portainer récupèrent-ils le dépôt par `git pull` ? Les fichiers ont-ils été mis à l'abri avant (action A.1) ? | *à confirmer avant tout `pull`* | — |
+| Schéma de production comparé à `V1__baseline.sql` (action G.1) | *à faire avant de déployer l'étape 1* | — |
+| Mémoire du conteneur `amame-backend` : avant l'étape 1, puis 24 heures et une semaine après | *à relever avec `docker stats` ; mesuré en local sous charge : 396 Mio sur 512* | — |
+| Portainer accepte-t-il les valeurs par défaut imbriquées du compose (action I.3) ? | *à constater à la mise à jour de la stack* | — |
 
 ### Écarts et décisions prises pendant l'implémentation
 
@@ -173,29 +282,48 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | E11 | **Faille : profils lisibles par tout utilisateur connecté** | non identifiée par les audits | `GET /api/user/{id}` renvoyait l'e-mail, le téléphone, l'adresse et la date de naissance de n'importe quel utilisateur à n'importe quel compte, et l'inscription est ouverte. Désormais réservé au propriétaire et aux titulaires de `USER_READ_ALL`. Au passage, un refus `@PreAuthorize` renvoie 403 et non plus 500 |
 | E12 | Images statiques | conversion à l'étape 0, renommage ASCII et `srcset` à l'étape 5 | tout est fait à l'étape 0 : noms ASCII avec la largeur, dossier `public/static/`, `srcset` et `sizes`. Les originaux quittent `public/` pour [frontend/image-sources/](../frontend/image-sources/), exclu de l'image Docker ; le script [optimize_images.py](../frontend/scripts/optimize_images.py) régénère les sorties. L'étape 5 se réduit à déplacer `static/` derrière le CDN en changeant une constante |
 | E13 | Favicon | « nouveau favicon » | `favicon.svg` (583 Ko, une image matricielle encodée dans du SVG) est supprimé sans remplaçant vectoriel : les icônes PNG et ICO déjà présentes suffisent à tous les navigateurs. Redessiner le logo en vectoriel reste possible, sans urgence |
+| E14 | **Supervision retirée** | Prometheus et Grafana restent dans la stack `amame` ; seul `postgres-exporter` disparaît (§3.2) | **décision de l'équipe du 4 octobre 2026 : toute la supervision est retirée pour le moment.** Grafana n'a que Prometheus pour source, et `postgres-exporter` que Prometheus pour lecteur : les trois partent ensemble. Retirés : les 3 services et leurs 2 volumes, `GRAFANA_ADMIN_PASSWORD`, le dossier `monitoring/`, la dépendance `micrometer-registry-prometheus` et l'endpoint `/actuator/prometheus`. pgAdmin reste : c'est un outil d'administration de la base, qui disparaît à l'étape 6. Conséquences : le constat C1 n'a plus d'objet ; les métriques du pool (validation de DT5) se lisent à la demande dans `/actuator/metrics/hikaricp.connections.active` ; aucune alerte automatique n'existe d'ici le retour de la supervision, prévu avec A3 (§13). Pour la remettre : reprendre les services et `monitoring/` du commit de l'étape 0 (`b14e7dd`), où ils n'écoutent déjà plus que sur `127.0.0.1`, rajouter la dépendance, et ouvrir `/actuator/prometheus` au collecteur (C1) |
+| E15 | Ordre des étapes | une étape ne commence que lorsque la précédente remplit ses critères en production (§5.0) | le **code** de l'étape 1 a été écrit avant le déploiement de l'étape 0, à la demande de l'équipe (4 octobre). La règle reste vraie pour la production : étape 0, ses 8 critères, puis étape 1. Les deux codes sont séparés dans Git (branche `sauvegarde/etape-0`) et dans les images (`v1.1`, `v1.2`) |
+| E16 | Origine de `V1__baseline.sql` | `pg_dump --schema-only` de la production [N02 §4.3] | l'implémentation n'a pas accès à la production. V1 est le schéma que crée Hibernate à partir des entités sur un PostgreSQL 15 neuf, extrait par `pg_dump`. Retirés du fichier : les réglages de session (`SET …`, `search_path`), qui resteraient actifs pour V2 et V3 sur une base neuve, et les lignes `\restrict` qu'ajoutent les versions récentes de `pg_dump` (constaté avec la 15.19) : ce sont des commandes psql, Flyway ne les comprend pas. **La comparaison avec la production reste à faire avant le déploiement** (action G.1) |
+| E17 | Variables de l'étape 1 | action 1 : « paramètres du pool, de la purge et de la réconciliation pilotés par variables » ; §7 introduit pourtant la purge à l'étape 2 et la réconciliation à l'étape 3 | le §7 fait foi : une variable n'est déclarée qu'avec le code qui la lit, pour qu'aucune ne soit sans effet. Les variables de purge, de réconciliation et de Bunny arriveront aux étapes 2 et 3. Deux variables manquaient au §7 et y sont ajoutées : `PUBLIC_LISTS_CACHE_TTL` (le plan prévoyait le cache, pas son interrupteur) et `AUTH_TOKEN_CLEANUP_SCHEDULE` (E21). Les cinq variables `DATABASE_*` ont une valeur par défaut dans le compose tant que la base est sur le VPS (`${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}`) : un seul mot de passe à tenir à jour, et rien à saisir à l'étape 1. Les durées du pool s'écrivent en millisecondes |
+| E18 | Validation des uploads | images limitées à 5 Mo, documents à 10 Mo [B02 §4.10] | une seule limite, 10 Mo, celle d'aujourd'hui. Limiter les images à 5 Mo avant que le navigateur les compresse (étape 5) ferait refuser les photos de téléphone : la limite de 5 Mo est reportée à l'étape 5. DOCX et XLSX sont reconnus par leur contenu (répertoire central de l'archive, sans rien décompresser) et non par leur extension ; une archive ZIP quelconque est refusée. Un fichier refusé renvoie 400 avec un message, et non plus 500. Côté formulaires : les images proposent JPEG, PNG, GIF et WebP au lieu de `image/*` ; le formulaire des ressources ne propose plus PPT et PPTX, que le backend n'a jamais acceptés |
+| E19 | Tests sur PostgreSQL | image `postgres:17` [N02 §4.6] ; H2 conservé | l'image du test suit la version de la base de production : **15 aujourd'hui, 17 à l'étape 4**, comme `OPS_PG_MAJOR`. V2 et V3 s'exécuteront d'abord sur la base du VPS, en 15 : c'est cette version qu'il faut éprouver. L'autre s'essaie par `-Dtest.postgres.image=postgres:17-alpine` (fait le 5 octobre : V1 passe en 17). H2 et `data.sql` (dialecte H2, jamais exécuté) sont retirés : les migrations ne tournent pas sur H2 (DT4). Testcontainers est fixé à 1.21.4 : la version 1.20 que gère Spring Boot 3.4 ne dialogue pas avec Docker 29 |
+| E20 | Cache des listes publiques | « préparé mais désactivé », sans autre précision | annotation `@PublicListCache` sur les 22 endpoints publics de liste, au niveau du contrôleur : une réponse trouvée dans le cache n'ouvre aucune transaction, donc ne touche pas la base (une transaction en lecture seule emprunte une connexion dès son ouverture). Un seul point de vidage : toute requête d'écriture sur `/api/admin/**`. Les pages de détail ne sont pas mises en cache (compteur de vues). Activé par `PUBLIC_LISTS_CACHE_TTL` (une durée ; 0 par défaut). Les écritures faites hors de l'API (scrapers) et les compteurs de vues des listes prennent au plus cette durée de retard |
+| E21 | Tâche planifiée oubliée par le plan | le plan ne recense que le dump, la purge, la copie et la réconciliation | le nettoyage des jetons de session expirés tournait toutes les 24 heures à partir du démarrage du backend, donc à une heure quelconque : un réveil de la base par jour hors de la fenêtre de nuit. Il passe à 02:30 UTC (`AUTH_TOKEN_CLEANUP_SCHEDULE`), avec les sauvegardes |
+| E22 | **Mémoire du backend** (révise E9) | « toute dépendance qui alourdit le hors-tas doit s'accompagner d'une nouvelle mesure » | nouvelle mesure, et **changement de méthode : c'est la mémoire du conteneur qui compte, pas le total que déclare la JVM.** Sous la charge de l'étape 0 (18 inscriptions avec un CV de 7 Mo, puis 24 lectures), le jar de l'étape 0 occupe 482 Mio sur 512, alors que la JVM en déclare 399 : les 440 Mo retenus par E9 sous-estimaient le besoin, et la marge réelle était de 30 Mio. Les 80 Mio manquants sont de la mémoire native que la JVM ne suit pas : tampon gardé par chaque thread à la taille de sa plus grosse lecture de fichier, et fragmentation de l'allocateur. Flyway et les caches ne coûtent que 4 Mio. Corrections : fichiers lus par blocs de 8 Ko ([StorageIo.java](../backend/src/main/java/com/example/siteamame/service/file/StorageIo.java)), `-Djdk.nio.maxCachedBufferSize=262144`, `MALLOC_ARENA_MAX=2`, et tas ramené de 40 % à 30 % (148 Mio, pour 49 Mio réellement occupés après un ramassage complet). Résultat sous la même charge : **396 Mio**, et le conteneur n'atteint plus sa limite (pic à 433). Détail dans le journal du 5 octobre |
+| E23 | `STATIC_BASE` du frontend | devait lire la configuration d'exécution dès l'étape 1 (note du 3 octobre) | reste `/static` jusqu'à l'étape 5. Les images statiques ne rejoignent le CDN qu'à l'étape 5 : si `STATIC_BASE` suivait `MEDIA_BASE_URL`, elles pointeraient vers le CDN dès la bascule de l'étape 3 et seraient toutes cassées pendant deux étapes |
+| E24 | Retour arrière de l'étape 1 | « remettre les tags d'image précédents » | pour que ce soit vrai sans toucher au compose, celui-ci transmet encore `SPRING_DATASOURCE_PASSWORD`, seul nom que lit `backend-v1.1`. Sa valeur est toujours celle de `DATABASE_PASSWORD` : sans effet sur `backend-v1.2`. Ligne à retirer à l'étape 2 |
+| E25 | Corrections faites au passage | — | trois corrections dans des fichiers que l'étape modifiait de toute façon. `JwtFilter` : un jeton encore valide d'un compte supprimé renvoie 401 et non plus 500. Comptage des catégories : les articles sans catégorie sont ignorés (ils provoquaient une erreur 500). `ConcoursRepository` : en plus de la jointure externe, les parenthèses des deux requêtes filtrées sont corrigées ([B01 §4.6]) ; les deux filtres se cumulent désormais, et un concours expiré n'apparaît plus dans une recherche |
+| E26 | Frontend, au-delà du plan | — | serveur de développement : `/api` et `/uploads` sont relayés vers le backend local, sans quoi le critère « développement local sous Windows » ne peut pas être constaté. `config.js` : servi par le réseau d'abord, par la dernière copie connue hors ligne ou après 3 secondes d'attente. Balises Open Graph : une URL d'image relative est rattachée au domaine du site |
 
 **Constats hors du périmètre de l'étape 0**, à traiter ou à planifier :
 
 | # | Constat | Gravité | Proposition |
 | --- | --- | --- | --- |
-| C1 | Prometheus ne peut pas lire `/actuator/prometheus` : tout `/actuator/**` exige une authentification, la collecte reçoit 401. Les métriques du pool de connexions, dont dépend la validation de DT5, ne sont donc pas collectées | 🟠 | étape 1, avec le retrait du contrôle de la base des sondes de santé |
+| C1 | Prometheus ne peut pas lire `/actuator/prometheus` : tout `/actuator/**` exige une authentification, la collecte reçoit 401 | — | **sans objet depuis le 4 octobre** : la supervision est retirée (E14). À traiter le jour où elle revient |
 | C2 | `npm run lint` plante au chargement d'une règle (ESLint 9.38 et `typescript-eslint` incompatibles) | 🟡 | aligner les versions ; aucun rapport avec la migration |
 | C3 | `npx tsc --noEmit` signale 4 erreurs antérieures à ce travail (`LayoutMembre.tsx`, `LienUtileForm.tsx`, `MembreForm.tsx`, `PartenaireForm.tsx`). Le build ne lance pas `tsc`, donc il passe | 🟡 | à corriger ; les trois formulaires appellent `.find` sur une réponse paginée et ne peuvent pas fonctionner |
-| C4 | `./mvnw test` exige une base PostgreSQL locale sur le port 5454 : le seul test d'intégration ne tourne pas ailleurs | 🟡 | réglé par Testcontainers à l'étape 1 |
+| C4 | `./mvnw test` exige une base PostgreSQL locale sur le port 5454 : le seul test d'intégration ne tourne pas ailleurs | — | **réglé à l'étape 1** : le test lance son propre PostgreSQL (Testcontainers). Seul Docker est nécessaire |
 | C5 | `public/images/grid-image/` (6 fichiers, 2,4 Mo) n'est utilisé que par trois composants de gabarit jamais importés (`src/components/ui/images/`) | 🟡 | supprimer les composants et le dossier |
 | C6 | La mise à jour du profil accepte un nouvel e-mail sans vérification, et ignore le mot de passe envoyé par le formulaire d'administration | 🟡 | à étudier séparément |
+| C7 | **Un compte qui s'est déjà connecté ne peut pas être supprimé** : `DELETE /api/admin/user/{id}` échoue (500) sur la clé étrangère de `refresh_token`. Il en va sans doute de même pour un compte qui a une adhésion, une cotisation, un don ou un jeton de réinitialisation | 🟠 | à corriger à l'étape 2 : son critère « suppression d'un utilisateur : son CV et sa photo sont inscrits dans la file » ne peut pas être constaté sans cela |
+| C8 | **La création d'une filière par l'API échoue toujours** (500) : `FiliereController.ajouterFiliere` lit la filière avec `@RequestParam` au lieu de `@RequestPart`. La modification fonctionne | 🟠 | corriger l'annotation ; sans rapport avec la migration |
+| C9 | Toute adresse inconnue du backend renvoie 500 au lieu de 404 : le gestionnaire d'erreurs générique intercepte aussi « ressource introuvable » | 🟡 | ajouter un gestionnaire pour `NoResourceFoundException` ; à faire avant l'étape 3, dont un critère surveille les 404 |
+| C10 | `/actuator/health` ouvre une connexion SMTP à chaque appel et passe à `DOWN` si Gmail ne répond pas | 🟡 | n'interroger que `/actuator/health/liveness` et `/actuator/health/readiness`, qui n'en dépendent pas ; ou désactiver l'indicateur `mail` |
 
 ### Notes pour les étapes suivantes
 
 Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
 
-- **Étape 1.** Déjà livrés : l'endpoint `/api/user/files/{id}`, `StoragePaths`, `FileStorageService.load`, `imageUrl` et `cvUrl`, les tags d'image paramétrés, et côté frontend le point d'entrée unique des images statiques ([staticImage.ts](../frontend/src/utils/staticImage.ts)). Restent : `MediaUrlResolver` et les champs `*Url` des fichiers **publics**, les 9 services injectant l'interface, la validation par octets de signature, la configuration lue au démarrage du conteneur, Flyway. `STATIC_BASE` devra lire la même configuration d'exécution que l'URL des médias.
-- **Étape 1.** `spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}` : si la variable manque, le backend échoue à s'authentifier au lieu d'afficher un message explicite. Le passage aux variables `DATABASE_*` est l'occasion de le rendre explicite.
-- **Étape 3.** La copie des fichiers de `backup.sh` lit aujourd'hui le dossier monté. Elle devra lire les zones Bunny avec leurs mots de passe en lecture seule.
-- **Étape 4.** Reconstruire l'image d'exploitation avec `OPS_PG_MAJOR=17` : `pg_dump` refuse une base plus récente que lui.
-- **Étape 5.** Les images statiques sont déjà en WebP, nommées en ASCII avec leur largeur, et servies avec `srcset`. Il reste à déplacer `public/static/` dans `amame-public/static/` et à changer `STATIC_BASE`.
-- **Étape 1 et suivantes.** La limite de 512 Mo du conteneur backend laisse environ 70 Mo de marge. Toute dépendance qui alourdit le hors-tas (Flyway, client HTTP Bunny, caches) doit s'accompagner d'une nouvelle mesure, ou d'un relèvement de la limite à 768 Mo si le VPS le permet.
+- **Étape 2.** Les migrations V2 et V3 s'écrivent en SQL standard, noms qualifiés (`public.…`), sans réglage de session. [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java) vérifie aujourd'hui « version 1, 25 tables » : l'adapter. `UploadValidator` rend déjà les octets du fichier : l'empreinte SHA-256 se calcule dessus, sans relire le disque. `StorageProperties` reçoit le bloc `purge`, et le compose ses trois variables (E17). Retirer du compose la ligne `SPRING_DATASOURCE_PASSWORD` (E24). Corriger d'abord la suppression d'un utilisateur (C7).
+- **Étape 2.** Les services appellent encore `deleteFile` avant le commit, comme avant : l'étape 1 n'a rien changé au cycle de vie des fichiers. `ConcoursMapper.convertToEntity` ne réécrit plus la clé d'un fichier.
+- **Étape 3.** Ajouter `bunny` aux fournisseurs connus de [StorageConfig.java](../backend/src/main/java/com/example/siteamame/config/StorageConfig.java) : toute autre valeur de `STORAGE_PROVIDER` arrête déjà le démarrage avec un message. Le service de fichiers de Spring (`/uploads/**`) se désactive seul hors du mode local. La copie des fichiers de `backup.sh` lit aujourd'hui le dossier monté : elle devra lire les zones Bunny avec leurs mots de passe en lecture seule. Corriger C9 avant de surveiller les 404.
+- **Étape 3.** Mémoire : le client HTTP de Bunny et l'envoi de fichiers de 10 Mo demandent une nouvelle mesure, **sur le conteneur** (`docker stats`, `memory.stat`), pas sur les chiffres de la JVM (E22). Envoyer et lire par blocs, comme `StorageIo`.
+- **Étape 4.** Reconstruire l'image d'exploitation avec `OPS_PG_MAJOR=17` : `pg_dump` refuse une base plus récente que lui. Passer l'image du test de démarrage à `postgres:17-alpine` (E19). Renseigner les cinq variables `DATABASE_*` ; les valeurs par défaut du compose, liées à `POSTGRES_PASSWORD`, disparaissent avec la base locale à l'étape 6. Le profil de pool « veille » est déjà celui de la production depuis l'étape 1.
+- **Étape 5.** Les images statiques sont déjà en WebP, nommées en ASCII avec leur largeur, et servies avec `srcset`. Il reste à déplacer `public/static/` dans `amame-public/static/` et à faire lire `MEDIA_BASE_URL` à `STATIC_BASE` ([staticImage.ts](../frontend/src/utils/staticImage.ts)), dans la même image (E23). Ramener la limite des images à 5 Mo une fois la compression dans le navigateur en place (E18). `<MediaImage>` porte déjà `maxWidth` et `sizes` sur chaque image : activer Optimizer ne demandera aucun code.
+- **Toutes les étapes.** La limite de 512 Mo du conteneur backend laisse environ 115 Mio de marge sous charge depuis E22. Elle se vérifie sur le conteneur après chaque ajout de dépendance. Relever la limite à 768 Mo reste possible si le VPS le permet : le tas suit (30 %).
 - **Toutes les étapes.** La limitation de débit ne fait confiance qu'aux proxys en adresse privée. Si le proxy frontal est sur une autre machine, son adresse doit être ajoutée à `set_real_ip_from`.
+- **Toutes les étapes.** Sans supervision (E14), rien n'alerte de soi-même : les vérifications de mémoire et de pool sont manuelles, et les critères qui citaient Grafana se lisent dans `/actuator/metrics`.
 
 ### Journal
 
@@ -229,6 +357,52 @@ Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
 **Non vérifié.** Rien n'a été exécuté contre Bunny réel ni contre la production. Le rendu des pages n'a pas été contrôlé dans un navigateur : seuls la compilation, le build et le service des fichiers l'ont été. Le poids de l'accueil est une estimation calculée sur les fichiers.
 
 **Session interrompue une fois** pendant la construction de l'image d'exploitation ; reprise à partir de ce suivi et de `git status`, sans perte.
+
+#### 4 et 5 octobre 2026 — étape 1 complète dans le dépôt, supervision retirée
+
+**Constat de départ.** Le commit `f5252df` (« Etape 0 commpleted »), déjà poussé sur GitHub, ne contient que les 39 retraits d'index : le code de l'étape 0 n'était pas commité. Son état a été figé dans la branche locale `sauvegarde/etape-0` (commit `b14e7dd`) avant toute modification, sans toucher à `main` ni à l'index.
+
+**Fait.** Voir le tableau de détail de l'étape 1. Fichiers créés ou modifiés (130 au total) :
+
+- **Infrastructure** : [docker-compose.yml](../docker-compose.yml) (supervision retirée, variables `DATABASE_*`, `DB_POOL_*`, `STORAGE_PROVIDER`, `MEDIA_*`, tags `v1.2`), [.env.example](../.env.example), [backend/Dockerfile](../backend/Dockerfile) (réglages mémoire), [frontend/Dockerfile](../frontend/Dockerfile), [frontend/nginx.conf](../frontend/nginx.conf), [frontend/docker/40-runtime-config.sh](../frontend/docker/40-runtime-config.sh) ; dossier `monitoring/` supprimé.
+- **Backend, configuration et schéma** : `pom.xml` (Flyway, cache Caffeine, Testcontainers ; Prometheus et H2 retirés), les trois `application*.properties`, [V1__baseline.sql](../backend/src/main/resources/db/migration/V1__baseline.sql).
+- **Backend, stockage** : `StorageProperties`, `StorageConfig`, `LocalFileStorageService` (remplace `FileStorageServiceImpl`), `UploadValidator`, `ValidatedFile`, `InvalidUploadException`, `StorageIo`, `MediaUrlResolver`, `StoragePaths`, `WebMvcconfigurer`, les 9 services, 5 mappers, 10 DTO, `ConcoursRepository`, `GlobalHandlerException`.
+- **Backend, accès à la base** : `CacheConfig`, `PublicListCache`, `PublicListCacheInvalidator`, `RequestUserLoader`, `JwtFilter`, `ArticleRepository`, 10 contrôleurs (annotation des listes publiques), `PermissionService`, `AdhesionService`, `MembreService`, `PasswordResetService`, `UserService`, `RefreshTokenService`.
+- **Backend, tests** : `SiteAmameApplicationTests` (Testcontainers), `UploadValidatorTest`, `MediaUrlResolverTest`, `LocalFileStorageServiceTest`, `CacheConfigTest`, `ConcoursMapperTest`, `UserServiceRoleTest` ; `data.sql` supprimé.
+- **Frontend** : `utils/runtimeConfig.ts`, `utils/media.ts`, `utils/uploadFormats.ts`, `components/MediaImage.tsx`, `public/config.js` (nouveaux) ; `index.html`, `vite.config.ts`, `SEO.tsx`, `Navbar.tsx`, `ConcoursCardItem.tsx`, 14 pages publiques, 9 formulaires, `RessourcesManagement.tsx`, 7 fichiers de types, `articleAdapter.ts`, 4 services (code mort retiré).
+- **Documentation** : `CLAUDE.md`, `README.md`, ce rapport (suivi, et §3.1, §3.2, DT5, §5 étape 6, §6.3, §7.1, §10, §12, §13 pour la supervision et les variables).
+
+**Vérifié en local.**
+
+| Vérification | Résultat |
+| --- | --- |
+| Tests du backend, suite complète | 60 sur 60, dont 58 tests unitaires et le test de démarrage sur un PostgreSQL 15 vide : Flyway applique V1, Hibernate `validate` accepte le schéma, 25 tables |
+| Même test de démarrage sur PostgreSQL 17 | passe (17.11) |
+| Chemin de la production : base créée par le jar de l'étape 0, sans historique Flyway | `Successfully baselined schema with version: 1`, V1 non exécutée, `validate` passe, le backend démarre. Au second démarrage : `Schema "public" is up to date` |
+| Retour arrière par le seul tag | l'ancien backend, lancé avec les variables du compose de l'étape 1 sur cette base, démarre, répond, et ne touche pas au schéma |
+| Fonctionnel, par requêtes HTTP réelles (56 vérifications) | concours sans fichier créé, listé et consultable ; filtres et recherche des concours sans concours expiré ; WebP accepté, extension d'après le contenu ; HTML déguisé en PNG et PDF envoyé comme image refusés en 400, sans rien écrire ; champs `*Url` de tous les DTO ; fichiers privés inchangés (propriétaire 200, anonyme 401, accès statique refusé) ; comptage des catégories ; changement de rôle effectif immédiatement malgré le cache ; jeton d'un compte supprimé : 401 |
+| Requêtes SQL par liste | 1 à 3 pour les 17 listes publiques mesurées, sur 22, avec 6 à 9 éléments ayant chacun son fichier ; 2 pour la liste des utilisateurs de l'administration ; aucune requête pour recharger l'utilisateur au second appel authentifié |
+| URL des médias par variable et cache des listes (14 vérifications) | backend relancé avec `MEDIA_BASE_URL=https://media.exemple.test/`, sans reconstruction : toutes les URL publiques changent, les clés en base et les URL privées non. Cache des listes à 10 minutes : un ajout direct en base reste invisible, une écriture d'administrateur vide le cache, deux pages ne partagent pas une entrée, le compteur de vues d'un article avance toujours |
+| Frontend | `vite build` réussit ; `tsc` ne signale que les 4 erreurs antérieures (C3) ; `config.js` absent du précache ; aucune URL de média construite à la main ne subsiste |
+| Image frontend | construite de bout en bout par le Dockerfile réel (109 Mo), démarrée, `config.js` conforme à la variable. Sur une image de test faite de la même étape finale (15 vérifications) : une même image, deux jeux de variables, `config.js` suit ; jamais mis en cache ; une valeur invalide (URL sans protocole, tentative d'injection, interrupteur mal écrit) arrête le conteneur avec un message |
+| Développement sous Windows, hors Docker (10 vérifications) | backend lancé par `java -jar` : le fichier envoyé est écrit dans le dossier de lancement et servi à l'identique ; visible aussi à travers `npm run dev` |
+| Fichiers compose | les deux stacks sont valides avec `.env.example` ; valeurs par défaut des variables `DATABASE_*` correctes ; une variable obligatoire absente bloque avec un message ; les cinq variables d'une base distante prennent le pas |
+
+**Mémoire du backend, conteneur limité à 512 Mo, même charge pour toutes les mesures** (18 inscriptions avec un CV de 7 Mo dont 12 simultanées par groupes de 6, 24 lectures de ce CV, 60 listes) :
+
+| Version et réglages | Mémoire du conteneur après la charge | Pic | Total déclaré par la JVM |
+| --- | --- | --- | --- |
+| Jar de l'étape 0, tas à 40 % | 482 Mio | 512, la limite | 399 Mio |
+| Jar de l'étape 1 avant correction, tas à 40 % | 505 Mio | 512, la limite | 403 Mio |
+| Jar de l'étape 1, lectures par blocs et deux bornes natives, tas à 40 % | 447 Mio | 512, la limite | 406 Mio |
+| **Retenu** : le même, tas à 30 % | **396 Mio** | **433 Mio** | 352 Mio |
+| Pour mémoire : le même, limite à 768 Mo, tas à 40 % | 517 Mio | 554 Mio | 502 Mio |
+
+Dans les trois premiers cas, le pic atteint la limite parce que le noyau y compte aussi le cache des fichiers écrits, qu'il libère au besoin : aucun arrêt n'a eu lieu. Ce qui ne se libère pas est la mémoire propre au processus, celle de la deuxième colonne.
+
+**Non vérifié.** Rien n'a été exécuté contre la production : ni la comparaison de V1 avec son schéma, ni la baseline sur ses données. Le rendu des pages n'a pas été contrôlé dans un navigateur : seuls la compilation, le build et le service des fichiers l'ont été. Le comportement hors ligne de la PWA avec `config.js` n'a pas été essayé. Les paramètres d'Optimizer (`MEDIA_OPTIMIZER_ENABLED=true`) n'ont pas été éprouvés contre un CDN. L'image Docker du backend n'a pas été construite : le jar a tourné dans un conteneur équivalent (Temurin 21, mêmes options, même limite). La prise en charge des valeurs par défaut imbriquées par le Compose de Portainer n'est pas connue.
+
+**Session interrompue une fois**, pendant la rédaction de ce suivi ; reprise à partir de l'état du dépôt, sans perte. La suite de tests complète s'était terminée avant l'interruption.
 
 ---
 
@@ -444,7 +618,7 @@ Les plans 02 supposaient un `docker compose` lancé à la main, un fichier `.env
    - interface non exposée publiquement : tunnel SSH ou VPN, ou au minimum HTTPS avec un accès restreint ;
    - mises à jour régulières.
 2. **Deux stacks.**
-   - `amame` : frontend, backend et supervision.
+   - `amame` : frontend et backend ; base locale et pgAdmin jusqu'à l'étape 6. La supervision en a été retirée le 4 octobre 2026 (écart E14).
    - `amame-ops` : sauvegardes, archive mensuelle, opérations ponctuelles et scrapers.
 
    Les clés de la zone `amame-backups` et le rôle `amame_backup` n'existent que dans `amame-ops`. Le moindre privilège de DT6 tient donc aussi au niveau de Portainer : modifier la stack applicative ne donne pas accès aux sauvegardes.
@@ -480,7 +654,7 @@ Contraintes du plan Free, d'après [N02 D2] (tarifs consultés le 30/09/2026, à
 | Visiteurs et robots d'indexation qui appellent l'API | inévitable : c'est l'usage normal. Réduit par le cache du filtre JWT [N02 §4.4] et, si la consommation l'exige, par un cache court sur les listes publiques, vidé à chaque modification par un administrateur |
 | Connexions gardées ouvertes par le pool | profil « veille » de HikariCP : aucune connexion minimale, fermeture après 60 s d'inactivité, pas de *keepalive* [N02 §4.2] |
 | Sondes de santé | le contrôle de la base est exclu de toute sonde interrogée fréquemment (supervision, outil de disponibilité) |
-| Collecte de métriques | Prometheus ne collecte que les métriques du backend, qui n'interrogent pas la base. `postgres-exporter` est supprimé [N01 O1] |
+| Collecte de métriques | aucune pour le moment : la supervision est retirée (écart E14). Le jour où elle revient, Prometheus ne collecte que les métriques du backend, qui n'interrogent pas la base ; `postgres-exporter` ne revient pas [N01 O1] |
 | Tâches planifiées | une seule fenêtre de nuit, à **02:30 UTC** (heure de Bamako) : dump, purge, copie des objets et, le dimanche, réconciliation. La base n'est réveillée qu'une fois. Le second dump de la journée, à **14:30 UTC**, tombe à une heure d'activité où la base est probablement déjà éveillée |
 | Scrapers | lancés à la demande depuis `amame-ops`, plus jamais à chaque déploiement (§3.1) |
 
@@ -555,7 +729,7 @@ Ces décisions n'appartiennent à aucun des deux plans pris isolément : elles n
 
 **Alternative écartée.** Sortir systématiquement l'upload de la transaction, dans le contrôleur ou une façade sans transaction, serait plus propre. Mais il faudrait restructurer 9 services et leurs contrôleurs, ce qui est disproportionné pour AMAME, où les uploads sont rares et faits surtout par des administrateurs. On y reviendra si la métrique `hikaricp_connections_pending` cesse d'être nulle.
 
-**À valider en recette** : pendant la création d'un article avec image, `hikaricp_connections_active` ne doit pas augmenter tant que l'upload est en cours.
+**À valider en recette** : pendant la création d'un article avec image, `hikaricp_connections_active` ne doit pas augmenter tant que l'upload est en cours. Sans supervision (écart E14), cette valeur se lit dans `/actuator/metrics/hikaricp.connections.active`.
 
 ### DT6 — Une zone de sauvegarde dédiée
 
@@ -720,6 +894,8 @@ Viennent ensuite 30 jours de stabilisation du socle (§9), puis les vagues de fo
 **Prérequis.** Étape 0 terminée.
 
 **Déjà livré à l'étape 0** (écarts E1, E6 et E12 du suivi) : l'endpoint authentifié `/api/user/files/{id}`, `StoragePaths`, la lecture d'un fichier par `FileStorageService`, les champs `imageUrl` et `cvUrl`, les tags d'image paramétrés, et le point d'entrée unique des images statiques côté frontend. Les actions ci-dessous s'entendent pour ce qui reste.
+
+**Code livré dans le dépôt les 4 et 5 octobre 2026** : voir « Étape 1 — détail » dans le suivi, et les écarts E14 à E26.
 
 **Actions, dans cet ordre :**
 
@@ -1057,7 +1233,7 @@ Comme la bascule ne modifie pas Bunny, revenir à la base locale reste cohérent
 
   C'est la preuve concrète de I5. La PITR de 6 h se teste de la même façon, sur une branche créée à H-3.
 - **Nettoyage** :
-  - **à J+14 de l'étape 4** : services `database`, `pgadmin`, `postgres-exporter` et leurs volumes, retirés de la stack `amame` ;
+  - **à J+14 de l'étape 4** : services `database` et `pgadmin`, et leurs volumes, retirés de la stack `amame` (`postgres-exporter` est déjà parti avec la supervision, écart E14) ;
   - **à J+30 de l'étape 3** : montages des uploads dans le backend et dans Nginx ([docker-compose.yml:62-63](../docker-compose.yml#L62-L63), [docker-compose.yml:79-81](../docker-compose.yml#L79-L81)), après une archive chiffrée hors du VPS ;
   - **dans `amame-ops`** : retrait des mots de passe d'écriture des zones publique et privée, qui ne servaient qu'à la copie (étape 3) ;
   - les redirections `/uploads/` restent en place plusieurs mois.
@@ -1113,7 +1289,7 @@ Pour garder ces portes ouvertes, quatre règles s'imposent à tout développemen
 **Leviers à activer au seuil d'alerte, du moins coûteux au plus coûteux :**
 
 1. Vérifier qu'aucune source de réveil imprévue n'est apparue (§3.2) : sonde, robot d'indexation, tâche déplacée hors de la fenêtre de nuit.
-2. Activer le cache court des listes publiques, préparé à l'étape 1.
+2. Activer le cache court des listes publiques, préparé à l'étape 1 : donner une durée à `PUBLIC_LISTS_CACHE_TTL` (par exemple `10m`), puis mettre la stack à jour.
 3. Passer à Launch. Le passage prend quelques minutes, sans interruption de service. Coût : environ 10 $/mois en gardant la veille, environ 20 $/mois en toujours actif [N02 §9].
 
 **Ne jamais attendre le quota.** Si Neon suspend le calcul jusqu'au mois suivant, le site est indisponible. Le passage à Launch se décide au seuil, pas après l'incident.
@@ -1129,21 +1305,23 @@ Le `.env.example` du dépôt documente toutes les variables, sans aucune valeur 
 | Variable | Utilisée par | Secret | Introduite à l'étape | Remarque |
 | --- | --- | --- | --- | --- |
 | `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE_TAG` | stack | non | 0 | versionnés ; le retour arrière consiste à remettre le tag précédent |
-| `POSTGRES_PASSWORD` | base locale, backend, exporter | oui | 0 | mot de passe de la base du VPS. PostgreSQL ne le lit qu'à la création du volume : le changer d'abord par `ALTER USER`. Disparaît avec la base locale (étape 6) |
+| `POSTGRES_PASSWORD` | base locale, backend | oui | 0 | mot de passe de la base du VPS. PostgreSQL ne le lit qu'à la création du volume : le changer d'abord par `ALTER USER`. Disparaît avec la base locale (étape 6) |
 | `JWT_SECRET` | backend | oui | 0 | plus aucune valeur par défaut dans le compose |
 | `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | backend | mot de passe : oui | 0 | vides en temps normal ; créent le premier administrateur sur une table des utilisateurs vide |
-| `PGADMIN_PASSWORD`, `GRAFANA_ADMIN_PASSWORD` | supervision | oui | 0 | outils accessibles sur `127.0.0.1` seulement |
+| `PGADMIN_PASSWORD` | pgAdmin | oui | 0 | outil accessible sur `127.0.0.1` seulement. `GRAFANA_ADMIN_PASSWORD` a disparu avec la supervision (écart E14) |
 | `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE` | backend | non | 0 | valeurs locales par défaut ; en production : `https://amame.ml` et `true` |
-| `DATABASE_URL` | backend | non | 1 | URL JDBC ; `sslmode=verify-full` sur Neon |
-| `DATABASE_USERNAME`, `DATABASE_PASSWORD` | backend | oui | 1 | `amame_app` sur Neon |
-| `DATABASE_MIGRATION_USERNAME`, `DATABASE_MIGRATION_PASSWORD` | backend (Flyway) | oui | 1 | `amame_owner` sur Neon |
+| `DATABASE_URL` | backend | non | 1 | URL JDBC ; `sslmode=verify-full` sur Neon. Par défaut, tant que la base est sur le VPS : `jdbc:postgresql://database:5432/amame_db` |
+| `DATABASE_USERNAME`, `DATABASE_PASSWORD` | backend | oui | 1 | `amame_app` sur Neon. Par défaut, tant que la base est sur le VPS : `postgres` et `POSTGRES_PASSWORD` |
+| `DATABASE_MIGRATION_USERNAME`, `DATABASE_MIGRATION_PASSWORD` | backend (Flyway) | oui | 1 | `amame_owner` sur Neon. Mêmes valeurs par défaut que ci-dessus |
 | `DB_POOL_MAX_SIZE` | backend | non | 1 | 10 |
 | `DB_POOL_MIN_IDLE` | backend | non | 1 | **0** (« veille », plan Free) ; 2 (« toujours actif ») |
-| `DB_POOL_IDLE_TIMEOUT` | backend | non | 1 | **60 s** (« veille ») ; 300 s (« toujours actif ») |
-| `DB_POOL_KEEPALIVE_TIME` | backend | non | 1 | **0, désactivé** (« veille ») ; 120 s (« toujours actif ») |
+| `DB_POOL_IDLE_TIMEOUT` | backend | non | 1 | en millisecondes : **60000** (« veille ») ; 300000 (« toujours actif ») |
+| `DB_POOL_KEEPALIVE_TIME` | backend | non | 1 | en millisecondes : **0, désactivé** (« veille ») ; 120000 (« toujours actif ») |
 | `STORAGE_PROVIDER` | backend | non | 1 | `local`, puis `bunny` à l'étape 3 |
 | `MEDIA_BASE_URL` | backend et frontend, lue au démarrage | non | 1 | **même valeur pour les deux conteneurs** ; remplace la variable de build `VITE_MEDIA_BASE_URL` |
 | `MEDIA_OPTIMIZER_ENABLED` | frontend, lue au démarrage | non | 1 | `false` tant qu'Optimizer n'est pas activé : aucun paramètre de redimensionnement n'est ajouté aux URL (§13, A4) |
+| `PUBLIC_LISTS_CACHE_TTL` | backend | non | 1 | **0, désactivé** ; une durée (`10m`, `1h`) active le cache des listes publiques (§6.3, écart E20) |
+| `AUTH_TOKEN_CLEANUP_SCHEDULE` | backend | non | 1 | nettoyage des jetons de session expirés, chaque nuit à 02:30 UTC, dans la même fenêtre que les sauvegardes (écart E21) |
 | `BUNNY_STORAGE_ENDPOINT` | backend | non | 3 | Francfort par défaut |
 | `BUNNY_PUBLIC_ZONE`, `BUNNY_PUBLIC_ZONE_KEY` | backend | clé : oui | 3 | écriture dans `amame-public` |
 | `BUNNY_PRIVATE_ZONE`, `BUNNY_PRIVATE_ZONE_KEY` | backend | clé : oui | 3 | écriture dans `amame-private` |
@@ -1246,7 +1424,7 @@ Le socle est terminé, et les fonctionnalités avancées peuvent commencer (§13
 | Références cassées après une restauration de Neon | objets effacés avant la fin de la fenêtre PITR | rétention de purge supérieure à la PITR, à revoir à chaque changement de plan (§7) ; exercice trimestriel |
 | Compromission de Portainer | accès à Docker, donc à l'hôte et à tous les secrets | interface non publique, mot de passe fort, mises à jour ; clés de sauvegarde isolées dans `amame-ops` |
 | Incident régional à Francfort touchant fichiers et sauvegardes | toutes les ressources Bunny dans la même région | archive mensuelle obligatoire hors de Bunny ; réplication de `amame-backups` ajoutable plus tard (§3.3) |
-| Pool de connexions saturé par des uploads lents | upload Bunny effectué dans une transaction | DT5 ; limitation de débit ; alerte sur `hikaricp_connections_pending` |
+| Pool de connexions saturé par des uploads lents | upload Bunny effectué dans une transaction | DT5 ; limitation de débit ; lecture de `hikaricp.connections.pending` dans `/actuator/metrics`, puis alerte le jour où la supervision revient (écart E14) |
 | Bascule impossible sans reconstruire une image | valeur figée au build | URL des médias lue au démarrage ; paramètres en variables de stack (§3.1) |
 | Sauvegarde ou copie qui vise le mauvais dossier | chemin relatif résolu par Portainer ailleurs que prévu | chemin réel relevé à l'étape 0 ; stack déployée depuis le dépôt Git |
 | Incident impossible à attribuer | deux bascules trop rapprochées | au moins une semaine entre les étapes 3 et 4 (DT2) |
@@ -1297,6 +1475,7 @@ Le 2 octobre 2026, l'équipe a validé les recommandations, avec les précisions
 | 7 | Archive mensuelle hors de Bunny | validée et **obligatoire** (§3.3) ; le support reste à désigner avant l'étape 6 |
 | 8 | Régions | **Francfort pour tout** : Neon et les trois zones Bunny, y compris `amame-backups` |
 | 9 | Historique Git | réécriture une fois les secrets changés, à l'étape 6 |
+| 10 | Supervision | **retirée pour le moment** (décision du 4 octobre 2026) : Prometheus, Grafana et `postgres-exporter` quittent la stack `amame`. Son retour est prévu avec A3 (§13), une fois le socle stable |
 
 **Reste à trancher en cours de route :**
 
@@ -1359,7 +1538,7 @@ L'ordre **à l'intérieur** d'une vague reste libre, selon les priorités de l'a
 | --- | --- | --- | --- | --- | --- |
 | A1 | Dimensions des images dans les métadonnées | largeur et hauteur lues à l'upload, et rattrapées pour l'existant. Toutes les images reçoivent des attributs `width` et `height` : fin des décalages de mise en page [B01 P3] | deux colonnes ajoutées par Flyway, calculées à partir des octets comme l'empreinte | 0 $ ; ≈ 1 j | socle stable |
 | A2 | Propriétaire et auteur explicites | la colonne `user_id` de `file_entity` existe mais n'est jamais remplie [B01 B7]. On la renseigne pour les fichiers privés et on ajoute l'auteur des uploads d'administration. Le contrôle d'accès devient une simple lecture de métadonnée, et chaque fichier garde la trace de son auteur | colonne remplie à partir de la table de jointure, colonne d'auteur ajoutée par Flyway. À terme, la table de jointure de `User.files` peut disparaître | 0 $ ; ≈ 1 j | socle stable |
-| A3 | Observabilité | extension standard `pg_stat_statements` pour repérer les requêtes lentes. Métriques des appels à Bunny (durée, erreurs) dans Grafana, à côté de celles du pool de connexions | aucun | 0 $ ; ≈ 0,5 j | socle stable |
+| A3 | Observabilité | remise en place de la supervision retirée le 4 octobre 2026 (écart E14 : services, configuration, accès du collecteur à `/actuator/prometheus`). extension standard `pg_stat_statements` pour repérer les requêtes lentes. Métriques des appels à Bunny (durée, erreurs) dans Grafana, à côté de celles du pool de connexions | aucun | 0 $ ; ≈ 0,5 j | socle stable |
 
 #### Vague 2 — Performance et contenu
 

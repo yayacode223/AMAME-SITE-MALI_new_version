@@ -1,0 +1,2 @@
+# Ce script s'exécute dans un conteneur Linux : fins de ligne LF, même sur un poste Windows
+docker/*.sh text eol=lf

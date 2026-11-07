@@ -8,6 +8,7 @@ import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.siteamame.config.PublicListCache;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +29,7 @@ public class ArticleController {
     private final ArticleService articleService;
 
     @Transactional
+    @PublicListCache
     @GetMapping("/visitor/articles")
     public ResponseEntity<PageResponse<ArticleSummaryDto>> getAllArticles(
             @RequestParam(defaultValue = "0") int page,
@@ -50,6 +52,7 @@ public class ArticleController {
     }
 
     @Transactional
+    @PublicListCache
     @GetMapping("/visitor/articles/search")
     public ResponseEntity<PageResponse<ArticleSummaryDto>> searchArticles(
             @RequestParam(defaultValue = "0") int page,
@@ -62,18 +65,21 @@ public class ArticleController {
     }
 
     @Transactional
+    @PublicListCache
     @GetMapping("/visitor/articles/popular")
     public ResponseEntity<List<ArticleSummaryDto>> getPopularArticles() {
         return ResponseEntity.ok(articleService.getPopularArticles());
     }
 
     @Transactional
+    @PublicListCache
     @GetMapping("/visitor/articles/categorie/{categorie}")
     public ResponseEntity<List<ArticleSummaryDto>> getArticlesByCategorie(
             @PathVariable String categorie) {
         return ResponseEntity.ok(articleService.getArticlesByCategorie(categorie));
     }
 
+    @PublicListCache
     @GetMapping("/visitor/articles/{id}/similar")
     public ResponseEntity<List<ArticleSummaryDto>> getSimilarArticles(
             @PathVariable Long id,
@@ -82,15 +88,10 @@ public class ArticleController {
     }
 
     @Transactional
+    @PublicListCache
     @GetMapping("/visitor/articles/categories")
     public ResponseEntity<Map<String, Long>> getCategoriesWithCount() {
-        List<String> categories = articleService.getCategoriesWithCount();
-        Map<String, Long> categoriesWithCount = categories.stream()
-                .collect(Collectors.toMap(
-                        categorie -> categorie,
-                        articleService::getArticleCountByCategorie
-                ));
-        return ResponseEntity.ok(categoriesWithCount);
+        return ResponseEntity.ok(articleService.getCategoriesWithCount());
     }
 
     @Transactional

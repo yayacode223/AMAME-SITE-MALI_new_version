@@ -7,17 +7,19 @@ import java.util.regex.Pattern;
  * La zone d'un fichier se déduit de sa clé : tout ce qui est sous uploads/utilisateur/ est privé.
  */
 public final class StoragePaths {
+    /** Préfixe de toutes les clés des fichiers uploadés. */
+    public static final String ROOT_PREFIX = "uploads/";
     public static final String PRIVATE_FOLDER = "utilisateur";
     private static final Pattern SAFE_KEY = Pattern.compile("^[a-z0-9][a-z0-9/_.-]*$");
 
     private StoragePaths() {}
 
     public static String key(String folder, String fileName) {
-        return "uploads/" + folder + "/" + fileName;
+        return ROOT_PREFIX + folder + "/" + fileName;
     }
 
     public static boolean isPrivate(String key) {
-        return key != null && key.startsWith("uploads/" + PRIVATE_FOLDER + "/");
+        return key != null && key.startsWith(ROOT_PREFIX + PRIVATE_FOLDER + "/");
     }
 
     /** Les clés sont générées (dossier + UUID + extension) : tout autre format est refusé. */

@@ -13,10 +13,12 @@ import com.example.siteamame.enumeration.FileType;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.UserRepository;
 
-import com.example.siteamame.service.file.FileStorageServiceImpl;
+import com.example.siteamame.service.file.FileStorageService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import com.example.siteamame.config.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapperDto userMapper;
-    private final FileStorageServiceImpl fileStorageService;
+    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
 
@@ -102,6 +104,7 @@ public class UserService {
         return userMapper.UserToDto(savedUser);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public UserReponseDto update(Long id, UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
 
@@ -171,6 +174,7 @@ public class UserService {
         return userMapper.UserToDto(savedUser);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void deleteUser(Long id){
         if(userRepository.existsById(id)){

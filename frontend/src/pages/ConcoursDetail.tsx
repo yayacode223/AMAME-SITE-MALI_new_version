@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import SEO from "../components/SEO";
+import MediaImage from "@/components/MediaImage";
+import { mediaUrl } from "@/utils/media";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
@@ -40,22 +42,19 @@ const ConcoursDetail = () => {
     return { label: "Clôturé", cls: "bg-gray-100 text-gray-500 border-gray-200" };
   }, [concours]);
 
-  const imageUrl = useMemo(() => {
-    if (!concours?.filePath) return null;
-    return concours.filePath.startsWith("http") ? concours.filePath : `/${concours.filePath}`;
-  }, [concours?.filePath]);
+  // URL du fichier du concours : calculée par le backend (fileUrl), jamais construite ici
+  const fileUrl = mediaUrl(concours?.fileUrl ?? concours?.filePath);
+  const imageUrl = fileUrl;
 
   const handleOpenFile = () => {
-    if (!concours?.filePath) return;
-    const url = concours.filePath.startsWith("http") ? concours.filePath : `/${concours.filePath}`;
-    window.open(url, "_blank");
+    if (!fileUrl) return;
+    window.open(fileUrl, "_blank");
   };
 
   const handleDownloadFile = () => {
-    if (!concours?.filePath) return;
-    const url = concours.filePath.startsWith("http") ? concours.filePath : `/${concours.filePath}`;
+    if (!fileUrl) return;
     const link = document.createElement("a");
-    link.href = url;
+    link.href = fileUrl;
     link.setAttribute("download", `${concours.nom.replace(/\s+/g, "_")}.pdf`);
     document.body.appendChild(link);
     link.click();
@@ -184,7 +183,7 @@ const ConcoursDetail = () => {
                         <Globe className="h-4 w-4" />Site officiel<ExternalLink className="h-3.5 w-3.5 ml-auto" />
                       </Button>
                     )}
-                    {concours.filePath && (
+                    {fileUrl && (
                       <>
                         <Button variant="outline" className="w-full border-2 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold rounded-xl gap-2 text-sm" onClick={handleOpenFile}>
                           <FileText className="h-4 w-4" />Voir le document
@@ -205,11 +204,12 @@ const ConcoursDetail = () => {
                   {imageUrl ? (
                     /* Bannière image pleine largeur + badges flottants */
                     <div className="relative w-full h-52 sm:h-64 lg:h-80 bg-gray-100">
-                      <img
+                      <MediaImage
                         src={imageUrl}
+                        maxWidth={1280}
+                        sizes="(min-width: 1024px) 66vw, 100vw"
                         alt={concours.nom}
                         className="w-full h-full object-cover"
-                        loading="lazy"
                         onError={(e) => { e.currentTarget.style.display = "none"; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
@@ -269,7 +269,7 @@ const ConcoursDetail = () => {
                       <li className="flex items-start gap-2"><span className="text-blue-500 font-bold mt-0.5">→</span>Consultez le site officiel pour les modalités exactes</li>
                       <li className="flex items-start gap-2"><span className="text-blue-500 font-bold mt-0.5">→</span>Préparez les documents requis à l'avance</li>
                       <li className="flex items-start gap-2"><span className="text-blue-500 font-bold mt-0.5">→</span>Respectez scrupuleusement la date limite d'inscription</li>
-                      {concours.filePath && <li className="flex items-start gap-2"><span className="text-blue-500 font-bold mt-0.5">→</span>Téléchargez la documentation complète pour plus de détails</li>}
+                      {fileUrl && <li className="flex items-start gap-2"><span className="text-blue-500 font-bold mt-0.5">→</span>Téléchargez la documentation complète pour plus de détails</li>}
                     </ul>
                   </div>
                 </div>

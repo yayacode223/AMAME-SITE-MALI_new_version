@@ -97,6 +97,12 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       host: "::",
       port: 3000,
+      // Développement hors Docker : l'API et les fichiers uploadés sont servis par le backend
+      // lancé sur le poste (./mvnw spring-boot:run). Autre adresse : DEV_BACKEND_URL=http://…
+      proxy: {
+        "/api": { target: process.env.DEV_BACKEND_URL ?? "http://localhost:8080", changeOrigin: true },
+        "/uploads": { target: process.env.DEV_BACKEND_URL ?? "http://localhost:8080", changeOrigin: true },
+      },
     },
     plugins: [
       react(),
@@ -132,8 +138,21 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          globIgnores: ['**/amame-uploads/**', 'images/**'],
+          // config.js est réécrit à chaque démarrage du conteneur : s'il était précaché, le
+          // service worker servirait les valeurs figées au moment du build.
+          globIgnores: ['**/amame-uploads/**', 'images/**', 'config.js'],
           runtimeCaching: [
+            {
+              // Configuration d'exécution : le réseau d'abord, la dernière copie connue hors
+              // ligne ou sur un réseau trop lent.
+              urlPattern: /\/config\.js$/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'runtime-config',
+                networkTimeoutSeconds: 3,
+                expiration: { maxEntries: 1 },
+              },
+            },
             {
               // Fichiers privés (CV, photos des inscrits) : jamais dans le cache du
               // service worker. Doit rester AVANT la règle générale /api/.

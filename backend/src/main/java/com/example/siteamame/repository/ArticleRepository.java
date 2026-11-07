@@ -16,11 +16,10 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 
-    @Query("SELECT DISTINCT a.categorie FROM Article a WHERE a.estPublie = true")
-    List<String> findDistinctCategories();
-
-    @Query("SELECT COUNT(a) FROM Article a WHERE a.estPublie = true AND a.categorie = :categorie")
-    Long countByCategorie(@Param("categorie") String categorie);
+    /** Une ligne [catégorie, nombre d'articles publiés] par catégorie, en une seule requête. */
+    @Query("SELECT a.categorie, COUNT(a) FROM Article a " +
+            "WHERE a.estPublie = true AND a.categorie IS NOT NULL GROUP BY a.categorie")
+    List<Object[]> countPublishedByCategorie();
 
     @Modifying
     @Query("UPDATE Article a SET a.vues = a.vues + 1 WHERE a.id = :id")

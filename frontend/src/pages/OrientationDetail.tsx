@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import MediaImage from "@/components/MediaImage";
 import ExpandableText from "@/components/ExpandableText";
 import SEO from "../components/SEO";
 import { Button } from "../components/ui/button";
@@ -84,8 +85,8 @@ export function OrientationDetail() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="w-14 h-14 bg-white rounded-xl shadow-card border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
-                {filiere.filePath ? (
-                  <img src={`/${filiere.filePath}`} alt={filiere.nom} className="w-full h-full object-cover" loading="lazy" onError={e => { e.currentTarget.style.display = "none"; }} />
+                {(filiere.fileUrl ?? filiere.filePath) ? (
+                  <MediaImage src={filiere.fileUrl ?? filiere.filePath} maxWidth={320} sizes="56px" alt={filiere.nom} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
                 ) : (
                   <GraduationCap className="h-7 w-7 text-amame-green" />
                 )}

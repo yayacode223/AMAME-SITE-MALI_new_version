@@ -141,7 +141,7 @@ const RessourceForm: React.FC = () => {
           </label>
           <input
             type="file"
-            accept=".pdf,.doc,.docx,.ppt,.pptx"
+            accept=".pdf,.doc,.docx,.xls,.xlsx"
             onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
             className="w-full text-sm text-amame-muted file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amame-green-subtle file:text-amame-green hover:file:bg-amame-green-light transition-colors cursor-pointer"
           />

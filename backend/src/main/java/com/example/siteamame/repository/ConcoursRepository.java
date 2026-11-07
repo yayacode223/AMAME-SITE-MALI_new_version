@@ -12,9 +12,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 
+/**
+ * Le fichier d'un concours est facultatif : les trois listes passent par une jointure externe
+ * (LEFT JOIN c.file f). Écrire « c.file.filePath » créerait une jointure interne implicite,
+ * qui ferait disparaître des listes les concours sans fichier.
+ */
 public interface ConcoursRepository extends JpaRepository<Concours, Long> {
 
-    @Query("SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
+    @Query(value = "SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
             "c.id, "+
             "c.nom, "+
             "c.description, "+
@@ -25,17 +30,22 @@ public interface ConcoursRepository extends JpaRepository<Concours, Long> {
             "c.dateOuverture, "+
             "c.dateLimite, "+
             "c.lienOfficiel, "+
-            "c.file.filePath) "+
-            "FROM Concours c " +
-            "WHERE (c.isAvalable = true) "+
-            "AND (c.dateLimite >= :currentDate) "+
-            "ORDER BY c.dateLimite DESC")
+            "f.filePath) "+
+            "FROM Concours c LEFT JOIN c.file f " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate "+
+            "ORDER BY c.dateLimite DESC",
+           countQuery = "SELECT count(c) FROM Concours c " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate")
     Page<ConcoursReponseDto> findValideConcoursAvecPagination(
             @Param("currentDate") LocalDateTime currentDate,
             Pageable pageable
     );
 
-    @Query("SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
+    // Les deux filtres sont facultatifs et se cumulent. Chacun est entre parenthèses : sans elles,
+    // le OR l'emportait sur les conditions de validité et renvoyait des concours expirés.
+    @Query(value = "SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
             "c.id, "+
             "c.nom, "+
             "c.description, "+
@@ -46,13 +56,18 @@ public interface ConcoursRepository extends JpaRepository<Concours, Long> {
             "c.dateOuverture, "+
             "c.dateLimite, "+
             "c.lienOfficiel, "+
-            "c.file.filePath) "+
-            "FROM Concours c " +
-            "WHERE (c.isAvalable = true) "+
-            "AND (c.dateLimite >= :currentDate) "+
+            "f.filePath) "+
+            "FROM Concours c LEFT JOIN c.file f " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate "+
             "AND (:niveau IS NULL OR c.niveau = :niveau) "+
-            "OR (:status IS NULL OR c.status = :status) "+
-            "ORDER BY c.dateLimite DESC")
+            "AND (:status IS NULL OR c.status = :status) "+
+            "ORDER BY c.dateLimite DESC",
+           countQuery = "SELECT count(c) FROM Concours c " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate "+
+            "AND (:niveau IS NULL OR c.niveau = :niveau) "+
+            "AND (:status IS NULL OR c.status = :status)")
     Page<ConcoursReponseDto> findValideConcoursByNiveauOrByStatus(
             @Param("currentDate") LocalDateTime currentDate,
             @Param("niveau") NiveauType niveau,
@@ -60,7 +75,7 @@ public interface ConcoursRepository extends JpaRepository<Concours, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
+    @Query(value = "SELECT new com.example.siteamame.dto.concours.ConcoursReponseDto(" +
             "c.id, "+
             "c.nom, "+
             "c.description, "+
@@ -71,20 +86,23 @@ public interface ConcoursRepository extends JpaRepository<Concours, Long> {
             "c.dateOuverture, "+
             "c.dateLimite, "+
             "c.lienOfficiel, "+
-            "c.file.filePath) "+
-            "FROM Concours c " +
-            "WHERE (c.isAvalable = true) "+
-            "AND (c.dateLimite >= :currentDate) "+
-            "AND (LOWER(c.nom) LIKE LOWER(CONCAT('%', :search, '%'))) "+
-            "OR (LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%'))) "+
-            "OR (LOWER(c.pays) LIKE LOWER(CONCAT('%', :search, '%'))) "+
-            "ORDER BY c.dateLimite DESC")
+            "f.filePath) "+
+            "FROM Concours c LEFT JOIN c.file f " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate "+
+            "AND (LOWER(c.nom) LIKE LOWER(CONCAT('%', :search, '%')) "+
+            "OR LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%')) "+
+            "OR LOWER(c.pays) LIKE LOWER(CONCAT('%', :search, '%'))) "+
+            "ORDER BY c.dateLimite DESC",
+           countQuery = "SELECT count(c) FROM Concours c " +
+            "WHERE c.isAvalable = true "+
+            "AND c.dateLimite >= :currentDate "+
+            "AND (LOWER(c.nom) LIKE LOWER(CONCAT('%', :search, '%')) "+
+            "OR LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%')) "+
+            "OR LOWER(c.pays) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<ConcoursReponseDto> findValideConcoursBySearch(
             @Param("currentDate") LocalDateTime currentDate,
             @Param("search") String search,
             Pageable pageable
     );
-
 }
-
-
