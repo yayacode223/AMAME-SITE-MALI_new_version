@@ -16,4 +16,6 @@ public class FileDto {
     private String filePath;
     private String fileMimeType;
     private long fileSize;
+    /** Empreinte SHA-256 du contenu, en hexadécimal minuscule. */
+    private String fileSha256;
 }

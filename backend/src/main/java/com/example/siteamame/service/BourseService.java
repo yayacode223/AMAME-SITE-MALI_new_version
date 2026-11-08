@@ -127,17 +127,8 @@ public class BourseService {
 
         // Gestion du fichier
         if (file != null && !file.isEmpty()) {
-            // Supprimer l'ancien fichier s'il existe
-            if (bourse.getFile() != null) {
-                try {
-                    fileStorageService.deleteFile(bourse.getFile().getFileName(), "bourses");
-                    fileRepository.delete(bourse.getFile());
-                } catch (IOException e) {
-                    throw new RuntimeException("Erreur lors de la suppression de l'ancien fichier: " + e.getMessage());
-                }
-            }
-
-            // Ajouter le nouveau fichier
+            // Ajouter le nouveau fichier. L'ancien perd sa ligne (orphanRemoval) : la base
+            // l'inscrit dans la file de purge.
             try {
                 FileDto fileDto = fileStorageService.storeFile(file, "bourses", FileType.DOCUMENT);
                 File fileToSave = fileMapper.convertDtoToFile(fileDto);
@@ -204,16 +195,7 @@ public class BourseService {
         Bourse bourse = bourseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bourse non trouvée avec Id: " + id));
 
-        // Supprimer le fichier associé s'il existe
-        if (bourse.getFile() != null) {
-            try {
-                fileStorageService.deleteFile(bourse.getFile().getFileName(), "bourses");
-                fileRepository.delete(bourse.getFile());
-            } catch (IOException e) {
-                throw new RuntimeException("Erreur lors de la suppression du fichier: " + e.getMessage());
-            }
-        }
-
+        // Le fichier associé est supprimé en cascade, donc inscrit dans la file de purge.
         bourseRepository.delete(bourse);
     }
 

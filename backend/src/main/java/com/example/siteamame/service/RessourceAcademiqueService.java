@@ -74,7 +74,7 @@ public class RessourceAcademiqueService {
                 .orElseThrow(() -> new RessourceNotFoundException("Ressource non trouvée avec l'id: " + id)));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RessourceAcademiqueDto createRessource(RessourceAcademiqueRequestDto request,
                                                    MultipartFile file) throws IOException {
         RessourceAcademique ressource = new RessourceAcademique();
@@ -87,7 +87,7 @@ public class RessourceAcademiqueService {
         return toDto(ressourceRepository.save(ressource));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RessourceAcademiqueDto updateRessource(Long id, RessourceAcademiqueRequestDto request,
                                                    MultipartFile file) throws IOException {
         RessourceAcademique ressource = ressourceRepository.findById(id)

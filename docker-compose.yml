@@ -23,7 +23,7 @@ services:
 
   backend:
     #image: yaya236/amame-web-site:backend-v7
-    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.2}
+    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.3}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -41,9 +41,6 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
       - DATABASE_MIGRATION_USERNAME=${DATABASE_MIGRATION_USERNAME:-postgres}
       - DATABASE_MIGRATION_PASSWORD=${DATABASE_MIGRATION_PASSWORD:-${POSTGRES_PASSWORD}}
-      # Retour arrière de l'étape 1 par le seul tag d'image : backend-v1.1 lit encore ce nom.
-      # Toujours égal à DATABASE_PASSWORD, donc sans effet sur backend-v1.2. À retirer à l'étape 2.
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
       # Pool de connexions : profil « veille » par défaut (voir .env.example pour « toujours actif »)
       - DB_POOL_MAX_SIZE=${DB_POOL_MAX_SIZE:-10}
       - DB_POOL_MIN_IDLE=${DB_POOL_MIN_IDLE:-0}
@@ -53,6 +50,10 @@ services:
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
       # Même valeur que pour le frontend ci-dessous. Vide : URL relatives (/uploads/…).
       - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
+      # Purge différée des fichiers supprimés : désactivée par défaut, production uniquement.
+      - STORAGE_PURGE_ENABLED=${STORAGE_PURGE_ENABLED:-false}
+      - STORAGE_PURGE_RETENTION=${STORAGE_PURGE_RETENTION:-10d}
+      - STORAGE_PURGE_SCHEDULE=${STORAGE_PURGE_SCHEDULE:-0 30 2 * * *}
       # ── Réveils de la base ──────────────────────────────────────────────────
       - PUBLIC_LISTS_CACHE_TTL=${PUBLIC_LISTS_CACHE_TTL:-0}
       - AUTH_TOKEN_CLEANUP_SCHEDULE=${AUTH_TOKEN_CLEANUP_SCHEDULE:-0 30 2 * * *}

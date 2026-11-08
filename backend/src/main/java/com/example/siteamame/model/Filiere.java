@@ -71,7 +71,7 @@ public class Filiere {
     @CollectionTable(name = "filiere_prerequis", joinColumns = @JoinColumn(name = "filiere_id"))
     private Set<String> prerequis = new HashSet<>();
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private File file;
 
 }

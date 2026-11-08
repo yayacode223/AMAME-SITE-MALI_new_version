@@ -16,6 +16,7 @@ public class FileMapper {
         file.setFileMimeType(fileDto.getFileMimeType());
         file.setFilePath(fileDto.getFilePath());
         file.setFileType(fileDto.getFileType());
+        file.setFileSha256(fileDto.getFileSha256());
         file.setUploadDate(LocalDateTime.now());
 
         return file;
@@ -27,8 +28,8 @@ public class FileMapper {
         fileDto.setFileSize(file.getFileSize());
         fileDto.setFileMimeType(file.getFileMimeType());
         fileDto.setFilePath(file.getFilePath());
-        fileDto.setFileSize(file.getFileSize());
         fileDto.setFileType(file.getFileType());
+        fileDto.setFileSha256(file.getFileSha256());
         return fileDto;
     }
 }

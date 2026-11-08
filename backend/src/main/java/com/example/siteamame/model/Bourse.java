@@ -78,6 +78,6 @@ public class Bourse {
     @Column(name = "date_publication")
     private LocalDate datePublication;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private File file;
 }

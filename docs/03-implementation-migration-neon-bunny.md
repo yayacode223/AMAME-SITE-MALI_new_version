@@ -15,7 +15,7 @@
 
 > **À lire en premier à chaque nouvelle session.** Cette section dit où en est la migration, ce qui reste à faire et ce qui a été décidé en cours de route. Le reste du rapport (§1 à §13) est la référence de conception : il ne change que si une décision change.
 
-**Dernière mise à jour : 5 octobre 2026.**
+**Dernière mise à jour : 8 novembre 2026.**
 
 ### Comment reprendre le travail
 
@@ -38,8 +38,8 @@
 | Étape | Contenu | Code (dépôt) | Production | Critères de sortie |
 | --- | --- | --- | --- | --- |
 | **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; figé dans la branche `sauvegarde/etape-0`, **pas encore sur `main`** | ⬜ rien n'est déployé | 0 / 8 |
-| **1** | Socle de code commun | 🟡 écrit et vérifié en local, **non commité** | ⬜ rien n'est déployé | 0 / 7 |
-| **2** | Contrat de métadonnées et garde-fous en base | ⬜ | ⬜ | 0 / 6 |
+| **1** | Socle de code commun | 🟡 écrit et vérifié en local ; figé dans la branche `sauvegarde/etape-1` (`5c62c07`), **pas encore sur `main`** | ⬜ rien n'est déployé | 0 / 7 |
+| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local, **non commité** ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable | ⬜ | 0 / 6 |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
@@ -73,25 +73,41 @@ Code écrit et vérifié en local les 4 et 5 octobre 2026, **avant** que les cri
 | — | Supervision retirée (décision du 4 octobre, écart E14) | 🟡 | services `prometheus`, `grafana` et `postgres-exporter`, leurs volumes, `GRAFANA_ADMIN_PASSWORD`, le dossier `monitoring/` et l'export Prometheus du backend | supprimer les 3 conteneurs et les 2 volumes devenus orphelins (action I.4) |
 | — | Mémoire du backend remesurée (écart E22) | 🟡 | lecture des fichiers par blocs, deux bornes sur la mémoire native, tas ramené de 40 % à 30 % : 396 Mio sur 512 sous charge, contre 482 pour l'étape 0 | relever `docker stats` après quelques jours (action J.4) |
 
+### Étape 2 — détail
+
+Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déployées, et sans lancer les tests longs, à la demande de l'équipe (écart E27). La suite complète a ensuite été lancée le 8 novembre : 70 tests, aucun échec. L'ordre de déploiement ne change pas : 0, puis 1, puis 2. Tags : `backend-v1.3` (le frontend ne change pas, il reste en `frontend-v1.2`) et `ops-v1.1`.
+
+| # | Action (§5, étape 2) | Dépôt | Ce qui a été livré | Reste à faire en production |
+| --- | --- | --- | --- | --- |
+| 2.1 | Inventaire croisé | 🟡 | [inventory.sh](../ops/backup/inventory.sh), en lecture seule : références cassées, clés en double et lignes partagées (bloquantes), lignes et fichiers orphelins, fichiers en attente de purge, écarts de taille, clés hors format, métadonnées manquantes (écart E34) | le lancer **avant** de déployer `backend-v1.3`, puis après (actions K.2 et N.4) |
+| 2.2 | Migration V2 | 🟡 | [V2__file_metadata_contract.sql](../backend/src/main/resources/db/migration/V2__file_metadata_contract.sql) : colonne `file_sha256`, unicité de la clé, déclencheur qui refuse toute modification de `file_path` ; format de clé, MIME et taille posés `NOT VALID` (écart E30). Empreintes de l'existant : [backfill-sha256.sh](../ops/backup/backfill-sha256.sh) | remplir les empreintes (action N.2) |
+| 2.3 | Migration V3 | 🟡 | [V3__storage_purge_queue.sql](../backend/src/main/resources/db/migration/V3__storage_purge_queue.sql) : table `storage_purge_queue`, déclencheur après suppression ; `TRUNCATE file_entity` refusé (écart E32) | — |
+| 2.4 | Code | 🟡 | `orphanRemoval` sur les 8 entités et `User.files` ; `UserService.update` modifie la collection sur place ; plus aucun `deleteFile` dans les services ; empreinte enregistrée à chaque upload ; compensation à l'annulation ([UploadCompensation.java](../backend/src/main/java/com/example/siteamame/service/file/UploadCompensation.java)) et annulation aussi sur une exception contrôlée (écart E31) ; tâche de purge ([StoragePurgeJob.java](../backend/src/main/java/com/example/siteamame/service/file/StoragePurgeJob.java), écarts E29 et E33), désactivée par défaut ; lignes orphelines : [delete-orphan-rows.sh](../ops/backup/delete-orphan-rows.sh) | supprimer les lignes orphelines après validation de la liste (action N.3) ; la purge reste désactivée jusqu'à l'étape 3.6 |
+| — | Suppression d'un compte (C7) | 🟡 | [V4__user_deletion.sql](../backend/src/main/resources/db/migration/V4__user_deletion.sql) : jetons, permissions et liens vers les fichiers supprimés avec le compte ; adhésions, cotisations et dons conservés, détachés (décision du 7 novembre, écart E28) | recette (action N.5) |
+| — | Adresse inconnue en 404 (C9) | 🟡 | gestionnaire de `NoResourceFoundException` dans `GlobalHandlerException` (écart E36) | — |
+| — | Création d'une filière (C8) | 🟡 | `FiliereController.ajouterFiliere` lit la filière avec `@RequestPart`, comme la modification ; test [FiliereControllerTest.java](../backend/src/test/java/com/example/siteamame/controller/FiliereControllerTest.java) (8 novembre, écart E37) | recette (action N.6) |
+| — | Compose et variables | 🟡 | `STORAGE_PURGE_ENABLED`, `STORAGE_PURGE_RETENTION`, `STORAGE_PURGE_SCHEDULE` ; ligne `SPRING_DATASOURCE_PASSWORD` retirée (E24) ; tags `backend-v1.3` et `ops-v1.1` | aucune variable à saisir : laisser la purge désactivée |
+
 ### Prochaine action
 
 **Côté équipe**, dans cet ordre :
 
 1. **Tout de suite** : ne lancer aucun `git pull` sur le serveur avant d'avoir mis les fichiers à l'abri (action A.1). Le commit qui retire `backend/uploads/` du suivi est déjà sur GitHub.
-2. Régulariser Git (action A.2), relire, commiter l'étape 1.
-3. Dérouler les actions manuelles de l'étape 0 (A à F), puis celles de l'étape 1 (G à J).
-4. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
+2. Régulariser Git (action A.2) : les étapes 0 et 1 sont déjà des commits locaux ; relire puis commiter l'étape 2.
+3. ~~Lancer la suite de tests complète avant de déployer `backend-v1.3`~~ : **fait le 8 novembre 2026** en local, 70 tests, aucun échec. À relancer seulement si le code change d'ici le déploiement.
+4. Dérouler les actions manuelles de l'étape 0 (A à F), puis celles de l'étape 1 (G à J), puis celles de l'étape 2 (K à N).
+5. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
 
 **Côté implémentation, à la prochaine session** :
 
-1. Reporter dans ce suivi les faits relevés et cocher les critères constatés, pour les étapes 0 et 1.
+1. Reporter dans ce suivi les faits relevés et cocher les critères constatés, pour les étapes 0, 1 et 2.
 2. Si la comparaison de l'action G.1 montre un écart entre la production et `V1__baseline.sql` : corriger V1 avant tout déploiement de l'étape 1.
-3. Si les critères de l'étape 1 sont remplis en production : commencer l'étape 2 par l'inventaire croisé (2.1), qui se lit en production et conditionne les migrations V2 et V3.
-4. Sinon : traiter ce qui bloque.
+3. Si l'inventaire croisé (action K.2) signale une anomalie bloquante : la traiter avant tout déploiement de l'étape 2.
+4. Étape 3, sur demande de l'équipe : le code (3.2 : client et implémentation Bunny ; 3.3 : copie pilotée par les métadonnées ; 3.4 : réconciliation en mode rapport) peut s'écrire avant le déploiement des étapes précédentes, comme pour l'étape 2. Il ne s'éprouve vraiment qu'avec les zones Bunny `amame-public` et `amame-private` (action 3.1). Prérequis à intégrer : une migration V5 qui valide les contraintes `NOT VALID` et rend l'empreinte obligatoire, une fois les empreintes remplies à 100 % en production (écart E30).
 
 ### Actions manuelles en attente
 
-À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1.
+À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1, les actions K à N l'étape 2.
 
 **Deux façons de déployer.** Le plan demande de déployer l'étape 0, de constater ses 8 critères, puis de déployer l'étape 1 : un incident n'a alors qu'une cause possible. Déployer les deux ensemble reste possible (actions A à C et E.1, puis directement G à J avec les images `v1.2`), mais les critères des deux étapes se vérifient alors en même temps. Le choix se consigne dans les faits relevés.
 
@@ -110,17 +126,21 @@ Code écrit et vérifié en local les 4 et 5 octobre 2026, **avant** que les cri
    Si `git pull` refuse d'écraser des modifications locales de ces fichiers, lancer d'abord `git checkout -- backend/.env frontend/.env` : les copies ci-dessus contiennent les valeurs du serveur.
 
    La même précaution vaut pour le dossier de travail de Portainer s'il déploie depuis Git, et pour le poste de chaque développeur.
-2. **Régulariser Git.** Le commit `f5252df` ne contient que ces 39 retraits : le code de l'étape 0 n'y est pas. Pour que les deux étapes restent séparées, l'état exact du dépôt à la fin de l'étape 0 a été figé dans une branche locale, `sauvegarde/etape-0` (commit `b14e7dd`, dont le parent est `f5252df`), sans toucher à `main`. Depuis la racine du dépôt, sur `main` :
+2. **Régulariser Git.** Le commit `f5252df` ne contient que ces 39 retraits : le code de l'étape 0 n'y est pas. Pour que les étapes restent séparées, l'état exact du dépôt à la fin de chacune a été figé dans une branche locale, sans toucher à `main` :
+   - `sauvegarde/etape-0` : commit `b14e7dd`, dont le parent est `f5252df` ;
+   - `sauvegarde/etape-1` : commit `5c62c07`, dont le parent est `b14e7dd` (figé le 7 novembre 2026, avant l'étape 2).
+
+   Depuis la racine du dépôt, sur `main` :
 
    ```bash
-   git reset sauvegarde/etape-0     # main avance sur le commit de l'étape 0 ; aucun fichier du disque n'est modifié
-   git status                       # ne montre plus que les changements de l'étape 1
+   git reset sauvegarde/etape-1     # main avance sur les commits des étapes 0 et 1 ; aucun fichier du disque n'est modifié
+   git status                       # ne montre plus que les changements de l'étape 2
    git add -A
-   git commit -m "Etape 1 : socle de code commun"
+   git commit -m "Etape 2 : contrat de métadonnées et garde-fous en base"
    git push                         # avance simple : aucun push forcé n'est nécessaire
    ```
 
-   La branche `sauvegarde/etape-0` peut ensuite être supprimée (`git branch -d sauvegarde/etape-0`).
+   Les deux branches de sauvegarde peuvent ensuite être supprimées (`git branch -d sauvegarde/etape-0 sauvegarde/etape-1`).
 3. **Relever les faits** du tableau « Faits relevés en production », en particulier le chemin réel des uploads.
 
 #### B. Sécurité, sans attendre le déploiement
@@ -209,17 +229,19 @@ Remettre `BACKEND_IMAGE_TAG=backend-v1.0` et `FRONTEND_IMAGE_TAG=frontend-v1.0` 
 
 #### H. Images de l'étape 1
 
-Depuis `main`, une fois l'étape 1 commitée :
+Les images `backend-v1.2` et `frontend-v1.2` se construisent **depuis le commit de l'étape 1** (`5c62c07`), et non depuis `main` une fois l'étape 2 commitée : ses tags par défaut sont `backend-v1.3`. Comme pour l'étape 0, par un second dossier de travail :
 
 ```bash
+git worktree add ../amame-etape-1 5c62c07
+cp .env ../amame-etape-1/.env && cd ../amame-etape-1
 docker compose build backend frontend && docker compose push backend frontend
 ```
 
-Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scraper-v1.1` ne changent pas.
+Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scraper-v1.1` ne changent pas. L'image `ops-v1.1` de l'étape 2 peut les remplacer dès maintenant (action L).
 
 #### I. Stack `amame` dans Portainer
 
-1. **Compose.** Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par [docker-compose.yml](../docker-compose.yml). Vérifier que `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` et `SPRING_JPA_HIBERNATE_DDL_AUTO` n'y figurent plus : `SPRING_JPA_HIBERNATE_DDL_AUTO=update` rendrait à Hibernate le droit de modifier le schéma.
+1. **Compose.** Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par celui de l'étape 1 (`git show 5c62c07:docker-compose.yml`) : celui de `main` est déjà celui de l'étape 2, qui ne permet plus le retour arrière vers `backend-v1.1` (E24). Vérifier que `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` et `SPRING_JPA_HIBERNATE_DDL_AUTO` n'y figurent plus : `SPRING_JPA_HIBERNATE_DDL_AUTO=update` rendrait à Hibernate le droit de modifier le schéma.
 2. **Variables.** Retirer `GRAFANA_ADMIN_PASSWORD`. Passer `BACKEND_IMAGE_TAG=backend-v1.2` et `FRONTEND_IMAGE_TAG=frontend-v1.2`. Aucune variable nouvelle n'est obligatoire : tant que la base est sur le VPS, le backend se connecte avec `POSTGRES_PASSWORD`. Laisser `MEDIA_BASE_URL` vide et `STORAGE_PROVIDER` à `local`.
 3. **Mettre la stack à jour.** Si Portainer refuse le compose sur une erreur d'interpolation à propos de `${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}`, sa version de Compose est trop ancienne pour les valeurs par défaut imbriquées : mettre Portainer à jour, ou définir `DATABASE_PASSWORD` et `DATABASE_MIGRATION_PASSWORD` avec la valeur de `POSTGRES_PASSWORD`.
 4. **Supervision.** Supprimer les conteneurs `amame-prometheus`, `amame-grafana` et `amame-postgres-exporter` s'ils existent encore, puis les volumes `prometheus_data` et `grafana_data` de la stack. Ils ne contiennent aucune donnée métier.
@@ -243,7 +265,67 @@ Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scr
 
 #### Retour arrière de l'étape 1
 
-Remettre `BACKEND_IMAGE_TAG=backend-v1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1` dans la stack, les deux ensemble, sans changer le compose : il transmet encore le nom de variable que lit `backend-v1.1`. La table `flyway_schema_history` reste en base, sans effet sur l'ancienne version. Rejoué en local le 5 octobre : l'ancien backend, lancé avec les variables du compose de l'étape 1 sur une base déjà passée par l'étape 1, démarre, répond, et ne touche pas au schéma.
+Remettre `BACKEND_IMAGE_TAG=backend-v1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1` dans la stack, les deux ensemble, sans changer le compose : il transmet encore le nom de variable que lit `backend-v1.1`. La table `flyway_schema_history` reste en base, sans effet sur l'ancienne version. Rejoué en local le 5 octobre : l'ancien backend, lancé avec les variables du compose de l'étape 1 sur une base déjà passée par l'étape 1, démarre, répond, et ne touche pas au schéma. Le compose de l'étape 2 ne transmet plus `SPRING_DATASOURCE_PASSWORD` (E24) : ce retour arrière se fait avec le compose de l'étape 1 (`git show 5c62c07:docker-compose.yml`).
+
+#### K. Avant de déployer l'étape 2
+
+1. **L'étape 1 est en production et ses critères sont constatés** (§5.0). La suite de tests complète a été lancée une fois avec succès (`./mvnw test`) : fait le 8 novembre 2026, à refaire si le code a changé depuis.
+2. **Inventaire croisé.** Mettre la stack `amame-ops` à jour avec l'image `ops-v1.1` (action L), puis, dans la console du conteneur `amame-ops-backup` :
+
+   ```bash
+   inventory.sh
+   ```
+
+   Il doit se terminer par `inventaire conforme`. Sinon, **ne pas déployer** : une clé en double ferait échouer la migration V2 ; une référence cassée ou une ligne partagée est à traiter d'abord (tableau dans [ops/README.md](../ops/README.md)). Consigner les compteurs dans les faits relevés.
+3. **Point de restauration** : lancer `backup.sh` juste avant la mise à jour de la stack.
+
+#### L. Images de l'étape 2
+
+Depuis `main`, une fois l'étape 2 commitée :
+
+```bash
+docker compose build backend && docker compose push backend
+docker compose -f ops/docker-compose.yml --env-file .env build backup
+docker compose -f ops/docker-compose.yml --env-file .env push backup
+```
+
+Tags produits : `backend-v1.3` et `ops-v1.1`. Le frontend ne change pas (`frontend-v1.2`). `ops-v1.1` contient les mêmes scripts de sauvegarde que `ops-v1.0`, plus les trois outils de l'étape 2 : il peut servir dès l'étape 0.
+
+#### M. Stack `amame` dans Portainer
+
+1. Passer `BACKEND_IMAGE_TAG=backend-v1.3`. Ne rien changer d'autre : `STORAGE_PURGE_ENABLED` reste absent ou à `false`. La purge ne s'active qu'à l'étape 3.6 ; d'ici là, la file se remplit sans que rien soit effacé.
+2. Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par [docker-compose.yml](../docker-compose.yml).
+3. Mettre la stack à jour.
+
+#### N. Vérifications après le déploiement de l'étape 2
+
+1. **Journal du backend** : `Migrating schema "public" to version "2 - file metadata contract"`, puis versions 3 et 4, puis `Started SiteAmameApplication`. En cas d'erreur, revenir en arrière (ci-dessous) et transmettre le message.
+2. **Empreintes** : `backfill-sha256.sh` (simulation), puis `backfill-sha256.sh --apply`. Objectif : `0 sans empreinte`. Les lignes restantes sont expliquées par le script (fichier absent, taille différente, clé refusée).
+3. **Lignes orphelines** : `delete-orphan-rows.sh` affiche la liste ; la faire valider, puis `delete-orphan-rows.sh --apply`. Leurs fichiers restent sur le disque, en attente de purge.
+4. **Inventaire** : `inventory.sh` à nouveau. Attendu : `inventaire conforme`, `lignes orphelines : 0`, `sans empreinte SHA-256 : 0`.
+5. **Critères de sortie de l'étape 2** (§5), à cocher avec leur date. Requêtes SQL : `docker exec -it amame-database psql -U postgres -d amame_db`.
+
+   | Critère | Comment le constater |
+   | --- | --- |
+   | Remplacement de l'image d'un article : nouvelle ligne, ancienne supprimée, entrée dans la file, ancien fichier encore présent | remplacer l'image d'un article de test. `SELECT object_key, requested_at FROM storage_purge_queue ORDER BY id DESC LIMIT 1;` donne l'ancienne clé ; le fichier correspondant est toujours dans le dossier des uploads |
+   | Après la rétention, fichier effacé et entrée marquée purgée | test `FileLifecycleIntegrationTest` (rétention raccourcie). En production, la purge n'est activée qu'à l'étape 3.6 |
+   | Erreur après l'upload : aucun fichier ne reste | créer un article avec image et un titre déjà utilisé : erreur attendue. Le nombre de fichiers de `actualite/` ne change pas (`ls <uploads>/actualite \| wc -l` avant et après) |
+   | Suppression d'un utilisateur : CV et photo dans la file | créer un compte de test avec CV et photo, s'y connecter une fois, puis le supprimer depuis l'administration : la suppression réussit (C7) et deux entrées apparaissent dans la file |
+   | Modification de `file_path` refusée par la base | `BEGIN; UPDATE file_entity SET file_path = file_path \|\| 'x' WHERE id = (SELECT min(id) FROM file_entity); ROLLBACK;` : erreur `file_entity.file_path est immuable` |
+   | Empreinte pour 100 % des lignes | `SELECT count(*) FILTER (WHERE file_sha256 IS NULL), count(*) FROM file_entity;` : 0 en première colonne |
+   | Zéro référence cassée | `inventory.sh`, point 4 |
+
+6. **Création d'une filière (C8)** : depuis l'administration, créer une filière de test avec une image, puis une sans image. Les deux réussissent et apparaissent dans la liste ; un nom vide est refusé par un message d'erreur, et non plus par une erreur 500. Supprimer ensuite les filières de test.
+
+#### Retour arrière de l'étape 2
+
+Remettre `BACKEND_IMAGE_TAG=backend-v1.2`, sans toucher au schéma. Les migrations V2 à V4 sont additives : `backend-v1.2` crée toujours des clés neuves, conformes, avec MIME et taille ; Hibernate ignore la colonne et la table ajoutées ; Flyway ignore les migrations plus récentes que celles qu'il connaît. Deux conséquences à connaître, sans gravité :
+
+- `backend-v1.2` efface encore l'ancien fichier lors d'un remplacement et laisse sa ligne : `inventory.sh` la montrera comme ligne orpheline au fichier absent, à supprimer par `delete-orphan-rows.sh` au retour en `v1.3` ;
+- si un compte qui avait une adhésion a été supprimé sous `v1.3`, l'adhésion détachée fait échouer la liste des adhésions de `v1.2` : supprimer ces adhésions (`DELETE FROM adhesions WHERE user_id IS NULL;`) ou revenir en `v1.3` ;
+- la création d'une filière échoue de nouveau (C8), sans effet sur les données.
+
+Ce retour arrière est déduit du code et des migrations ; il n'a pas été rejoué (écart E27).
 
 ### Faits relevés en production
 
@@ -264,6 +346,9 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | Schéma de production comparé à `V1__baseline.sql` (action G.1) | *à faire avant de déployer l'étape 1* | — |
 | Mémoire du conteneur `amame-backend` : avant l'étape 1, puis 24 heures et une semaine après | *à relever avec `docker stats` ; mesuré en local sous charge : 396 Mio sur 512* | — |
 | Portainer accepte-t-il les valeurs par défaut imbriquées du compose (action I.3) ? | *à constater à la mise à jour de la stack* | — |
+| Suite de tests complète (`./mvnw test`) avec les tests de l'étape 2 | `BUILD SUCCESS` : 70 tests, 0 échec, 8 min 07 (en local, Docker Desktop) | 8 novembre 2026 |
+| Inventaire croisé avant l'étape 2 (action K.2) : compteurs de chaque catégorie | *à relever* | — |
+| Empreintes et lignes orphelines après l'étape 2 (actions N.2 à N.4) | *à relever : lignes sans empreinte, lignes orphelines supprimées* | — |
 
 ### Écarts et décisions prises pendant l'implémentation
 
@@ -295,6 +380,17 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | E24 | Retour arrière de l'étape 1 | « remettre les tags d'image précédents » | pour que ce soit vrai sans toucher au compose, celui-ci transmet encore `SPRING_DATASOURCE_PASSWORD`, seul nom que lit `backend-v1.1`. Sa valeur est toujours celle de `DATABASE_PASSWORD` : sans effet sur `backend-v1.2`. Ligne à retirer à l'étape 2 |
 | E25 | Corrections faites au passage | — | trois corrections dans des fichiers que l'étape modifiait de toute façon. `JwtFilter` : un jeton encore valide d'un compte supprimé renvoie 401 et non plus 500. Comptage des catégories : les articles sans catégorie sont ignorés (ils provoquaient une erreur 500). `ConcoursRepository` : en plus de la jointure externe, les parenthèses des deux requêtes filtrées sont corrigées ([B01 §4.6]) ; les deux filtres se cumulent désormais, et un concours expiré n'apparaît plus dans une recherche |
 | E26 | Frontend, au-delà du plan | — | serveur de développement : `/api` et `/uploads` sont relayés vers le backend local, sans quoi le critère « développement local sous Windows » ne peut pas être constaté. `config.js` : servi par le réseau d'abord, par la dernière copie connue hors ligne ou après 3 secondes d'attente. Balises Open Graph : une URL d'image relative est rattachée au domaine du site |
+| E27 | **Étape 2 écrite sans les étapes précédentes en production, et sans les tests longs** | une étape commence quand la précédente remplit ses critères en production (§5.0) ; critères de l'étape 2 constatés par des tests Testcontainers | décision de l'équipe du 7 novembre 2026 : « on ignore les critères de sortie », c'est-à-dire qu'on ne lance pas les tests qui prennent énormément de temps. Ont été faits : compilation du code et des tests ; application de V1 à V4 sur un PostgreSQL 15 jetable avec un scénario SQL ; essai des trois scripts d'exploitation sur une base et un dossier factices. **N'ont pas été lancés** : la suite `./mvnw test` (dont `FileLifecycleIntegrationTest`, nouveau, et `SiteAmameApplicationTests`, adapté) ; aucun démarrage du backend ; le retour arrière par le tag n'a pas été rejoué. La suite complète est à lancer avant le déploiement (action K.1). L'étape 1 a été figée dans `sauvegarde/etape-1` avant toute modification. **Mise à jour du 8 novembre** : la suite complète a été lancée à la demande de l'équipe, 70 tests, aucun échec |
+| E28 | Suppression d'un compte (C7) | « corriger d'abord la suppression d'un utilisateur » (notes de l'étape 2), sans règle pour les données liées | décision de l'équipe du 7 novembre 2026 : l'historique est conservé, détaché du compte. Migration V4 : jetons de session et de réinitialisation, permissions et liens `users_files` disparaissent avec le compte (`ON DELETE CASCADE`) ; adhésions, cotisations et dons gardent leur ligne avec `user_id` vide (`ON DELETE SET NULL`), comme `granted_by` des permissions accordées par le compte. Les noms des anciennes clés étrangères, générés par Hibernate, sont lus dans le catalogue et non écrits en dur (E16). Une adhésion détachée s'affiche « (compte supprimé) » (libellé fourni par le backend : le frontend ne change pas) et ne peut plus être approuvée ni rejetée (409), seulement supprimée. Les fichiers du compte sont supprimés par le backend (cascade), donc inscrits dans la file. Le motif de l'adhésion reste en base : à considérer pour la politique de confidentialité |
+| E29 | Tâche de purge et connexions | « la purge réserve ses entrées en les verrouillant (SKIP LOCKED) » (DT8) | la réservation se fait dans une courte transaction (`SKIP LOCKED`, puis tentative datée), l'effacement **hors transaction**, puis une seconde courte transaction marque le résultat : aucune connexion n'est tenue pendant les appels au stockage (DT5). Une entrée réservée n'est reprise par une autre exécution qu'après 30 minutes ; une entrée en échec est reprise la nuit suivante. Au plus 50 lots de 100 par exécution. Ajouts : une entrée dont la clé est de nouveau référencée (restauration) est retirée de la file, jamais purgée ; une clé hors de `uploads/` n'est jamais effacée ; les entrées purgées sont supprimées après 60 jours (DT9) |
+| E30 | Contraintes de V2 | format, MIME et taille « posés d'abord sans vérifier l'existant, puis validés une fois le nettoyage fait » ; empreinte remplie pour l'existant | les trois contraintes sont des `CHECK … NOT VALID` : appliquées à toute ligne insérée ou modifiée, sans contrôler l'existant. L'empreinte reste facultative en base : `backend-v1.2`, cible du retour arrière, n'en écrit pas. Une migration V5, à écrire quand l'inventaire et `backfill-sha256.sh` auront été passés en production, validera les trois contraintes et rendra l'empreinte obligatoire, avant la copie vers Bunny de l'étape 3, qui envoie l'empreinte de la base |
+| E31 | Annulation sur exception contrôlée | « l'upload échoue proprement : rien en base, objet compensé » (DT5) | par défaut, Spring **valide** une transaction interrompue par une exception contrôlée (`IOException`) : une inscription dont la photo échouait après le CV laissait le CV en base. Les 14 méthodes d'écriture qui stockent un fichier et déclarent `IOException` passent en `@Transactional(rollbackFor = Exception.class)` ; les autres convertissaient déjà l'exception |
+| E32 | `TRUNCATE file_entity` | non prévu | un `TRUNCATE` ne déclenche pas les déclencheurs de ligne : il viderait la table sans rien inscrire dans la file. Un déclencheur de V3 le refuse. `pg_restore` ne l'utilise pas |
+| E33 | Unité de la rétention | « 10 jours » | `STORAGE_PURGE_RETENTION` accepte une durée (`10d`) ; un nombre seul compte des **jours**, car Spring le lirait sinon en millisecondes et purgerait tout à la première nuit. Le backend refuse de démarrer, purge activée, avec une rétention de moins d'un jour |
+| E34 | Inventaire croisé | cinq catégories (§5, 2.1) | en plus : « ligne partagée » (référencée par plusieurs entités ; bloquante, car `orphanRemoval` supprimerait la ligne encore utilisée par l'autre), « fichier en attente de purge », écarts de taille, clés hors format, noms incohérents avec la clé, MIME ou taille manquants, empreintes manquantes. Session SQL en lecture seule imposée au serveur. `backfill-sha256.sh` ne remplit une empreinte que si la taille du disque correspond à celle de la base, et complète MIME et taille manquants (paquet `file` ajouté à l'image, d'où `ops-v1.1`). `delete-orphan-rows.sh` ne retient que les lignes de plus de 2 jours, et refuse de supprimer tant que le déclencheur de V3 n'existe pas |
+| E35 | Colonne `file_entity.user_id` | non relevée | elle existe (relation `File.user`) mais n'est jamais remplie : le lien entre un compte et ses fichiers passe par `users_files`. Conservée telle quelle pour ne pas mêler un nettoyage de schéma à l'étape ; sa clé étrangère passe en `ON DELETE SET NULL` (V4). À retirer plus tard, avec la relation |
+| E36 | Constat C9 corrigé à l'étape 2 | « à faire avant l'étape 3 » | une adresse inconnue renvoie 404 (`NoResourceFoundException`), et non plus 500 |
+| E37 | Constat C8 corrigé à l'étape 2 | « sans rapport avec la migration », non retenu le 7 novembre | corrigé le 8 novembre à la demande de l'équipe, dans le même tag `backend-v1.3` : la partie JSON `filiere` est lue par `@RequestPart`, comme pour la modification et pour les autres contrôleurs. Un nom vide renvoie désormais 400 (validation `@Valid`, déjà présente mais jamais atteinte). La modification d'une filière n'est pas validée (`@Valid` absent) : comportement inchangé, hors du périmètre de C8 |
 
 **Constats hors du périmètre de l'étape 0**, à traiter ou à planifier :
 
@@ -306,17 +402,20 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | C4 | `./mvnw test` exige une base PostgreSQL locale sur le port 5454 : le seul test d'intégration ne tourne pas ailleurs | — | **réglé à l'étape 1** : le test lance son propre PostgreSQL (Testcontainers). Seul Docker est nécessaire |
 | C5 | `public/images/grid-image/` (6 fichiers, 2,4 Mo) n'est utilisé que par trois composants de gabarit jamais importés (`src/components/ui/images/`) | 🟡 | supprimer les composants et le dossier |
 | C6 | La mise à jour du profil accepte un nouvel e-mail sans vérification, et ignore le mot de passe envoyé par le formulaire d'administration | 🟡 | à étudier séparément |
-| C7 | **Un compte qui s'est déjà connecté ne peut pas être supprimé** : `DELETE /api/admin/user/{id}` échoue (500) sur la clé étrangère de `refresh_token`. Il en va sans doute de même pour un compte qui a une adhésion, une cotisation, un don ou un jeton de réinitialisation | 🟠 | à corriger à l'étape 2 : son critère « suppression d'un utilisateur : son CV et sa photo sont inscrits dans la file » ne peut pas être constaté sans cela |
-| C8 | **La création d'une filière par l'API échoue toujours** (500) : `FiliereController.ajouterFiliere` lit la filière avec `@RequestParam` au lieu de `@RequestPart`. La modification fonctionne | 🟠 | corriger l'annotation ; sans rapport avec la migration |
-| C9 | Toute adresse inconnue du backend renvoie 500 au lieu de 404 : le gestionnaire d'erreurs générique intercepte aussi « ressource introuvable » | 🟡 | ajouter un gestionnaire pour `NoResourceFoundException` ; à faire avant l'étape 3, dont un critère surveille les 404 |
+| C7 | **Un compte qui s'est déjà connecté ne peut pas être supprimé** : `DELETE /api/admin/user/{id}` échoue (500) sur la clé étrangère de `refresh_token`. Il en va sans doute de même pour un compte qui a une adhésion, une cotisation, un don ou un jeton de réinitialisation | 🟠 | **corrigé dans le dépôt le 7 novembre 2026** (migration V4, écart E28) ; à constater en production (action N.5) |
+| C8 | **La création d'une filière par l'API échoue toujours** (500) : `FiliereController.ajouterFiliere` lit la filière avec `@RequestParam` au lieu de `@RequestPart`. La modification fonctionne | 🟠 | **corrigé dans le dépôt le 8 novembre 2026** (écart E37) ; à constater en production (action N.6) |
+| C9 | Toute adresse inconnue du backend renvoie 500 au lieu de 404 : le gestionnaire d'erreurs générique intercepte aussi « ressource introuvable » | 🟡 | **corrigé dans le dépôt le 7 novembre 2026** (écart E36) |
 | C10 | `/actuator/health` ouvre une connexion SMTP à chaque appel et passe à `DOWN` si Gmail ne répond pas | 🟡 | n'interroger que `/actuator/health/liveness` et `/actuator/health/readiness`, qui n'en dépendent pas ; ou désactiver l'indicateur `mail` |
 
 ### Notes pour les étapes suivantes
 
 Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
 
-- **Étape 2.** Les migrations V2 et V3 s'écrivent en SQL standard, noms qualifiés (`public.…`), sans réglage de session. [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java) vérifie aujourd'hui « version 1, 25 tables » : l'adapter. `UploadValidator` rend déjà les octets du fichier : l'empreinte SHA-256 se calcule dessus, sans relire le disque. `StorageProperties` reçoit le bloc `purge`, et le compose ses trois variables (E17). Retirer du compose la ligne `SPRING_DATASOURCE_PASSWORD` (E24). Corriger d'abord la suppression d'un utilisateur (C7).
-- **Étape 2.** Les services appellent encore `deleteFile` avant le commit, comme avant : l'étape 1 n'a rien changé au cycle de vie des fichiers. `ConcoursMapper.convertToEntity` ne réécrit plus la clé d'un fichier.
+- **Étape 2, livrée dans le dépôt le 7 novembre 2026.** [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java) attend désormais « version 4, 26 tables ». Toute nouvelle migration change ces deux nombres.
+- **Avant l'étape 3 : migration V5** (E30). Une fois `backfill-sha256.sh` passé en production avec 0 ligne sans empreinte et l'inventaire conforme : `VALIDATE CONSTRAINT` des trois contraintes `NOT VALID` de V2, puis `file_sha256` en `NOT NULL`. Elle échoue si une ligne ne respecte pas une contrainte : la faire précéder d'un nouvel `inventory.sh`.
+- **Étape 3.** L'implémentation Bunny de `FileStorageService` doit : appeler `UploadCompensation.deleteOnRollback(key, this)` juste après l'envoi ; envoyer l'en-tête `Checksum` avec `ValidatedFile.sha256()` en majuscules (comme `bunny_put` dans [lib.sh](../ops/backup/lib.sh)) ; rendre `delete(key)` idempotent (404 = succès) ; refuser toute clé hors de `uploads/`. La tâche de purge n'a rien à changer : elle appelle `delete(key)`. L'activer (`STORAGE_PURGE_ENABLED=true`) à l'étape 3.6 seulement.
+- **Étape 3.** `inventory.sh` compare la base au dossier monté ; à l'étape 3, il devra comparer la base aux zones Bunny (même logique, listing par l'API, mots de passe en lecture seule). La catégorie « fichier en attente de purge » vient de `storage_purge_queue`.
+- **Étape 6.** Le retrait des objets privés de la sauvegarde, 30 jours après leur purge (DT9), lit `storage_purge_queue` : `purged_at`, conservé 60 jours.
 - **Étape 3.** Ajouter `bunny` aux fournisseurs connus de [StorageConfig.java](../backend/src/main/java/com/example/siteamame/config/StorageConfig.java) : toute autre valeur de `STORAGE_PROVIDER` arrête déjà le démarrage avec un message. Le service de fichiers de Spring (`/uploads/**`) se désactive seul hors du mode local. La copie des fichiers de `backup.sh` lit aujourd'hui le dossier monté : elle devra lire les zones Bunny avec leurs mots de passe en lecture seule. Corriger C9 avant de surveiller les 404.
 - **Étape 3.** Mémoire : le client HTTP de Bunny et l'envoi de fichiers de 10 Mo demandent une nouvelle mesure, **sur le conteneur** (`docker stats`, `memory.stat`), pas sur les chiffres de la JVM (E22). Envoyer et lire par blocs, comme `StorageIo`.
 - **Étape 4.** Reconstruire l'image d'exploitation avec `OPS_PG_MAJOR=17` : `pg_dump` refuse une base plus récente que lui. Passer l'image du test de démarrage à `postgres:17-alpine` (E19). Renseigner les cinq variables `DATABASE_*` ; les valeurs par défaut du compose, liées à `POSTGRES_PASSWORD`, disparaissent avec la base locale à l'étape 6. Le profil de pool « veille » est déjà celui de la production depuis l'étape 1.
@@ -403,6 +502,50 @@ Dans les trois premiers cas, le pic atteint la limite parce que le noyau y compt
 **Non vérifié.** Rien n'a été exécuté contre la production : ni la comparaison de V1 avec son schéma, ni la baseline sur ses données. Le rendu des pages n'a pas été contrôlé dans un navigateur : seuls la compilation, le build et le service des fichiers l'ont été. Le comportement hors ligne de la PWA avec `config.js` n'a pas été essayé. Les paramètres d'Optimizer (`MEDIA_OPTIMIZER_ENABLED=true`) n'ont pas été éprouvés contre un CDN. L'image Docker du backend n'a pas été construite : le jar a tourné dans un conteneur équivalent (Temurin 21, mêmes options, même limite). La prise en charge des valeurs par défaut imbriquées par le Compose de Portainer n'est pas connue.
 
 **Session interrompue une fois**, pendant la rédaction de ce suivi ; reprise à partir de l'état du dépôt, sans perte. La suite de tests complète s'était terminée avant l'interruption.
+
+#### 7 novembre 2026 — étape 2 complète dans le dépôt, sans les tests longs
+
+**Constat de départ.** Le dépôt était exactement dans l'état du 5 octobre : rien de déployé, aucun fait relevé, l'étape 1 non commitée sur `main`. L'équipe a validé la suite (étape 2), en écartant les tests longs (écart E27), avec trois décisions : figer l'étape 1 dans une branche, conserver l'historique d'un compte supprimé (E28), corriger C9 au passage.
+
+**Fait.** L'étape 1 a d'abord été figée dans la branche locale `sauvegarde/etape-1` (commit `5c62c07`, parent `b14e7dd`), par un index temporaire, sans toucher à `main` ni à l'index. Puis, voir le tableau de détail de l'étape 2. Fichiers créés ou modifiés (54 au total) :
+
+- **Schéma** : [V2__file_metadata_contract.sql](../backend/src/main/resources/db/migration/V2__file_metadata_contract.sql), [V3__storage_purge_queue.sql](../backend/src/main/resources/db/migration/V3__storage_purge_queue.sql), [V4__user_deletion.sql](../backend/src/main/resources/db/migration/V4__user_deletion.sql).
+- **Backend, stockage** : `FileStorageService` (`delete(key)` remplace `deleteFile(nom, dossier)`), `LocalFileStorageService`, `ValidatedFile` (empreinte), `UploadCompensation` et `StoragePurgeJob` (nouveaux), `StorageProperties` (bloc `purge`), `FileDto`, `FileMapper`, `application.properties`.
+- **Backend, entités et services** : `File` (empreinte, clé non modifiable par Hibernate), les 8 entités à fichier et `User` (`orphanRemoval`), `Adhesion`, `Cotisation`, `Don` (compte facultatif), les 9 services à fichier, `AdhesionService`, `AdhesionMapper`, `GlobalHandlerException`.
+- **Backend, tests** : `FileLifecycleIntegrationTest` (nouveau, Testcontainers : remplacement, purge à rétention raccourcie, compensation, suppression d'un compte, clé immuable), `LocalFileStorageServiceTest` (empreinte, compensation, suppression par clé), `SiteAmameApplicationTests` (version 4, 26 tables), 3 tests adaptés au nouveau constructeur de `StorageProperties`.
+- **Exploitation** : [inventory.sh](../ops/backup/inventory.sh), [backfill-sha256.sh](../ops/backup/backfill-sha256.sh), [delete-orphan-rows.sh](../ops/backup/delete-orphan-rows.sh) (nouveaux), `lib.sh` (requête des références vers `file_entity`), `Dockerfile` (paquet `file`), [ops/README.md](../ops/README.md).
+- **Configuration et documentation** : [docker-compose.yml](../docker-compose.yml), [ops/docker-compose.yml](../ops/docker-compose.yml), [.env.example](../.env.example), `CLAUDE.md`, ce rapport.
+
+**Vérifié en local.**
+
+| Vérification | Résultat |
+| --- | --- |
+| Compilation du backend et des tests (`./mvnw compile`, `./mvnw test-compile`) | `BUILD SUCCESS` |
+| V1 à V4 sur un PostgreSQL 15 jetable, scénario SQL | les quatre migrations passent. Refusés : modification de `file_path`, clé en double, clé mal formée, MIME absent, empreinte mal formée, `TRUNCATE`. Acceptée : modification d'un autre champ. Suppression d'un compte avec jeton de session, don et deux fichiers : réussie, deux clés dans la file, jeton supprimé, don conservé sans compte. Une suppression annulée n'inscrit rien. Après V4 : exactement 9 clés étrangères vers `users`, avec l'action attendue, sans doublon des anciennes |
+| Scripts d'exploitation, image `ops-v1.1` construite, base PostgreSQL 15 et dossier d'uploads factices | `inventory.sh` avant V2 : 1 référence cassée, 1 ligne orpheline, 1 fichier orphelin, 1 clé hors format, 1 métadonnée manquante, sortie en échec ; après réparation : conforme ; un fichier dont la ligne vient d'être supprimée est classé « en attente de purge ». `backfill-sha256.sh` refuse avant V2 ; simulation sans écriture ; `--apply` : empreinte identique à `sha256sum`, MIME (`application/pdf`) et taille complétés, fichier absent ignoré. `delete-orphan-rows.sh` : simulation, puis suppression de la seule ligne orpheline, inscrite dans la file |
+| Fichiers compose | les deux stacks sont valides avec `.env.example` |
+
+**Non vérifié.** La suite de tests n'a pas été lancée : ni les tests unitaires (dont les nouveaux tests de `LocalFileStorageServiceTest`), ni `FileLifecycleIntegrationTest`, ni `SiteAmameApplicationTests`. Le backend n'a pas été démarré : la validation par Hibernate de la nouvelle colonne, la planification de la purge, la suppression d'un compte par l'API et le 404 sur une adresse inconnue n'ont pas été observés. Le retour arrière vers `backend-v1.2` sur une base passée par V2 à V4 est déduit, pas rejoué. Aucune nouvelle dépendance : la mémoire du backend n'a pas été remesurée. Rien n'a été exécuté contre la production.
+
+#### 8 novembre 2026 — constat C8 corrigé, suite de tests complète passée
+
+**Fait.** À la demande de l'équipe, la création d'une filière est corrigée (écart E37), dans le code de l'étape 2, toujours non commité. Fichiers : [FiliereController.java](../backend/src/main/java/com/example/siteamame/controller/FiliereController.java) (`@RequestParam` remplacé par `@RequestPart` sur la partie `filiere`), [FiliereControllerTest.java](../backend/src/test/java/com/example/siteamame/controller/FiliereControllerTest.java) (nouveau). Le frontend envoie déjà la filière en partie JSON (`orientationService.ts`) : il ne change pas.
+
+**Vérifié en local.** `FiliereControllerTest` seul (MockMvc autonome, sans contexte Spring ni Docker, quelques secondes), qui reproduit l'envoi du frontend : création avec image, création sans image, nom vide refusé en 400. Les 3 tests passent. Avec l'ancienne annotation remise temporairement, les 3 échouent avec un 500, comme le décrit C8 : le test détecte bien l'anomalie.
+
+**Suite de tests complète** (`./mvnw test`, Docker démarré), lancée ensuite à la demande de l'équipe : `BUILD SUCCESS` en 8 min 07, **70 tests, aucun échec, aucun ignoré**.
+
+| Classe | Tests | Ce que cela couvre |
+| --- | --- | --- |
+| `FileLifecycleIntegrationTest` (nouveau, Testcontainers) | 4 | remplacement d'une image : ancienne clé dans la file, fichier conservé, puis effacé par la purge et marqué purgé ; titre déjà utilisé : aucun fichier ne reste ; suppression d'un compte : CV et photo dans la file, jeton supprimé, don conservé ; modification de `file_path` refusée par la base |
+| `SiteAmameApplicationTests` (Testcontainers) | 2 | V1 à V4 appliquées sur une base vide, version 4, 26 tables ; contexte complet démarré, donc entités et schéma concordent (Hibernate `validate`, colonne `file_sha256` comprise) |
+| `LocalFileStorageServiceTest` | 7 | empreinte, compensation à l'annulation, fichier conservé au commit, suppression par clé, clés hors `uploads/` refusées |
+| `FiliereControllerTest` (nouveau) | 3 | C8 |
+| autres classes, inchangées par l'étape 2 | 54 | `CacheConfigTest`, `PrivateFileControllerTest`, `ConcoursMapperTest`, `MediaUrlResolverTest`, `StoragePathsTest`, `UploadValidatorTest`, `UserServiceRoleTest` |
+
+Le journal contient une erreur `duplicate key … uklc76j4bqg2jrk06np18eve5yj` : c'est l'unicité du `slug` d'article, provoquée exprès par le test « titre déjà utilisé ». `ArticleServiceTest` et `BourseRepositoryTest` n'apparaissent pas : ils sont entièrement en commentaire, depuis avant la migration.
+
+**Non vérifié.** La sécurité (`FILIERE_CREATE`) n'est pas en jeu dans le test de C8, et le parcours dans l'interface d'administration n'a pas été essayé (action N.6). Le backend n'a pas été lancé comme serveur réel : le 404 sur une adresse inconnue (C9) et la suppression d'un compte par l'API n'ont pas été observés par HTTP ; la tâche de purge a tourné dans le test, appelée directement, pas à l'heure planifiée. Le retour arrière vers `backend-v1.2` reste déduit, pas rejoué. Rien n'a été exécuté contre la production.
 
 ---
 
@@ -958,6 +1101,8 @@ Les actions 3, 4 et 5 peuvent avancer en parallèle. Les actions 1 et 2 passent 
 - chaque suppression laisse une trace dans la file de purge.
 
 **Prérequis.** Étape 1 en production ; Flyway opérationnel.
+
+**Code livré dans le dépôt le 7 novembre 2026** : voir « Étape 2 — détail » dans le suivi, et les écarts E27 à E36. La suppression d'un compte (C7) y est traitée par une migration V4.
 
 **Actions :**
 

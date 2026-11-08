@@ -57,7 +57,7 @@ public class MembreBureauService {
                 .orElseThrow(() -> new RessourceNotFoundException("Membre non trouvé avec l'id: " + id)));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public MembreDto createMembre(MembreRequestDto request, MultipartFile file) throws IOException {
         Membre membre = new Membre();
         if (file != null && !file.isEmpty()) {
@@ -69,7 +69,7 @@ public class MembreBureauService {
         return toDto(membreRepository.save(membre));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public MembreDto updateMembre(Long id, MembreRequestDto request, MultipartFile file) throws IOException {
         Membre membre = membreRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Membre non trouvé avec l'id: " + id));

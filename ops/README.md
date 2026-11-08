@@ -133,6 +133,39 @@ Les fichiers arrivent déchiffrés sous `/tmp/restore/uploads/…`. Un fichier d
 docker cp amame-ops-backup:/tmp/restore/uploads/. <chemin réel des uploads>/
 ```
 
+Après une restauration de la base, lancer `inventory.sh` (ci-dessous) : un fichier purgé depuis la date du dump apparaît en « référence cassée », et se restaure avec `restore-files.sh`.
+
+### Inventaire, empreintes et lignes orphelines (étape 2)
+
+Trois scripts ponctuels, à lancer depuis la console du conteneur `amame-ops-backup`. Ils lisent la base par `BACKUP_DATABASE_URL` et le dossier des uploads monté en lecture seule. Le détail est dans le [rapport](../docs/03-implementation-migration-neon-bunny.md), étape 2.
+
+```bash
+inventory.sh                      # lecture seule : classe chaque fichier, à lancer AVANT de déployer backend-v1.3
+backfill-sha256.sh                # simulation : empreintes SHA-256 des fichiers existants
+backfill-sha256.sh --apply        # les écrit (après le déploiement de backend-v1.3)
+delete-orphan-rows.sh             # simulation : lignes file_entity qu'aucune entité ne référence
+delete-orphan-rows.sh --apply     # les supprime, après validation de la liste
+```
+
+**`inventory.sh`** compare les lignes `file_entity`, le dossier des uploads et les entités qui référencent les fichiers. Il ne modifie rien : sa session SQL est en lecture seule. Il se termine par `inventaire conforme` ou par `inventaire NON CONFORME` avec la liste des anomalies bloquantes :
+
+| Catégorie | Bloquante | Traitement |
+| --- | --- | --- |
+| Référence cassée : ligne utilisée, fichier absent | oui | restaurer le fichier (`restore-files.sh`) ; à défaut, retirer le fichier de l'entité, après validation |
+| Clé en double | oui | la migration V2 échouerait : analyser au cas par cas |
+| Ligne partagée par plusieurs entités | oui | remplacer le fichier de l'une supprimerait celui de l'autre : analyser au cas par cas |
+| Ligne orpheline | non | `delete-orphan-rows.sh` |
+| Fichier orphelin (sans ligne) | non | rien : il reste dans la sauvegarde et ne sera pas copié vers Bunny |
+| Écart de taille, clé hors format, nom incohérent, MIME ou taille manquants | non | à examiner avant l'étape 3 |
+
+Les listes complètes sont écrites dans `/tmp/inventaire-<date>/`, dont le chemin s'affiche.
+
+**`backfill-sha256.sh`** remplit l'empreinte des lignes qui n'en ont pas, en lisant chaque fichier. Il faut que la migration V2 soit appliquée : `backend-v1.3` doit avoir démarré au moins une fois. Une ligne n'est complétée que si son fichier est présent et de la taille attendue. Le MIME et la taille manquants sont complétés au passage. Sans `--apply`, rien n'est écrit. L'objectif est **100 % des lignes avec une empreinte** : le script affiche le compte restant.
+
+**`delete-orphan-rows.sh`** supprime les lignes qu'aucune entité ne référence, datant de plus de 2 jours. La migration V3 doit être appliquée : le script refuse sinon. Chaque suppression est inscrite dans la file de purge : le fichier n'est effacé qu'après la rétention (10 jours) et seulement si la purge est activée. Pendant ce délai, la suppression s'annule. Sans `--apply`, la liste s'affiche sans rien supprimer.
+
+Ces deux derniers scripts écrivent dans la base : le compte de `BACKUP_DATABASE_URL` doit en avoir le droit, ce qui est le cas tant que la base est sur le VPS (`postgres`).
+
 ### Lancer un scraper
 
 Le conteneur `amame-scraper` reste en veille. Dans sa console Portainer (`/bin/bash`) :
@@ -146,6 +179,7 @@ python scraper_opportunity.py
 
 | Quand | Changement |
 | --- | --- |
-| Étape 3 (fichiers dans Bunny) | la copie des fichiers lit les zones Bunny avec leurs mots de passe en lecture seule, et non plus le disque |
+| Étape 2 (image `ops-v1.1`) | `inventory.sh`, `backfill-sha256.sh` et `delete-orphan-rows.sh` ; aucune variable nouvelle |
+| Étape 3 (fichiers dans Bunny) | la copie des fichiers lit les zones Bunny avec leurs mots de passe en lecture seule, et non plus le disque ; `inventory.sh` compare la base aux zones et non plus au disque |
 | Étape 4 (base dans Neon) | `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup` ; `OPS_PG_MAJOR=17` et image reconstruite ; `AMAME_NETWORK` devient inutile |
 | Étape 6 | alerte par e-mail en cas d'échec ; archive mensuelle hors de Bunny ; retrait des objets privés 30 jours après leur purge |

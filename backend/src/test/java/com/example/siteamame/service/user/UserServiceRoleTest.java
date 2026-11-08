@@ -55,7 +55,8 @@ class UserServiceRoleTest {
     @BeforeEach
     void setUp() {
         userService = new UserService(userRepository, new UserMapperDto(passwordEncoder, filiereRepository,
-                        new MediaUrlResolver(new StorageProperties("local", "", new StorageProperties.Local("uploads")))),
+                        new MediaUrlResolver(new StorageProperties("local", "", new StorageProperties.Local("uploads"),
+                StorageProperties.Purge.disabled()))),
                 fileStorageService, fileRepository, fileMapper);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }

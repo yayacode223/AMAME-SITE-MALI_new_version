@@ -46,7 +46,7 @@ public class Galerie {
     @Column(name = "date_modification")
     private LocalDateTime dateModification;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "cover_image_id")
     private File coverImage;
 }

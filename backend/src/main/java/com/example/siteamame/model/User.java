@@ -44,7 +44,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private RoleType role;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<File> files = new ArrayList<>();
 
     /** Overrides individuels de permissions (cascade → supprimés avec l'utilisateur). */

@@ -143,6 +143,7 @@ public class AdhesionService {
         if (adhesion.getStatus() == AdhesionStatus.APPROVED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette adhésion est déjà approuvée.");
         }
+        requireAccount(adhesion);
 
         adhesion.setStatus(AdhesionStatus.APPROVED);
         adhesion.setAdhesionDate(LocalDate.now());
@@ -167,6 +168,7 @@ public class AdhesionService {
         Adhesion adhesion = adhesionRepository.findById(adhesionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Adhésion non trouvée"));
 
+        requireAccount(adhesion);
         adhesion.setStatus(AdhesionStatus.REJECTED);
         adhesion.setRejectionReason(reason);
 
@@ -181,6 +183,14 @@ public class AdhesionService {
         emailService.sendAdhesionRejectionToUser(user.getEmail(), user.getPrenom(), user.getNom(), reason);
 
         return result;
+    }
+
+    /** Le compte d'une adhésion peut avoir été supprimé : elle reste alors en historique (migration V4). */
+    private static void requireAccount(Adhesion adhesion) {
+        if (adhesion.getUser() == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Le compte lié à cette demande a été supprimé : elle ne peut plus être traitée, seulement supprimée.");
+        }
     }
 
     // ── Suppression ──────────────────────────────────────────────────────────

@@ -51,7 +51,8 @@ class MediaUrlResolverTest {
 
     private static MediaUrlResolver resolver(String publicBaseUrl) {
         return new MediaUrlResolver(
-                new StorageProperties("local", publicBaseUrl, new StorageProperties.Local("uploads")));
+                new StorageProperties("local", publicBaseUrl, new StorageProperties.Local("uploads"),
+                StorageProperties.Purge.disabled()));
     }
 
     private static File file(Long id, String key) {

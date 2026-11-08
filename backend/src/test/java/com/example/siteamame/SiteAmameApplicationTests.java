@@ -42,12 +42,13 @@ class SiteAmameApplicationTests {
 
 	@Test
 	void flywayCreatesTheWholeSchemaOnAnEmptyDatabase() {
-		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("4");
 		assertThat(flyway.info().pending()).isEmpty();
 
 		Integer tables = jdbcTemplate.queryForObject(
 				"select count(*) from information_schema.tables where table_schema = 'public' "
 						+ "and table_name <> 'flyway_schema_history'", Integer.class);
-		assertThat(tables).isEqualTo(25);
+		// 25 tables de V1, plus storage_purge_queue (V3)
+		assertThat(tables).isEqualTo(26);
 	}
 }

@@ -67,7 +67,7 @@ public class PartenaireService {
         return toDto(partenaire);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PartenaireDto createPartenaire(PartenaireRequestDto request, MultipartFile file) throws IOException {
         Partenaire partenaire = new Partenaire();
         if (file != null && !file.isEmpty()) {
@@ -79,7 +79,7 @@ public class PartenaireService {
         return toDto(partenaireRepository.save(partenaire));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PartenaireDto updatePartenaire(Long id, PartenaireRequestDto request, MultipartFile file) throws IOException {
         Partenaire partenaire = partenaireRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Partenaire non trouvé avec l'id: " + id));

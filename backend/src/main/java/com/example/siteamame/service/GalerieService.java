@@ -79,7 +79,7 @@ public class GalerieService {
         return galerieMapper.toDto(galerie);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public GalerieDto createGalerie(GalerieCreationRequest request, MultipartFile file) throws IOException {
         Galerie galerie = new Galerie();
         galerie.setTitre(request.getTitre());
@@ -99,7 +99,7 @@ public class GalerieService {
         return galerieMapper.toDto(saved);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public GalerieDto updateGalerie(Long id, GalerieDto galerieDto, MultipartFile file) throws IOException {
         Galerie galerie = galerieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Galerie non trouvée avec l'id: " + id));
@@ -121,9 +121,7 @@ public class GalerieService {
         }
 
         if (file != null && !file.isEmpty()) {
-            if (galerie.getCoverImage() != null) {
-                fileStorageService.deleteFile(galerie.getCoverImage().getFileName(), "galerie");
-            }
+            // L'ancienne image perd sa ligne (orphanRemoval) : la base l'inscrit dans la file de purge.
             FileDto fileDto = fileStorageService.storeFile(file, "galerie", FileType.IMAGE);
             File fileToSave = fileMapper.convertDtoToFile(fileDto);
             File savedFile = fileRepository.save(fileToSave);

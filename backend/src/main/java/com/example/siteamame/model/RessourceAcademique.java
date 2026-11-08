@@ -36,6 +36,6 @@ public class RessourceAcademique {
     @Column(name = "is_actif")
     private Boolean isActif = true;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private File file;
 }

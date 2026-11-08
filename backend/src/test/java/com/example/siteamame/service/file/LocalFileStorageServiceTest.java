@@ -7,10 +7,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,7 +34,8 @@ class LocalFileStorageServiceTest {
     @BeforeEach
     void setUp() {
         storage = new LocalFileStorageService(
-                new StorageProperties("local", "", new StorageProperties.Local(uploadDir.toString())),
+                new StorageProperties("local", "", new StorageProperties.Local(uploadDir.toString()),
+                StorageProperties.Purge.disabled()),
                 new UploadValidator());
     }
 
@@ -51,11 +58,57 @@ class LocalFileStorageServiceTest {
 
         assertThat(storage.load(stored.getFilePath())).isEqualTo(PNG);
 
-        storage.deleteFile(stored.getFileName(), "utilisateur");
+        storage.delete(stored.getFilePath());
 
         assertThat(uploadDir.resolve("utilisateur").resolve(stored.getFileName())).doesNotExist();
         // Supprimer un fichier déjà absent n'est pas une erreur
-        storage.deleteFile(stored.getFileName(), "utilisateur");
+        storage.delete(stored.getFilePath());
+    }
+
+    @Test
+    void aStoredFileCarriesTheSha256OfItsContent() throws IOException {
+        FileDto stored = storage.storeFile(
+                new MockMultipartFile("image", "photo.png", "image/png", PNG), "actualite", FileType.IMAGE);
+
+        assertThat(stored.getFileSha256())
+                .isEqualTo(HexFormat.of().formatHex(sha256(PNG)))
+                .matches("[0-9a-f]{64}");
+    }
+
+    @Test
+    void aFileStoredInATransactionThatRollsBackIsDeleted() throws IOException {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            FileDto stored = storage.storeFile(
+                    new MockMultipartFile("image", "photo.png", "image/png", PNG), "actualite", FileType.IMAGE);
+            Path onDisk = uploadDir.resolve("actualite").resolve(stored.getFileName());
+            assertThat(onDisk).exists();
+
+            TransactionSynchronizationUtils.invokeAfterCompletion(
+                    TransactionSynchronizationManager.getSynchronizations(), TransactionSynchronization.STATUS_ROLLED_BACK);
+
+            assertThat(onDisk).doesNotExist();
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void aFileStoredInATransactionThatCommitsOrEndsUnknownIsKept() throws IOException {
+        for (int status : new int[]{TransactionSynchronization.STATUS_COMMITTED, TransactionSynchronization.STATUS_UNKNOWN}) {
+            TransactionSynchronizationManager.initSynchronization();
+            try {
+                FileDto stored = storage.storeFile(
+                        new MockMultipartFile("image", "photo.png", "image/png", PNG), "actualite", FileType.IMAGE);
+
+                TransactionSynchronizationUtils.invokeAfterCompletion(
+                        TransactionSynchronizationManager.getSynchronizations(), status);
+
+                assertThat(uploadDir.resolve("actualite").resolve(stored.getFileName())).exists();
+            } finally {
+                TransactionSynchronizationManager.clearSynchronization();
+            }
+        }
     }
 
     @Test
@@ -72,7 +125,17 @@ class LocalFileStorageServiceTest {
         assertThatThrownBy(() -> storage.load("uploads/../secret.txt")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> storage.load("etc/passwd")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> storage.load("/etc/passwd")).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> storage.deleteFile("../../x.png", "actualite"))
+        assertThatThrownBy(() -> storage.delete("uploads/actualite/../../x.png"))
                 .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> storage.delete("static/logo.webp"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static byte[] sha256(byte[] content) {
+        try {
+            return MessageDigest.getInstance("SHA-256").digest(content);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

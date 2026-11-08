@@ -13,7 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConcoursMapperTest {
 
     private final ConcoursMapper mapper = new ConcoursMapper(new MediaUrlResolver(
-            new StorageProperties("local", "https://media.amame.ml", new StorageProperties.Local("uploads"))));
+            new StorageProperties("local", "https://media.amame.ml", new StorageProperties.Local("uploads"),
+                StorageProperties.Purge.disabled())));
 
     @Test
     void aConcoursWithoutFileIsConvertedWithoutError() {

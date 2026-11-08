@@ -102,7 +102,7 @@ public class FiliereService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public FiliereDto ajouterFiliere(FiliereRequestDto filiereRequestDto, MultipartFile file) throws IOException {
         Filiere filiere = new Filiere();
         if(file != null){
@@ -131,16 +131,13 @@ public class FiliereService {
         return filiereMapper.convertToDTO(savedFiliere);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public FiliereDto modifierFiliere(Long id, FiliereRequestDto filiereRequestDto, MultipartFile file) throws IOException {
         Filiere filiere = filiereRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Ce filiere avec Id"+ id + "n'existe pas"));
 
         if(file != null){
-            if(filiere.getFile()!=null){
-                fileStorageService.deleteFile(filiere.getFile().getFileName(), "filiere");
-            }
-
+            // L'ancien fichier perd sa ligne (orphanRemoval) : la base l'inscrit dans la file de purge.
             FileDto fileDto = fileStorageService.storeFile(file, "filiere", FileType.IMAGE);
             File fileToSave = fileMapper.convertDtoToFile(fileDto);
             File savedFile = fileRepository.save(fileToSave);

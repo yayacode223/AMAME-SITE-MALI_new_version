@@ -20,10 +20,13 @@ public class File {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    // Nom et clé ne changent jamais (I4) : Hibernate ne les inclut dans aucun UPDATE, et la base
+    // refuse de toute façon une modification de file_path (déclencheur de V2).
+    @Column(nullable = false, updatable = false)
     private String fileName;
 
-    @Column(nullable = false)
+    /** Clé de stockage uploads/&lt;dossier&gt;/&lt;uuid&gt;.&lt;ext&gt;, unique et immuable. */
+    @Column(nullable = false, updatable = false)
     private String filePath;
 
     @Column(nullable = false)
@@ -33,6 +36,10 @@ public class File {
     private String fileMimeType;
     private Long fileSize;
     private LocalDateTime uploadDate;
+
+    /** Empreinte SHA-256 du contenu, en hexadécimal minuscule ; vide pour les fichiers antérieurs à l'étape 2. */
+    @Column(name = "file_sha256", length = 64)
+    private String fileSha256;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

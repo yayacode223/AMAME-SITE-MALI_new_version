@@ -48,13 +48,14 @@ public class LocalFileStorageService implements FileStorageService {
         Files.createDirectories(target.getParent());
         // Une clé n'est jamais réécrite : CREATE_NEW échoue si le fichier existe déjà.
         Files.write(target, valid.content(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        UploadCompensation.deleteOnRollback(key, this);
 
-        return new FileDto(fileName, fileType, key, valid.mimeType(), valid.content().length);
+        return new FileDto(fileName, fileType, key, valid.mimeType(), valid.content().length, valid.sha256());
     }
 
     @Override
-    public void deleteFile(String fileName, String folderName) throws IOException {
-        Files.deleteIfExists(resolve(StoragePaths.key(folderName, fileName)));
+    public void delete(String key) throws IOException {
+        Files.deleteIfExists(resolve(key));
     }
 
     @Override

@@ -164,7 +164,7 @@ public class ArticleService {
 
 
     //Methode pour la creation d'article
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ArticleDto createArticle(ArticleCreationRequest request, MultipartFile file) throws IOException {
         // Générer le slug à partir du titre
         String slug = generateSlug(request.getTitre());
@@ -196,7 +196,7 @@ public class ArticleService {
     }
 
     //Methode pour mettre un article
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ArticleDto updateArticle( Long id, ArticleDto articleDto, MultipartFile file) throws IOException {
         Article articleToUpdate = articleRepository.findById(id).
                     orElseThrow(()-> new RuntimeException("Article avec cet Id:"+ articleDto.getId() +"n'existe pas"));
@@ -218,9 +218,7 @@ public class ArticleService {
         articleToUpdate.setSlug(generateSlug(articleDto.getTitre()));
 
         if(file != null){
-            if(articleToUpdate.getFile() != null){
-                    fileStorageService.deleteFile(articleToUpdate.getFile().getFileName(), "actualite");
-            }
+            // L'ancien fichier perd sa ligne (orphanRemoval) : la base l'inscrit dans la file de purge.
             FileDto fileDto = fileStorageService.storeFile(file, "actualite", FileType.IMAGE);
             File fileToSave = fileMapper.convertDtoToFile(fileDto);
             File savedFile = fileRepository.save(fileToSave);

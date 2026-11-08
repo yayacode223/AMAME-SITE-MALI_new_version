@@ -67,6 +67,6 @@ public class Article {
     @Column(name = "meta_keywords", length = 500)
     private String metaKeywords;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private File file;
 }

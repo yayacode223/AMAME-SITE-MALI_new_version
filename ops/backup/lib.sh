@@ -93,3 +93,18 @@ bunny_list_recursive() {  # bunny_list_recursive <dossier distant>
     fi
   done <<<"$listing"
 }
+
+# ── Base : références vers file_entity ────────────────────────────────────────
+# Écrit une requête SQL qui renvoie une ligne (id) par référence vers file_entity, d'après toutes les
+# clés étrangères du catalogue : la liste suit le schéma sans avoir à être tenue à jour ici.
+# Une ligne référencée par deux entités apparaît deux fois (UNION ALL).
+file_references_sql() {  # file_references_sql <commande psql…>
+  "$@" -c "
+    SELECT COALESCE(
+      string_agg(format('SELECT %I AS id FROM %s WHERE %I IS NOT NULL',
+                        a.attname, c.conrelid::regclass, a.attname), ' UNION ALL '),
+      'SELECT NULL::bigint AS id WHERE false')
+    FROM pg_catalog.pg_constraint c
+    JOIN pg_catalog.pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+    WHERE c.contype = 'f' AND c.confrelid = 'public.file_entity'::regclass"
+}

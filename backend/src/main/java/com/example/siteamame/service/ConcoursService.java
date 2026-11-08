@@ -147,13 +147,7 @@ public class ConcoursService {
         concours.setAvalable(true);
 
         if(file !=null){
-            if(concours.getFile() != null){
-                try{
-                    fileStorageService.deleteFile(concours.getFile().getFileName(), "concours");
-                }catch (Exception e){
-                    throw new RuntimeException("Impossible de supprimer le fichier existant", e);
-                }
-            }
+            // L'ancien fichier perd sa ligne (orphanRemoval) : la base l'inscrit dans la file de purge.
             try {
                 FileDto fileDto = fileStorageService.storeFile(file, "concours", FileType.DOCUMENT);
                 File fileToSave = fileMapper.convertDtoToFile(fileDto);

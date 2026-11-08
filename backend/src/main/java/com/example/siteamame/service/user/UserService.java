@@ -70,7 +70,7 @@ public class UserService {
         return userMapper.UserToDto(user);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UserReponseDto register(UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
 
         Optional<User> existingUser = userRepository.findByEmailIgnoreCase(userRequestDto.getEmail());
@@ -105,79 +105,43 @@ public class UserService {
     }
 
     @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UserReponseDto update(Long id, UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
 
         User userToUpdate = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cet User n'existe pas avec Id : " + id));
 
         User user = userMapper.updateUser(userToUpdate, userRequestDto);
-        List<File> files = new ArrayList<>();
 
-        // Récupérer les fichiers existants
-        List<File> existingFiles = user.getFiles() != null ?
-                new ArrayList<>(user.getFiles()) : new ArrayList<>();
-
-        // Gérer le CV
+        // La collection gérée par Hibernate est modifiée sur place, jamais remplacée (orphanRemoval) :
+        // un fichier retiré perd sa ligne, que la base inscrit dans la file de purge. L'ancien fichier
+        // reste ainsi lisible jusqu'à la validation, et récupérable pendant la rétention.
         if (cv != null && !cv.isEmpty()) {
-            // Trouver et supprimer l'ancien CV s'il existe
-            Optional<File> oldCv = existingFiles.stream()
-                    .filter(file -> file.getFileType().equals(FileType.DOCUMENT))
-                    .findFirst();
-
-            if (oldCv.isPresent()) {
-                // Supprimer physiquement le fichier
-                fileStorageService.deleteFile(oldCv.get().getFileName(), "utilisateur");
-                // Supprimer de la liste
-                existingFiles.remove(oldCv.get());
-            }
-
-            // Ajouter le nouveau CV
-            FileDto fileDto = fileStorageService.storeFile(cv, "utilisateur", FileType.DOCUMENT);
-            File file = fileMapper.convertDtoToFile(fileDto);
-            File savedFile = fileRepository.save(file);
-            files.add(savedFile);
+            replaceFile(user, cv, FileType.DOCUMENT);
         }
-
-        // Gérer l'image
         if (image != null && !image.isEmpty()) {
-            // Trouver et supprimer l'ancienne image si elle existe
-            Optional<File> oldImage = existingFiles.stream()
-                    .filter(file -> file.getFileType().equals(FileType.IMAGE))
-                    .findFirst();
-
-            if (oldImage.isPresent()) {
-                // Supprimer physiquement le fichier
-                fileStorageService.deleteFile(oldImage.get().getFileName(), "utilisateur");
-                // Supprimer de la liste
-                existingFiles.remove(oldImage.get());
-            }
-
-            // Ajouter la nouvelle image
-            FileDto fileDto = fileStorageService.storeFile(image, "utilisateur", FileType.IMAGE);
-            File file = fileMapper.convertDtoToFile(fileDto);
-            File savedFile = fileRepository.save(file);
-            files.add(savedFile);
+            replaceFile(user, image, FileType.IMAGE);
         }
-
-        // Ajouter les fichiers existants non modifiés
-        files.addAll(existingFiles);
-
-        if (!files.isEmpty()) {
-            user.setFiles(files);
-        } else {
-            user.setFiles(null);
-        }
-
 
         User savedUser = userRepository.save(user);
         return userMapper.UserToDto(savedUser);
+    }
+
+    /** Remplace le fichier de ce type (CV ou photo) : le nouveau est stocké avant de retirer l'ancien. */
+    private void replaceFile(User user, MultipartFile upload, FileType type) throws IOException {
+        FileDto stored = fileStorageService.storeFile(upload, "utilisateur", type);
+        File saved = fileRepository.save(fileMapper.convertDtoToFile(stored));
+        List<File> files = user.getFiles();
+        files.removeIf(file -> file.getFileType() == type);
+        files.add(saved);
     }
 
     @CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)
     @Transactional
     public void deleteUser(Long id){
         if(userRepository.existsById(id)){
+            // Ses fichiers sont supprimés en cascade, donc inscrits dans la file de purge ; ses jetons
+            // disparaissent avec lui ; adhésions, cotisations et dons restent, détachés (migration V4).
             userRepository.deleteById(id);
         }else{
             throw new RuntimeException("Cet Utilisateur avec Id : "+ id + " n'existe pas");

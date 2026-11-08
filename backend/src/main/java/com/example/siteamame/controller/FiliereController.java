@@ -77,10 +77,12 @@ public class FiliereController {
     }
 
 
+    // La filière arrive en partie JSON d'un formulaire multipart (comme pour la modification) :
+    // @RequestPart, pas @RequestParam, qui la cherchait parmi les champs texte et échouait toujours.
     @PostMapping("/admin/filieres")
     @PreAuthorize("hasAuthority('FILIERE_CREATE')")
     public ResponseEntity<FiliereDto> ajouterFiliere(
-            @RequestParam(value = "filiere") @Valid FiliereRequestDto filiereRequestDto,
+            @RequestPart(value = "filiere") @Valid FiliereRequestDto filiereRequestDto,
             @RequestPart(value = "file", required = false)MultipartFile file
             ) throws IOException {
         return ResponseEntity.ok(filiereService.ajouterFiliere(filiereRequestDto, file));

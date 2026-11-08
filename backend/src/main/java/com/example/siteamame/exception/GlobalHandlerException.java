@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,6 +97,20 @@ public class GlobalHandlerException {
                 fieldErrors
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // ── Adresse inconnue → 404 Not Found ────────────────────────────────────
+    // Sans ce gestionnaire, le gestionnaire générique transformait toute adresse inconnue en 500.
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResourceFoundException(
+            NoResourceFoundException ex, HttpServletRequest req) {
+        ApiError error = new ApiError(
+                HttpStatus.NOT_FOUND,
+                "Ressource introuvable",
+                req.getRequestURI(),
+                List.of("Ressource introuvable")
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     // ── Handler Global (dernier recours) ────────────────────────────────────
