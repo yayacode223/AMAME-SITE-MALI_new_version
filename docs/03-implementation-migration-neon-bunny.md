@@ -37,9 +37,9 @@
 
 | Étape | Contenu | Code (dépôt) | Production | Critères de sortie |
 | --- | --- | --- | --- | --- |
-| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; figé dans la branche `sauvegarde/etape-0`, **pas encore sur `main`** | ⬜ rien n'est déployé | 0 / 8 |
-| **1** | Socle de code commun | 🟡 écrit et vérifié en local ; figé dans la branche `sauvegarde/etape-1` (`5c62c07`), **pas encore sur `main`** | ⬜ rien n'est déployé | 0 / 7 |
-| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local, **non commité** ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable | ⬜ | 0 / 6 |
+| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`) depuis le 8 novembre, **pas encore poussé** | ⬜ rien n'est déployé | 0 / 8 |
+| **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`) depuis le 8 novembre, **pas encore poussé** | ⬜ rien n'est déployé | 0 / 7 |
+| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) le 8 novembre, **pas encore poussé** ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable | ⬜ | 0 / 6 |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
@@ -93,7 +93,7 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 **Côté équipe**, dans cet ordre :
 
 1. **Tout de suite** : ne lancer aucun `git pull` sur le serveur avant d'avoir mis les fichiers à l'abri (action A.1). Le commit qui retire `backend/uploads/` du suivi est déjà sur GitHub.
-2. Régulariser Git (action A.2) : les étapes 0 et 1 sont déjà des commits locaux ; relire puis commiter l'étape 2.
+2. Régulariser Git (action A.2) : **fait en local le 8 novembre**, `main` porte les commits des étapes 0, 1 et 2. Reste le `git push`, **seulement après avoir vérifié** que Portainer ne met pas la stack à jour automatiquement depuis GitHub (voir A.2).
 3. ~~Lancer la suite de tests complète avant de déployer `backend-v1.3`~~ : **fait le 8 novembre 2026** en local, 70 tests, aucun échec. À relancer seulement si le code change d'ici le déploiement.
 4. Dérouler les actions manuelles de l'étape 0 (A à F), puis celles de l'étape 1 (G à J), puis celles de l'étape 2 (K à N).
 5. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
@@ -141,6 +141,8 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
    ```
 
    Les deux branches de sauvegarde peuvent ensuite être supprimées (`git branch -d sauvegarde/etape-0 sauvegarde/etape-1`).
+
+   **État au 8 novembre 2026 : fait en local, sauf le `git push`.** `main` pointe sur `7466a23` (étape 2), dont les parents sont `5c62c07` (étape 1), `b14e7dd` (étape 0) et `f5252df` ; `origin/main` est toujours sur `f5252df`. Le commit de l'étape 2 contient 56 fichiers (les 54 de l'étape 2 et les 2 de C8) ; aucun `.env` ni fichier de `backend/uploads/`. Le suivi a été mis à jour dans un second commit. **Avant le `git push`**, vérifier que la stack `amame` de Portainer n'est pas déployée depuis GitHub avec mise à jour automatique (fait « Le serveur ou Portainer récupèrent-ils le dépôt par `git pull` ? ») : sinon le push déclencherait une mise à jour de la stack avec le compose de l'étape 2, alors que ni les images `v1.3` ni les variables de l'étape 0 ne sont en place. Garder les branches de sauvegarde jusqu'au push.
 3. **Relever les faits** du tableau « Faits relevés en production », en particulier le chemin réel des uploads.
 
 #### B. Sécurité, sans attendre le déploiement
@@ -529,7 +531,7 @@ Dans les trois premiers cas, le pic atteint la limite parce que le noyau y compt
 
 #### 8 novembre 2026 — constat C8 corrigé, suite de tests complète passée
 
-**Fait.** À la demande de l'équipe, la création d'une filière est corrigée (écart E37), dans le code de l'étape 2, toujours non commité. Fichiers : [FiliereController.java](../backend/src/main/java/com/example/siteamame/controller/FiliereController.java) (`@RequestParam` remplacé par `@RequestPart` sur la partie `filiere`), [FiliereControllerTest.java](../backend/src/test/java/com/example/siteamame/controller/FiliereControllerTest.java) (nouveau). Le frontend envoie déjà la filière en partie JSON (`orientationService.ts`) : il ne change pas.
+**Fait.** À la demande de l'équipe, la création d'une filière est corrigée (écart E37), dans le code de l'étape 2, alors non commité. Fichiers : [FiliereController.java](../backend/src/main/java/com/example/siteamame/controller/FiliereController.java) (`@RequestParam` remplacé par `@RequestPart` sur la partie `filiere`), [FiliereControllerTest.java](../backend/src/test/java/com/example/siteamame/controller/FiliereControllerTest.java) (nouveau). Le frontend envoie déjà la filière en partie JSON (`orientationService.ts`) : il ne change pas.
 
 **Vérifié en local.** `FiliereControllerTest` seul (MockMvc autonome, sans contexte Spring ni Docker, quelques secondes), qui reproduit l'envoi du frontend : création avec image, création sans image, nom vide refusé en 400. Les 3 tests passent. Avec l'ancienne annotation remise temporairement, les 3 échouent avec un 500, comme le décrit C8 : le test détecte bien l'anomalie.
 
@@ -546,6 +548,8 @@ Dans les trois premiers cas, le pic atteint la limite parce que le noyau y compt
 Le journal contient une erreur `duplicate key … uklc76j4bqg2jrk06np18eve5yj` : c'est l'unicité du `slug` d'article, provoquée exprès par le test « titre déjà utilisé ». `ArticleServiceTest` et `BourseRepositoryTest` n'apparaissent pas : ils sont entièrement en commentaire, depuis avant la migration.
 
 **Non vérifié.** La sécurité (`FILIERE_CREATE`) n'est pas en jeu dans le test de C8, et le parcours dans l'interface d'administration n'a pas été essayé (action N.6). Le backend n'a pas été lancé comme serveur réel : le 404 sur une adresse inconnue (C9) et la suppression d'un compte par l'API n'ont pas été observés par HTTP ; la tâche de purge a tourné dans le test, appelée directement, pas à l'heure planifiée. Le retour arrière vers `backend-v1.2` reste déduit, pas rejoué. Rien n'a été exécuté contre la production.
+
+**Git (action A.2), à la demande de l'équipe.** Vérifié d'abord : `origin/main` toujours sur `f5252df` après `git fetch`, rien d'indexé, `main` ancêtre de `sauvegarde/etape-1`. Le contenu du futur commit a été prévisualisé par un index temporaire (56 fichiers, aucun `.env`, aucun upload), et les lignes ajoutées ont été parcourues à la recherche d'un secret écrit en dur : aucun. Puis `git reset sauvegarde/etape-1` (avance de `main`, sans toucher au disque), `git add -A` et commit `7466a23`. Arbre de travail propre ensuite ; `backend/uploads/` toujours présent sur le disque et hors du suivi. **Pas fait** : le `git push` (en attente de la vérification décrite en A.2) et la suppression des branches de sauvegarde.
 
 ---
 
