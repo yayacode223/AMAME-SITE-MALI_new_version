@@ -39,7 +39,7 @@
 | --- | --- | --- | --- | --- |
 | **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`), poussé sur GitHub le 8 novembre | 🟡 images publiées le 13 novembre ; stack `amame-ops` en service depuis le 14 novembre (sauvegarde et test de restauration réussis) ; application mise à jour le 15 novembre (`v1.1`), secrets changés, e-mails envoyés, limite de débit active et propre à chaque visiteur, accès aux données d'autrui refusé par le serveur, images de l'accueil à 0,16 Mo (16 novembre) ; correctif `v1.1.1` déployé et vérifié le 16 novembre (E44 corrigé) ; reste la sécurisation de Portainer (E43) ; à éclaircir : la session administrateur qui semble expirer au bout de 15 minutes | 7 / 8 |
 | **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`), poussé sur GitHub le 8 novembre ; images `v1.2` construites le 16 novembre avec le correctif E44 (E45), V1 corrigée et migration `V1_1` (E47), passage `v1.1.1` → `v1.2` essayé en local sur une base à la structure de la production (47 vérifications) ; commitées sur la branche locale `deploiement/v1.2` (`3baba45`) et **publiées le 16 novembre** ; `main` porte les mêmes corrections, non commitées | 🟡 **`v1.2` déployé le 16 novembre à 20:05 UTC** : baseline, migration 1.1 appliquée, validation du schéma sans erreur. Une première tentative, à 17:25, avait échoué sur deux variables vides de la stack (E49) : retour à `v1.1.1`, base inchangée, variables corrigées. L'équipe n'a pas fait les autres vérifications. Reste la mémoire (J.4) avant de passer à 512M (E48). Cookies sans domaine (E50) | 1 / 7 |
-| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13 dans `main`, non commités, 90 tests ; image `backend-v1.3` construite, non publiée ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) | ⬜ en attente de la publication de l'image | 0 / 6 |
+| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13, 90 tests ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) ; commités sur la branche locale `deploiement/v1.3` (`e9e5437`) et **image `backend-v1.3` publiée le 17 novembre** | ⬜ prête à déployer (actions K.2, K.3, M, N) | 0 / 6 |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
@@ -186,6 +186,7 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 | `frontend-v1.1.1` | `b548a4a` (correctif E44, branche `correctif/v1.1.1`) | `sha256:995c61c2391e438a3527459270041becca199a7c906f09ce8b6568d384605fa5` |
 | `backend-v1.2` | `3baba45` (étape 1 + E44 + E47, branche locale `deploiement/v1.2`) | `sha256:9addf348903e848d204bd29bfdf963bcfe6f78e3e4dd73320bc80cad0cf30dd1` |
 | `frontend-v1.2` | `3baba45` (étape 1 + E44, branche locale `deploiement/v1.2`) | `sha256:de99015c5ae88ee35bc6f9cc0de3b7ed5e0a57112f99486648537167ef7dd7da` |
+| `backend-v1.3` | `e9e5437` (étape 2 + E44 + E47 + E50 + E51 + C13, branche locale `deploiement/v1.3`), publiée le 17 novembre 2026. Couches identiques à l'image essayée | `sha256:95a1e65adb3f4652bb8d80ea6e6919bc6ad6e47ed69d9495b9292ade5098829a` |
 
 Les deux images `v1.1.1` ont été publiées le 16 novembre 2026 (journal du jour). Elles remplacent `backend-v1.1` et `frontend-v1.1` dans la stack `amamestack`. Les images `ops-v1.1` et `scraper-v1.1` ne changent pas.
 
@@ -374,10 +375,10 @@ Remettre `BACKEND_IMAGE_TAG=backend-v1.1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1
 
 #### L. Images de l'étape 2
 
-Depuis `main` (commit `7466a23` ou un descendant qui ne touche pas au backend) :
+✅ **Fait le 17 novembre 2026**, avec l'autorisation de l'équipe : `backend-v1.3` construite depuis `e9e5437`, pointe de la branche locale `deploiement/v1.3` (partie de `main`, `ba50a0a`, plus E44, E47, E50, E51, C13 et le suivi), puis publiée. Empreinte à l'action D. La branche n'est pas poussée sur GitHub ; `main` n'a pas bougé.
 
 ```bash
-docker build -t yayacode224/amame:backend-v1.3 backend
+docker build --label org.opencontainers.image.revision=e9e5437 -t yayacode224/amame:backend-v1.3 backend
 docker push yayacode224/amame:backend-v1.3
 ```
 
