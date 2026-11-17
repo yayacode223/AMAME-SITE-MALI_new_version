@@ -39,7 +39,7 @@
 | --- | --- | --- | --- | --- |
 | **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`), poussé sur GitHub le 8 novembre | 🟡 images publiées le 13 novembre ; stack `amame-ops` en service depuis le 14 novembre (sauvegarde et test de restauration réussis) ; application mise à jour le 15 novembre (`v1.1`), secrets changés, e-mails envoyés, limite de débit active et propre à chaque visiteur, accès aux données d'autrui refusé par le serveur, images de l'accueil à 0,16 Mo (16 novembre) ; correctif `v1.1.1` déployé et vérifié le 16 novembre (E44 corrigé) ; reste la sécurisation de Portainer (E43) ; à éclaircir : la session administrateur qui semble expirer au bout de 15 minutes | 7 / 8 |
 | **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`), poussé sur GitHub le 8 novembre ; images `v1.2` construites le 16 novembre avec le correctif E44 (E45), V1 corrigée et migration `V1_1` (E47), passage `v1.1.1` → `v1.2` essayé en local sur une base à la structure de la production (47 vérifications) ; commitées sur la branche locale `deploiement/v1.2` (`3baba45`) et **publiées le 16 novembre** ; `main` porte les mêmes corrections, non commitées | 🟡 **`v1.2` déployé le 16 novembre à 20:05 UTC** : baseline, migration 1.1 appliquée, validation du schéma sans erreur. Une première tentative, à 17:25, avait échoué sur deux variables vides de la stack (E49) : retour à `v1.1.1`, base inchangée, variables corrigées. L'équipe n'a pas fait les autres vérifications. Reste la mémoire (J.4) avant de passer à 512M (E48). Cookies sans domaine (E50) | 1 / 7 |
-| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13, 90 tests ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) ; commités sur la branche locale `deploiement/v1.3` (`e9e5437`) et **image `backend-v1.3` publiée le 17 novembre** | ⬜ prête à déployer (actions K.2, K.3, M, N) | 0 / 6 |
+| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13, 90 tests ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) ; commités sur la branche locale `deploiement/v1.3` (`e9e5437`) et **image `backend-v1.3` publiée le 17 novembre** | 🟡 **`backend-v1.3` déployé le 17 novembre à 11:26 UTC** : migrations 2, 3 et 4 appliquées, démarrage sans erreur ; inventaire conforme et sauvegarde juste avant. Actions N.2 à N.4 faites (26 lignes, toutes avec empreinte, 0 orpheline) ; les autres critères reposent sur l'essai local (décision de l'équipe du 17 novembre). ✅ Étape close | 2 / 6 en production |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
@@ -89,6 +89,14 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 | — | Compose et variables | 🟡 | `STORAGE_PURGE_ENABLED`, `STORAGE_PURGE_RETENTION`, `STORAGE_PURGE_SCHEDULE` ; ligne `SPRING_DATASOURCE_PASSWORD` retirée (E24) ; tags `backend-v1.3` et `ops-v1.1` | aucune variable à saisir : laisser la purge désactivée |
 
 ### Prochaine action
+
+**État au 17 novembre 2026** : étapes 0, 1 et 2 en production (`backend-v1.3`, `frontend-v1.2`, `ops-v1.1`). Pour les étapes 1 et 2, l'équipe a choisi de s'appuyer sur les essais locaux pour les critères non constatés en production. Code déployé : branche locale `deploiement/v1.3`, non poussée ; `main` n'a pas bougé depuis `ba50a0a`. Ensuite :
+
+1. **Mémoire d'`amame-backend`** (E48), 24 heures puis une semaine après le 17 novembre : `grep -E '^(anon|file) ' /sys/fs/cgroup/memory.stat` dans la console. Passage à 512M seulement si `anon` reste sous 420 Mio.
+2. **Étape 3 (Bunny)**, à la demande de l'équipe : code 3.2 à 3.4, puis zones `amame-public` et `amame-private` (action 3.1). À trancher à cette étape : le fichier orphelin `actualite/fd838654-….pdf`, qui ne sera pas copié.
+3. En attente, sans lien avec l'ordre des étapes : sécurisation de Portainer (E43), constats C11 et C12, nouveau mot de passe Neon avant l'étape 4, réconciliation de `main` avec `deploiement/v1.3`.
+
+La liste ci-dessous date d'avant les déploiements ; elle reste comme historique.
 
 **Côté équipe**, dans cet ordre :
 
@@ -405,8 +413,8 @@ Le frontend ne change pas (`frontend-v1.2`). `ops-v1.1`, publiée dès l'étape 
    | Erreur après l'upload : aucun fichier ne reste | créer un article avec image et un titre déjà utilisé : erreur attendue. Le nombre de fichiers de `actualite/` ne change pas (`ls <uploads>/actualite \| wc -l` avant et après) |
    | Suppression d'un utilisateur : CV et photo dans la file | créer un compte de test avec CV et photo, s'y connecter une fois, puis le supprimer depuis l'administration : la suppression réussit (C7) et deux entrées apparaissent dans la file |
    | Modification de `file_path` refusée par la base | `BEGIN; UPDATE file_entity SET file_path = file_path \|\| 'x' WHERE id = (SELECT min(id) FROM file_entity); ROLLBACK;` : erreur `file_entity.file_path est immuable` |
-   | Empreinte pour 100 % des lignes | `SELECT count(*) FILTER (WHERE file_sha256 IS NULL), count(*) FROM file_entity;` : 0 en première colonne |
-   | Zéro référence cassée | `inventory.sh`, point 4 |
+   | ✅ Empreinte pour 100 % des lignes — 17 novembre 2026 : `inventory.sh` à 12:04, 26 lignes, 0 sans empreinte | `SELECT count(*) FILTER (WHERE file_sha256 IS NULL), count(*) FROM file_entity;` : 0 en première colonne |
+   | ✅ Zéro référence cassée — 17 novembre 2026 : `inventory.sh` avant (11:22) et après (11:55) le déploiement, 0 référence cassée | `inventory.sh`, point 4 |
 
 6. **Création d'une filière (C8)** : depuis l'administration, créer une filière de test avec une image, puis une sans image. Les deux réussissent et apparaissent dans la liste ; un nom vide est refusé par un message d'erreur, et non plus par une erreur 500. Supprimer ensuite les filières de test.
 
@@ -452,8 +460,8 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | Mémoire du conteneur `amame-backend` : avant l'étape 1, puis 24 heures et une semaine après | *à relever avec `docker stats` ; mesuré en local sous charge : 396 Mio sur 512* | — |
 | Portainer accepte-t-il les valeurs par défaut imbriquées du compose (action I.3) ? | *à constater à la mise à jour de la stack* | — |
 | Suite de tests complète (`./mvnw test`) avec les tests de l'étape 2 | `BUILD SUCCESS` : 70 tests, 0 échec, 8 min 07 (en local, Docker Desktop) | 8 novembre 2026 |
-| Inventaire croisé avant l'étape 2 (action K.2) : compteurs de chaque catégorie | *à relever* | — |
-| Empreintes et lignes orphelines après l'étape 2 (actions N.2 à N.4) | *à relever : lignes sans empreinte, lignes orphelines supprimées* | — |
+| Inventaire croisé avant l'étape 2 (action K.2) : compteurs de chaque catégorie | **`inventaire conforme`**. 31 lignes `file_entity`, 29 fichiers sur le disque, 26 cohérents. Bloquants : 0 référence cassée, 0 clé en double, 0 ligne partagée. **5 lignes orphelines** : 3 dans `utilisateur/` au fichier absent (id 1, 2, 4), une dans `partenaire/` (id 20) et une dans `concours/` (id 31), fichier présent. **1 fichier orphelin** : `uploads/actualite/fd838654-….pdf` (321 686 octets), sans ligne. 0 écart de taille, 0 clé hors format, 0 MIME ou taille manquants | 17 novembre 2026, 11:22 UTC |
+| Empreintes et lignes orphelines après l'étape 2 (actions N.2 à N.4) | `backfill-sha256.sh --apply` : 28 lignes sur 31 ont une empreinte ; les 3 restantes sont les lignes orphelines au fichier absent (id 1, 2, 4). `delete-orphan-rows.sh` (simulation) : les 5 lignes orphelines de K.2, datées du 25 décembre 2025 au 7 juin 2026. `inventory.sh` : `inventaire conforme`, 0 référence cassée, 3 sans empreinte. Puis `delete-orphan-rows.sh --apply` (12:04) : 5 lignes supprimées, clés inscrites dans la file de purge. `inventory.sh` (12:04) : **26 lignes, toutes cohérentes et avec empreinte**, 0 ligne orpheline, 2 fichiers en attente de purge (lignes 20 et 31), 1 fichier orphelin (`actualite/fd838654-….pdf`, à traiter à l'étape 3), `inventaire conforme` | 17 novembre 2026, 11:54 à 12:04 UTC |
 
 ### Écarts et décisions prises pendant l'implémentation
 
@@ -1232,6 +1240,29 @@ L'action K.5 est faite. **Non vérifié** : rien n'a tourné sur le serveur ; `b
 - La stack jetable est supprimée ensuite (`amame-e1-*` seulement).
 
 **Non vérifié** : rien n'a tourné sur le serveur. Le comportement dans un vrai navigateur n'est pas essayé : l'essai passe par `curl`. La mémoire sous la limite de 512M n'est pas mesurée pour `v1.3` (la production reste à 768M, E48).
+
+**Commit et publication, même jour, avec l'autorisation de l'équipe** : branche locale `deploiement/v1.3`, partie de `main` (`ba50a0a`), 7 commits (`c491fdd` à `be0bb40`). Non poussée sur GitHub ; `main` n'a pas bougé. Image `backend-v1.3` construite depuis `e9e5437`, couches identiques à l'image essayée, publiée (empreinte à l'action D).
+
+#### 17 novembre 2026 — `backend-v1.3` en production
+
+**Constaté (sorties transmises par l'équipe)** :
+
+- Action K.2, 11:22 UTC : `inventory.sh` se termine par `inventaire conforme`. Compteurs dans les faits relevés : 5 lignes orphelines, 1 fichier orphelin, aucun bloquant.
+- Action K.3, 11:22 UTC : `backup.sh`, sauvegarde couplée `20261117T112241Z` terminée (29 fichiers, dump de la base envoyé).
+- Action M : `BACKEND_IMAGE_TAG=backend-v1.3`, avec la version de la stack de l'équipe.
+- Action N.1, journal du backend : « Current version of schema "public": 1.1 », migrations 2, 3 et 4, « Successfully applied 3 migrations to schema "public", now at version v4 », puis `Started SiteAmameApplication` à 11:26:16 UTC (73,6 s). PostgreSQL 15.20.
+
+**Non vérifié** : la ligne « Variables d'environnement vides, traitées comme absentes » est écrite juste après « The following 1 profile is active » (vérifié en local), avant l'extrait transmis. Actions N.2 à N.6 et critères de sortie de l'étape 2 à faire.
+
+**Suite, même jour (sorties transmises par l'équipe)** :
+
+- N.2, 11:54 UTC : `backfill-sha256.sh` puis `--apply` : 28 empreintes écrites. Les 3 lignes restantes sont les lignes orphelines dont le fichier n'existe plus (id 1, 2, 4).
+- N.3, 11:55 UTC : `delete-orphan-rows.sh` en simulation liste les 5 lignes orphelines de K.2. Une suppression ne touche que des lignes qu'aucune entité ne référence : rien ne change à l'affichage. Les fichiers des lignes 20 (`partenaire/`) et 31 (`concours/`) restent sur le disque, inscrits dans la file de purge, désactivée jusqu'à l'étape 3.6. **Recommandé : `--apply`.**
+- N.4, 11:55 UTC : `inventory.sh` : `inventaire conforme`, 0 référence cassée (critère coché), 3 sans empreinte, 0 fichier en attente de purge.
+- L'équipe déclare réussies les vérifications de l'étape 2 dans l'interface d'administration, sans sortie transmise. À 11:55, l'inventaire ne montrait encore aucune trace de ces essais (31 lignes, 0 fichier en attente de purge). Les critères se cochent sur le contenu de la file de purge, relevé après la suppression des lignes orphelines.
+- N.3 et N.4, 12:04 UTC : `delete-orphan-rows.sh --apply`, 5 lignes supprimées. `inventory.sh` : 26 lignes, toutes cohérentes, 0 ligne orpheline, 0 sans empreinte (critère coché), 2 fichiers en attente de purge, `inventaire conforme`.
+- À 12:04, l'inventaire ne montre toujours aucune trace des vérifications déclarées dans l'interface. Le nombre de lignes (26 = 31 − 5) et les 2 fichiers en attente de purge, ceux des lignes 20 et 31, ne laissent la place à aucun remplacement d'image ni à aucune suppression de compte avec fichiers en production. Les critères correspondants restent non cochés : ils n'ont été constatés que par l'essai local.
+- **Décision de l'équipe, 17 novembre** : s'appuyer sur l'essai local (74 vérifications, avec la stack de production) pour les critères de l'étape 2 non constatés en production, comme pour l'étape 1. Ces critères ne sont pas cochés. L'étape 2 est close de ce fait, et l'étape 3 peut commencer. Le premier remplacement de fichier en production fera ce constat : il doit ajouter une entrée dans la file de purge (`inventory.sh` : « fichiers en attente de purge » augmente).
 
 ---
 
