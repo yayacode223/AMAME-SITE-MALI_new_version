@@ -1,5 +1,7 @@
 package com.example.siteamame;
 
+import com.example.siteamame.enumeration.Permission;
+import com.example.siteamame.enumeration.RoleType;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +52,28 @@ class SiteAmameApplicationTests {
 						+ "and table_name <> 'flyway_schema_history'", Integer.class);
 		// 25 tables de V1, plus storage_purge_queue (V3)
 		assertThat(tables).isEqualTo(26);
+	}
+
+	/**
+	 * Hibernate en « validate » ne contrôle pas les contraintes CHECK des colonnes d'énumération.
+	 * En production, ADHESION_MANAGE manquait à celle de user_permission (écart E47) : toute
+	 * nouvelle valeur d'énumération doit arriver avec une migration qui recrée la contrainte.
+	 */
+	@Test
+	void enumCheckConstraintsListEveryValueOfTheCode() {
+		String roles = checkDefinition("users_role_check");
+		for (RoleType role : RoleType.values()) {
+			assertThat(roles).contains("'" + role.name() + "'");
+		}
+		String permissions = checkDefinition("user_permission_permission_check");
+		for (Permission permission : Permission.values()) {
+			assertThat(permissions).contains("'" + permission.name() + "'");
+		}
+	}
+
+	private String checkDefinition(String constraintName) {
+		return jdbcTemplate.queryForObject(
+				"select pg_get_constraintdef(oid) from pg_constraint where conname = ?",
+				String.class, constraintName);
 	}
 }
