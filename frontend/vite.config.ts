@@ -153,22 +153,31 @@ export default defineConfig(({ mode }) => {
                 expiration: { maxEntries: 1 },
               },
             },
+            // Le cache du service worker survit à la déconnexion et ne distingue pas les comptes :
+            // seules les réponses publiques y entrent (écart E44 du suivi de migration). Workbox
+            // prend la première règle qui correspond : l'ordre des trois règles /api/ compte.
             {
-              // Fichiers privés (CV, photos des inscrits) : jamais dans le cache du
-              // service worker. Doit rester AVANT la règle générale /api/.
+              // Fichiers privés (CV, photos des inscrits) : jamais dans le cache.
               urlPattern: /\/api\/user\/files\//i,
               handler: 'NetworkOnly',
             },
             {
-              urlPattern: /^https?:\/\/.*\/api\/.*/i,
+              // Réponses publiques (bourses, concours, articles…) : gardées pour le hors-ligne.
+              urlPattern: /^https?:\/\/[^/]+\/api\/visitor\//i,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'api-cache',
+                cacheName: 'api-public',
                 expiration: {
                   maxEntries: 50,
                   maxAgeSeconds: 60 * 60 * 24,
                 },
               },
+            },
+            {
+              // Tout le reste de l'API (profil connecté, espace membre, administration) : jamais
+              // dans le cache. L'ancien « api-cache » est supprimé par src/utils/privateCaches.ts.
+              urlPattern: /^https?:\/\/[^/]+\/api\//i,
+              handler: 'NetworkOnly',
             },
             {
               urlPattern: /\/(amame-uploads|static)\/.*/i,

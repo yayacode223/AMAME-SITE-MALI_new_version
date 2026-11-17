@@ -7,6 +7,10 @@ import App from "./App.tsx";
 import "./index.css";
 import { AuthProvider } from "@/context/AuthContext.tsx";
 import { queryClient } from "@/lib/queryClient";
+import { purgePrivateCaches } from "@/utils/privateCaches";
+
+// Supprime l'ancien cache de l'API, qui gardait des réponses privées (écart E44).
+void purgePrivateCaches();
 
 const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);

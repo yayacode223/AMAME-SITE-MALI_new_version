@@ -1,6 +1,5 @@
 package com.example.siteamame.controller;
 
-import com.example.siteamame.enumeration.FileType;
 import com.example.siteamame.model.File;
 import com.example.siteamame.repository.FileRepository;
 import com.example.siteamame.repository.UserRepository;
@@ -23,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.time.Duration;
 
 /**
  * Seule voie de lecture des fichiers privés (CV et photos des inscrits).
@@ -59,14 +57,12 @@ public class PrivateFileController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fichier introuvable");
         }
 
-        // Une photo de profil peut rester une heure dans le cache du navigateur ; un CV, jamais.
-        CacheControl cache = file.getFileType() == FileType.IMAGE
-                ? CacheControl.maxAge(Duration.ofHours(1)).cachePrivate()
-                : CacheControl.noStore();
-
+        // Jamais dans le cache du navigateur, photo comprise : ce cache ne distingue pas les comptes.
+        // Une photo gardée « private, max-age=3600 » restait lisible, sur le même navigateur, par le
+        // compte connecté ensuite (constaté le 16 novembre 2026, écart E44 du suivi de migration).
         return ResponseEntity.ok()
                 .contentType(mediaTypeOf(file))
-                .cacheControl(cache)
+                .cacheControl(CacheControl.noStore())
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.inline().filename(file.getFileName()).build().toString())
                 .header("X-Content-Type-Options", "nosniff")

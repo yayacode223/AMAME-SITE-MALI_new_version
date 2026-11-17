@@ -56,7 +56,7 @@ class PrivateFileControllerTest {
     private PrivateFileController controller;
 
     @Test
-    void ownerReadsOwnPhotoWithPrivateBrowserCache() throws IOException {
+    void ownerReadsOwnPhotoWhichIsNeverCached() throws IOException {
         byte[] content = {1, 2, 3};
         when(fileRepository.findById(FILE_ID)).thenReturn(Optional.of(file(PHOTO_KEY, FileType.IMAGE, "image/jpeg")));
         when(userRepository.existsByIdAndFiles_Id(OWNER_ID, FILE_ID)).thenReturn(true);
@@ -67,7 +67,9 @@ class PrivateFileControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(content);
         assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_JPEG);
-        assertThat(response.getHeaders().getCacheControl()).contains("private").contains("max-age=3600");
+        // Le cache du navigateur ne distingue pas les comptes : une photo gardée serait relue par le
+        // compte connecté ensuite sur le même navigateur (écart E44).
+        assertThat(response.getHeaders().getCacheControl()).isEqualTo("no-store");
         assertThat(response.getHeaders().getFirst("X-Content-Type-Options")).isEqualTo("nosniff");
     }
 

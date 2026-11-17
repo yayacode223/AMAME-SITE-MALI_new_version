@@ -8,6 +8,7 @@ import {
 } from "@/types/userType";
 import { toast } from "@/hooks/use-toast";
 import { PageResponse, PaginationParams } from "@/types/commonTypes";
+import { purgePrivateCaches } from "@/utils/privateCaches";
 
 export const register = async (
   data: RegisterPayload,
@@ -84,7 +85,12 @@ export const login = async (
 };
 
 export const logout = async (): Promise<void> => {
-  await Api.post<void>("/auth/logout");
+  try {
+    await Api.post<void>("/auth/logout");
+  } finally {
+    // Même si l'appel échoue (session déjà expirée), rien de privé ne doit rester sur ce poste.
+    await purgePrivateCaches();
+  }
 };
 
 export const getAllUsers = async (params: PaginationParams = {}): Promise<PageResponse<RegisterResponse>> => {
