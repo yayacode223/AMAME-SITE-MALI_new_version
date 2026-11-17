@@ -20,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -69,13 +71,14 @@ public class AuthentificationService {
     // ── Refresh ─────────────────────────────────────────────────────────────────
 
     public UserReponseDto refresh(HttpServletRequest request, HttpServletResponse response) {
-        String refreshTokenValue = extractRefreshTokenFromCookies(request);
+        List<String> refreshTokenValues = extractRefreshTokensFromCookies(request);
 
-        if (refreshTokenValue == null) {
+        if (refreshTokenValues.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token absent");
         }
 
-        RefreshToken oldToken = refreshTokenService.validateRefreshToken(refreshTokenValue);
+        // Tous les cookies refresh_token reçus, pas seulement le premier (écart E50)
+        RefreshToken oldToken = refreshTokenService.validateFirstUsable(refreshTokenValues);
         RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldToken);
 
         User user = oldToken.getUser();
@@ -102,10 +105,8 @@ public class AuthentificationService {
     // ── Logout ──────────────────────────────────────────────────────────────────
 
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-        String refreshTokenValue = extractRefreshTokenFromCookies(request);
-        if (refreshTokenValue != null) {
-            refreshTokenService.revokeByTokenValue(refreshTokenValue);
-        }
+        // Chaque jeton reçu : aucun ne doit rester utilisable après la déconnexion
+        extractRefreshTokensFromCookies(request).forEach(refreshTokenService::revokeByTokenValue);
 
         clearCookie(response, ACCESS_COOKIE, "/");
         clearCookie(response, REFRESH_COOKIE, "/api/auth");
@@ -135,31 +136,50 @@ public class AuthentificationService {
         response.addHeader("Set-Cookie", buildCookie(REFRESH_COOKIE, token, "/api/auth", REFRESH_MAX_AGE).toString());
     }
 
+    /**
+     * Efface le cookie sans domaine et, si un domaine est configuré, celui de ce domaine. Pour le
+     * navigateur ce sont deux cookies distincts : effacer l'un laisse l'autre (écart E50). Un
+     * cookie d'un domaine qui n'est plus configuré ne peut pas être effacé d'ici ; il expire seul,
+     * et le renouvellement l'ignore s'il est périmé.
+     */
     private void clearCookie(HttpServletResponse response, String name, String path) {
-        response.addHeader("Set-Cookie", buildCookie(name, "", path, 0).toString());
+        response.addHeader("Set-Cookie", buildCookie(name, "", path, 0, null).toString());
+        if (hasCookieDomain()) {
+            response.addHeader("Set-Cookie", buildCookie(name, "", path, 0, cookieDomain).toString());
+        }
     }
 
     private ResponseCookie buildCookie(String name, String value, String path, int maxAge) {
+        return buildCookie(name, value, path, maxAge, hasCookieDomain() ? cookieDomain : null);
+    }
+
+    private ResponseCookie buildCookie(String name, String value, String path, int maxAge, String domain) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path(path)
                 .maxAge(maxAge)
                 .sameSite("Strict");
-        if (cookieDomain != null && !cookieDomain.isBlank()) {
-            builder = builder.domain(cookieDomain);
+        if (domain != null) {
+            builder = builder.domain(domain);
         }
         return builder.build();
     }
 
-    private String extractRefreshTokenFromCookies(HttpServletRequest request) {
+    private boolean hasCookieDomain() {
+        return cookieDomain != null && !cookieDomain.isBlank();
+    }
+
+    /** Valeurs de tous les cookies refresh_token reçus, dans l'ordre où le navigateur les envoie. */
+    private List<String> extractRefreshTokensFromCookies(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if (cookies == null) return null;
+        if (cookies == null) return List.of();
+        List<String> values = new ArrayList<>();
         for (Cookie cookie : cookies) {
-            if (REFRESH_COOKIE.equals(cookie.getName())) {
-                return cookie.getValue();
+            if (REFRESH_COOKIE.equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isBlank()) {
+                values.add(cookie.getValue());
             }
         }
-        return null;
+        return values;
     }
 }

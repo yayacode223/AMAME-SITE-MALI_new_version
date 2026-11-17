@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -56,6 +57,33 @@ public class RefreshTokenService {
         }
 
         return token;
+    }
+
+    /**
+     * Premier jeton utilisable parmi ceux que le navigateur a envoyés, dans l'ordre reçu.
+     *
+     * Un navigateur peut garder plusieurs cookies refresh_token : même nom, mais un domaine
+     * différent, après un changement de COOKIE_DOMAIN (écart E50 du suivi de migration). Il
+     * envoie d'abord le plus ancien, souvent périmé. Ne lire que le premier coupait la session
+     * à chaque renouvellement. Lance une 401 si aucun n'est utilisable, avec le motif du premier refus.
+     */
+    @Transactional(readOnly = true)
+    public RefreshToken validateFirstUsable(List<String> tokenValues) {
+        ResponseStatusException firstRefusal = null;
+        for (String tokenValue : tokenValues) {
+            try {
+                // Appel interne, sans passer par le proxy : un refus rattrapé ici ne marque pas
+                // pour annulation la transaction du renouvellement.
+                return validateRefreshToken(tokenValue);
+            } catch (ResponseStatusException refusal) {
+                if (firstRefusal == null) {
+                    firstRefusal = refusal;
+                }
+            }
+        }
+        throw firstRefusal != null
+                ? firstRefusal
+                : new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token absent");
     }
 
     /**
