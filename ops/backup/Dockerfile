@@ -13,10 +13,10 @@ FROM postgres:${PG_MAJOR}-alpine
 RUN apk add --no-cache bash coreutils curl file findutils gnupg jq
 
 COPY --chmod=755 lib.sh backup.sh restore-test.sh restore-db.sh restore-files.sh entrypoint.sh \
-     inventory.sh backfill-sha256.sh delete-orphan-rows.sh /usr/local/bin/
+     inventory.sh backfill-sha256.sh delete-orphan-rows.sh copy-to-bunny.sh copy-from-bunny.sh reconcile-bunny.sh /usr/local/bin/
 # Protège d'une extraction Git en fins de ligne Windows, qui rendrait les scripts inexécutables
 RUN cd /usr/local/bin && sed -i 's/\r$//' lib.sh backup.sh restore-test.sh restore-db.sh restore-files.sh entrypoint.sh \
-      inventory.sh backfill-sha256.sh delete-orphan-rows.sh
+      inventory.sh backfill-sha256.sh delete-orphan-rows.sh copy-to-bunny.sh copy-from-bunny.sh reconcile-bunny.sh
 
 # Aucun privilège root : ni les sauvegardes ni l'instance PostgreSQL temporaire n'en ont besoin
 USER postgres

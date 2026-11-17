@@ -23,7 +23,7 @@ services:
 
   backend:
     #image: yaya236/amame-web-site:backend-v7
-    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.3}
+    image: yayacode224/amame:${BACKEND_IMAGE_TAG:-backend-v1.4}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -47,6 +47,8 @@ services:
       - DB_POOL_IDLE_TIMEOUT=${DB_POOL_IDLE_TIMEOUT:-60000}
       - DB_POOL_KEEPALIVE_TIME=${DB_POOL_KEEPALIVE_TIME:-0}
       # ── Fichiers ────────────────────────────────────────────────────────────
+      # local en développement (DT7). « bunny » et les variables BUNNY_* ne servent qu'en production
+      # (deploy/portainer/amamestack.yml) : volontairement absentes de ce fichier.
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
       # Même valeur que pour le frontend ci-dessous. Vide : URL relatives (/uploads/…).
       - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
@@ -94,7 +96,7 @@ services:
 
   frontend:
     #image: yaya236/amame-web-site:frontend-v7
-    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.2}
+    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.3}
     build:
       context: ./frontend
       dockerfile: Dockerfile

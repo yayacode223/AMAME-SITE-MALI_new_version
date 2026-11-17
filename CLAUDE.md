@@ -89,7 +89,12 @@ In production they run from the console of the idle `amame-scraper` container (s
 
 **Database schema**: owned by Flyway (`src/main/resources/db/migration/V<n>__<description>.sql`). Hibernate runs in `validate` mode and never changes the schema. Any change to a JPA entity needs a new migration script in the same commit; `V1__baseline.sql` is never edited (it describes the production schema exactly; its single correction, before the production baseline, is deviation E47 of the tracking file). Enum columns carry a `CHECK` constraint listing the allowed values: a new value in such an enum needs a migration that recreates the constraint (as `V1_1` does), because `validate` does not check constraints. `SiteAmameApplicationTests` applies every migration to an empty PostgreSQL and fails if entities and schema diverge. Use standard PostgreSQL only (no provider-specific feature).
 
-**File uploads**: services inject the `FileStorageService` interface, never an implementation; the active one is chosen by `STORAGE_PROVIDER` (`local` only for now: `LocalFileStorageService`, directory `app.storage.local.upload-dir`). Every upload goes through `UploadValidator`, which reads the type from the file's magic bytes, never from the client's Content-Type or extension. A file is identified by its key `uploads/<folder>/<uuid>.<ext>` (`StoragePaths`); a key is never rewritten — replacing a file creates a new key. The database enforces it (migration V2: unique key, key format, a trigger refuses any change of `file_path`) and stores the SHA-256 of each upload (`file_sha256`).
+**File uploads**: services inject the `FileStorageService` interface, never an implementation; the active one is chosen by `STORAGE_PROVIDER`:
+
+- `local` (development, production until the switch, rollback): `LocalFileStorageService`, directory `app.storage.local.upload-dir`;
+- `bunny` (production from step 3.5): `BunnyFileStorageService`, through `BunnyStorageClient` (JDK HTTP client, no extra dependency; DT5 budget: 5 s connect, 20 s per attempt, 2 attempts). Two zones (`app.storage.bunny.*`, `BUNNY_*` variables): the public one is the CDN origin, the private one holds `uploads/utilisateur/`; the zone is always deduced from the key, never stored. Startup refuses an incomplete Bunny configuration or an empty `MEDIA_BASE_URL`. The `bunnyStorage` health indicator reports the last real call and never calls Bunny itself; it is outside the liveness and readiness probes.
+
+Every upload goes through `UploadValidator`, which reads the type from the file's magic bytes, never from the client's Content-Type or extension. A file is identified by its key `uploads/<folder>/<uuid>.<ext>` (`StoragePaths`); a key is never rewritten — replacing a file creates a new key. The database enforces it (migration V2: unique key, key format, a trigger refuses any change of `file_path`; V5: every constraint validated, `file_sha256` mandatory) and stores the SHA-256 of each upload (`file_sha256`), which Bunny checks on receipt.
 
 **File lifecycle** (migration step 2): services never delete a stored object. The object is written before its `file_entity` row is committed; if the transaction rolls back, `UploadCompensation` deletes it at once (write methods that upload use `@Transactional(rollbackFor = Exception.class)`). Replacing or deleting a file only removes its row — the 8 entities and `User.files` use `orphanRemoval`, and `User.files` is modified in place, never replaced. A database trigger (V3) then writes the key into `storage_purge_queue`, and `StoragePurgeJob` deletes the object after `STORAGE_PURGE_RETENTION` (10 days, longer than any database restore window). The purge is off unless `STORAGE_PURGE_ENABLED=true`, production only. `FileStorageService.delete(key)` is reserved for the purge and the compensation. Never `TRUNCATE file_entity` (refused by a trigger).
 
@@ -127,7 +132,7 @@ In production they run from the console of the idle `amame-scraper` container (s
 
 **Mobile navigation**: `<BottomNav />` (`src/components/BottomNav.tsx`) is a fixed bottom bar (mobile only, `lg:hidden`) with 4 primary tabs (Home, Bourses, Concours, Orientation) and a "Plus" Sheet for secondary links. The Navbar hamburger was removed — BottomNav is the sole mobile navigation.
 
-**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls.
+**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API.
 
 **Breakpoints**: Mobile/desktop split is at `lg` (1024px) matching Tailwind's default — consistent across Navbar, BottomNav, Footer padding (`pb-16 lg:pb-0`).
 
@@ -147,12 +152,12 @@ In production they run from the console of the idle `amame-scraper` container (s
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.2`) | 80 |
-| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.3`) | internal only |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.3`) | 80 |
+| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
 
-Stack `amame-ops` (`ops/docker-compose.yml`): `backup` (`yayacode224/amame:${OPS_IMAGE_TAG}`, default `ops-v1.1`) and `scraper` (`yayacode224/amame:${SCRAPER_IMAGE_TAG}`, default `scraper-v1.1`), no exposed port.
+Stack `amame-ops` (`ops/docker-compose.yml`): `backup` (`yayacode224/amame:${OPS_IMAGE_TAG}`, default `ops-v1.2`) and `scraper` (`yayacode224/amame:${SCRAPER_IMAGE_TAG}`, default `scraper-v1.1`), no exposed port.
 
 Bump the default tags (or set the `*_IMAGE_TAG` variables) before `docker compose up --build` when pushing a new version. Tags are versioned, never `latest`: rolling back means putting the previous tag back.
 

@@ -168,6 +168,55 @@ Les listes complètes sont écrites dans `/tmp/inventaire-<date>/`, dont le chem
 
 Ces deux derniers scripts écrivent dans la base : le compte de `BACKUP_DATABASE_URL` doit en avoir le droit, ce qui est le cas tant que la base est sur le VPS (`postgres`).
 
+### Copie vers Bunny, réconciliation, rapatriement (étape 3, image `ops-v1.2`)
+
+Scripts ponctuels, depuis la console du conteneur `amame-ops-backup`. Ils ne modifient jamais la base : leur session SQL est en lecture seule. La zone d'un fichier se déduit de sa clé, comme dans le backend : `uploads/utilisateur/` dans la zone privée, tout le reste dans la zone publique.
+
+```bash
+copy-to-bunny.sh                   # simulation : objets à envoyer vers Bunny
+copy-to-bunny.sh --apply           # les envoie (3.3), puis relancé juste après la bascule (3.5)
+reconcile-bunny.sh                 # rapport : chaque ligne a-t-elle son objet, intact, dans la bonne zone ? (3.4)
+copy-from-bunny.sh /data/uploads   # retour arrière, simulation : fichiers à rapatrier sur le disque
+```
+
+**`copy-to-bunny.sh`** parcourt les lignes `file_entity`, pas le disque. Chaque fichier part avec l'empreinte SHA-256 enregistrée en base, que Bunny contrôle à la réception. Un fichier du disque qui ne correspond plus à sa ligne (taille ou empreinte) est signalé `DIVERGENT` et n'est pas envoyé. Un objet déjà présent, avec la même taille et la même empreinte, n'est pas renvoyé : le script se relance sans risque. Il ne supprime jamais rien. Il a besoin des mots de passe d'**écriture** des deux zones (`BUNNY_PUBLIC_ZONE_KEY`, `BUNNY_PRIVATE_ZONE_KEY`), présents dans cette stack pendant la migration seulement.
+
+**`reconcile-bunny.sh`** compare la base aux deux zones, préfixe `uploads/` seulement. Il se termine par `réconciliation conforme`, ou par `réconciliation NON CONFORME` : **ne pas basculer**.
+
+| Catégorie | Bloquante | Traitement |
+| --- | --- | --- |
+| Référence cassée : ligne sans objet | oui | `copy-to-bunny.sh --apply` |
+| Objet dans la mauvaise zone | oui | `copy-to-bunny.sh --apply`, puis supprimer l'objet mal placé depuis le panneau Bunny |
+| Fichier privé (`uploads/utilisateur/`) dans la zone publique | oui | le supprimer de la zone publique depuis le panneau Bunny : il serait servi par le CDN |
+| Écart de taille ou d'empreinte | oui | `copy-to-bunny.sh --apply` |
+| Empreinte non fournie par Bunny | non | la taille seule est contrôlée |
+| Objet sans ligne, de plus de 48 h | non | listé ; rien n'est effacé (la réconciliation ne supprime jamais, DT8) |
+| Objet sans ligne, récent | non | upload en cours possible |
+| Objet en attente de purge | non | la purge l'effacera après la rétention |
+
+Il lit les zones avec leurs mots de passe en **lecture seule** (`BUNNY_PUBLIC_ZONE_READ_KEY`, `BUNNY_PRIVATE_ZONE_READ_KEY`) ou, à défaut, avec ceux d'écriture.
+
+**`copy-from-bunny.sh <destination> [--apply]`** sert au retour arrière de la bascule. Il rapatrie sur le disque les fichiers des lignes qui n'y sont pas, après contrôle de leur taille et de leur empreinte, sans jamais remplacer un fichier présent. Le service `backup` monte le dossier des uploads en lecture seule : la simulation y fonctionne, l'écriture non. L'écriture se fait dans un conteneur ponctuel, créé depuis Portainer :
+
+1. **Containers → Add container**, nom `amame-ops-rapatriement` :
+   - image `yayacode224/amame:ops-v1.2` ;
+   - **Advanced container settings → Command & logging** : commande `sleep 3600` (le conteneur attend, la copie se lance à la main), utilisateur `root` ;
+   - **Volumes** : bind de `UPLOADS_HOST_PATH` (le chemin réel des uploads) sur `/data/uploads`, en écriture ;
+   - **Network** : `common_net` (celui de `amame-database`). Le formulaire n'accepte qu'un réseau : le second se joint à l'étape 2 ;
+   - **Env** : `BACKUP_DATABASE_URL`, `BUNNY_PUBLIC_ZONE`, `BUNNY_PRIVATE_ZONE`, `BUNNY_PUBLIC_ZONE_READ_KEY` et `BUNNY_PRIVATE_ZONE_READ_KEY`, recopiées de la stack ; `BUNNY_STORAGE_ENDPOINT` aussi, si la stack la définit.
+2. **Deploy the container**, puis sur la page du conteneur, **Connected networks** : joindre `amame-ops_sortie` (*Join network*). Sans lui, Bunny est injoignable : `common_net` ne sort pas vers Internet.
+3. **Console** du conteneur (*Connect*, utilisateur `root`, `/bin/bash`) :
+
+   ```bash
+   copy-from-bunny.sh /data/uploads           # simulation : liste des fichiers à rapatrier
+   copy-from-bunny.sh /data/uploads --apply
+   ```
+
+   Le résumé se termine par `erreurs : 0`.
+4. Supprimer le conteneur (**Remove**). Il contient des mots de passe dans ses variables : ne pas le laisser en place.
+
+**Sauvegarde depuis Bunny.** Après la bascule, les nouveaux fichiers ne sont plus sur le disque. Passer alors `BACKUP_FILES_SOURCE=bunny` dans les variables de cette stack, puis la mettre à jour. `backup.sh` copie dès lors les objets des deux zones, lus en lecture seule, au lieu du dossier des uploads. La copie reste en ajout seul.
+
 ### Lancer un scraper
 
 Le conteneur `amame-scraper` reste en veille. Dans sa console Portainer (`/bin/bash`) :
@@ -182,6 +231,7 @@ python scraper_opportunity.py
 | Quand | Changement |
 | --- | --- |
 | Étape 2 (image `ops-v1.1`) | `inventory.sh`, `backfill-sha256.sh` et `delete-orphan-rows.sh` ; aucune variable nouvelle |
-| Étape 3 (fichiers dans Bunny) | la copie des fichiers lit les zones Bunny avec leurs mots de passe en lecture seule, et non plus le disque ; `inventory.sh` compare la base aux zones et non plus au disque |
+| Étape 3 (image `ops-v1.2`) | `copy-to-bunny.sh`, `reconcile-bunny.sh`, `copy-from-bunny.sh` ; `backup.sh` lit les zones Bunny avec `BACKUP_FILES_SOURCE=bunny`. Variables : `BUNNY_PUBLIC_ZONE`, `BUNNY_PRIVATE_ZONE`, leurs mots de passe d'écriture (migration seulement) et en lecture seule, `BACKUP_FILES_SOURCE` |
+| Étape 6 (nettoyage) | retrait des mots de passe d'écriture des zones de l'application de cette stack ; réconciliation hebdomadaire planifiée |
 | Étape 4 (base dans Neon) | `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup` ; `OPS_PG_MAJOR=17` et image reconstruite ; `AMAME_NETWORK` devient inutile |
 | Étape 6 | alerte par e-mail en cas d'échec ; archive mensuelle hors de Bunny ; retrait des objets privés 30 jours après leur purge |

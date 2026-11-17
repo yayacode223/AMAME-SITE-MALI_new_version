@@ -6,7 +6,7 @@
 
 services:
   backup:
-    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.1}
+    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.2}
     build:
       context: ./backup
       dockerfile: Dockerfile
@@ -22,6 +22,19 @@ services:
       - BUNNY_STORAGE_ENDPOINT=${BUNNY_STORAGE_ENDPOINT:-https://storage.bunnycdn.com}
       - BUNNY_BACKUP_ZONE=${BUNNY_BACKUP_ZONE:?Définir BUNNY_BACKUP_ZONE}
       - BUNNY_BACKUP_ZONE_KEY=${BUNNY_BACKUP_ZONE_KEY:?Définir BUNNY_BACKUP_ZONE_KEY}
+      # ── Zones de l'application (étape 3) ────────────────────────────────────
+      # Noms des zones : copie vers Bunny, réconciliation, sauvegarde depuis Bunny.
+      - BUNNY_PUBLIC_ZONE=${BUNNY_PUBLIC_ZONE:-}
+      - BUNNY_PRIVATE_ZONE=${BUNNY_PRIVATE_ZONE:-}
+      # Mots de passe d'ÉCRITURE (« Password ») : pour copy-to-bunny.sh, pendant la migration
+      # seulement. À retirer de cette stack au nettoyage de l'étape 6.
+      - BUNNY_PUBLIC_ZONE_KEY=${BUNNY_PUBLIC_ZONE_KEY:-}
+      - BUNNY_PRIVATE_ZONE_KEY=${BUNNY_PRIVATE_ZONE_KEY:-}
+      # Mots de passe en LECTURE SEULE (« Read-only password ») : réconciliation et sauvegarde.
+      - BUNNY_PUBLIC_ZONE_READ_KEY=${BUNNY_PUBLIC_ZONE_READ_KEY:-}
+      - BUNNY_PRIVATE_ZONE_READ_KEY=${BUNNY_PRIVATE_ZONE_READ_KEY:-}
+      # Source des fichiers sauvegardés : disk jusqu'à la bascule vers Bunny, bunny ensuite.
+      - BACKUP_FILES_SOURCE=${BACKUP_FILES_SOURCE:-disk}
     volumes:
       # Dossier RÉEL des uploads de production sur l'hôte, en lecture seule.
       # Chemin à relever dans Portainer (conteneur backend, volumes) : il peut différer du dépôt.

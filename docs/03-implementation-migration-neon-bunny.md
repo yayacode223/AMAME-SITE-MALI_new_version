@@ -40,7 +40,7 @@
 | **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`), poussé sur GitHub le 8 novembre | 🟡 images publiées le 13 novembre ; stack `amame-ops` en service depuis le 14 novembre (sauvegarde et test de restauration réussis) ; application mise à jour le 15 novembre (`v1.1`), secrets changés, e-mails envoyés, limite de débit active et propre à chaque visiteur, accès aux données d'autrui refusé par le serveur, images de l'accueil à 0,16 Mo (16 novembre) ; correctif `v1.1.1` déployé et vérifié le 16 novembre (E44 corrigé) ; reste la sécurisation de Portainer (E43) ; à éclaircir : la session administrateur qui semble expirer au bout de 15 minutes | 7 / 8 |
 | **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`), poussé sur GitHub le 8 novembre ; images `v1.2` construites le 16 novembre avec le correctif E44 (E45), V1 corrigée et migration `V1_1` (E47), passage `v1.1.1` → `v1.2` essayé en local sur une base à la structure de la production (47 vérifications) ; commitées sur la branche locale `deploiement/v1.2` (`3baba45`) et **publiées le 16 novembre** ; `main` porte les mêmes corrections, non commitées | 🟡 **`v1.2` déployé le 16 novembre à 20:05 UTC** : baseline, migration 1.1 appliquée, validation du schéma sans erreur. Une première tentative, à 17:25, avait échoué sur deux variables vides de la stack (E49) : retour à `v1.1.1`, base inchangée, variables corrigées. L'équipe n'a pas fait les autres vérifications. Reste la mémoire (J.4) avant de passer à 512M (E48). Cookies sans domaine (E50) | 1 / 7 |
 | **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13, 90 tests ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) ; commités sur la branche locale `deploiement/v1.3` (`e9e5437`) et **image `backend-v1.3` publiée le 17 novembre** | 🟡 **`backend-v1.3` déployé le 17 novembre à 11:26 UTC** : migrations 2, 3 et 4 appliquées, démarrage sans erreur ; inventaire conforme et sauvegarde juste avant. Actions N.2 à N.4 faites (26 lignes, toutes avec empreinte, 0 orpheline) ; les autres critères reposent sur l'essai local (décision de l'équipe du 17 novembre). ✅ Étape close | 2 / 6 en production |
-| **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
+| **3** | Bascule du stockage vers Bunny | 🟡 écrit le 17 novembre (3.2 à 3.5, migration V5) ; `./mvnw test` 115 tests, 0 échec ; essai local de bout en bout avec la stack de production et un faux Bunny : 61 vérifications, 0 échec ; **non commité, images non publiées** | ⬜ pas avant le 24 novembre (actions O à T) ; zones Bunny à créer (action Q) | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
 | **6** | Exploitation et nettoyage | ⬜ | ⬜ | §9 |
@@ -88,12 +88,25 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 | — | Création d'une filière (C8) | 🟡 | `FiliereController.ajouterFiliere` lit la filière avec `@RequestPart`, comme la modification ; test [FiliereControllerTest.java](../backend/src/test/java/com/example/siteamame/controller/FiliereControllerTest.java) (8 novembre, écart E37) | recette (action N.6) |
 | — | Compose et variables | 🟡 | `STORAGE_PURGE_ENABLED`, `STORAGE_PURGE_RETENTION`, `STORAGE_PURGE_SCHEDULE` ; ligne `SPRING_DATASOURCE_PASSWORD` retirée (E24) ; tags `backend-v1.3` et `ops-v1.1` | aucune variable à saisir : laisser la purge désactivée |
 
+### Étape 3 — détail
+
+Code écrit le 17 novembre 2026, à la demande de l'équipe, le jour même du déploiement de l'étape 2 : l'étape 3 ne se **déploie** qu'après une semaine de l'étape 2 en production (prérequis du §5), soit à partir du 24 novembre. Tags : `backend-v1.4`, `frontend-v1.3`, `ops-v1.2` (`scraper-v1.1` inchangé).
+
+| # | Action (§5, étape 3) | Dépôt | Ce qui a été livré | Reste à faire en production |
+| --- | --- | --- | --- | --- |
+| 3.1 | Mise en place dans Bunny | — | rien à coder | zones `amame-public` et `amame-private`, Pull Zone sur `media.amame.ml`, tests de fumée (action Q) |
+| 3.2 | Code | 🟡 | [BunnyStorageClient.java](../backend/src/main/java/com/example/siteamame/service/file/BunnyStorageClient.java) (client HTTP du JDK, budget de DT5), [BunnyFileStorageService.java](../backend/src/main/java/com/example/siteamame/service/file/BunnyFileStorageService.java) (zone déduite de la clé, compensation et purge inchangées), [BunnyStorageHealthIndicator.java](../backend/src/main/java/com/example/siteamame/service/file/BunnyStorageHealthIndicator.java) (E54) ; `StorageConfig` refuse une configuration incomplète ; migration V5 (E56) ; redirection de `/uploads/` dans `frontend-v1.3` (E55) | déployer avec `STORAGE_PROVIDER=local` : rien ne change (action P) |
+| 3.3 | Copie pilotée par la base | 🟡 | [copy-to-bunny.sh](../ops/backup/copy-to-bunny.sh) : lignes `file_entity`, empreinte de la base contrôlée par Bunny, fichier divergent refusé, idempotent | copie (action R) |
+| 3.4 | Vérification avant bascule | 🟡 | [reconcile-bunny.sh](../ops/backup/reconcile-bunny.sh), mode rapport (E52) | réconciliation à zéro anomalie bloquante (action R) |
+| 3.5 | Bascule | 🟡 | variables `BUNNY_*` dans [amamestack.yml](../deploy/portainer/amamestack.yml) ; sauvegarde depuis Bunny (`BACKUP_FILES_SOURCE=bunny`, DT9) ; rapatriement pour le retour arrière (E53) | bascule (action S) |
+| 3.6 | Purge et réconciliation régulière | ⬜ | purge déjà prête (étape 2) ; réconciliation planifiée et mode `enforce` à écrire (E52) | après 48 h sans anomalie |
+
 ### Prochaine action
 
 **État au 17 novembre 2026** : étapes 0, 1 et 2 en production (`backend-v1.3`, `frontend-v1.2`, `ops-v1.1`). Pour les étapes 1 et 2, l'équipe a choisi de s'appuyer sur les essais locaux pour les critères non constatés en production. Code déployé : branche locale `deploiement/v1.3`, non poussée ; `main` n'a pas bougé depuis `ba50a0a`. Ensuite :
 
 1. **Mémoire d'`amame-backend`** (E48), 24 heures puis une semaine après le 17 novembre : `grep -E '^(anon|file) ' /sys/fs/cgroup/memory.stat` dans la console. Passage à 512M seulement si `anon` reste sous 420 Mio.
-2. **Étape 3 (Bunny)**, à la demande de l'équipe : code 3.2 à 3.4, puis zones `amame-public` et `amame-private` (action 3.1). À trancher à cette étape : le fichier orphelin `actualite/fd838654-….pdf`, qui ne sera pas copié.
+2. **Étape 3 (Bunny)** : code écrit et essayé en local le 17 novembre (journal du même jour). Reste : commit et publication des images `backend-v1.4`, `frontend-v1.3` et `ops-v1.2`, avec l'autorisation de l'équipe ; création des zones et de la Pull Zone (action Q), possible dès maintenant ; déploiement à partir du 24 novembre, actions O à T dans l'ordre. Le fichier orphelin `actualite/fd838654-….pdf` n'est pas copié (action O.6).
 3. En attente, sans lien avec l'ordre des étapes : sécurisation de Portainer (E43), constats C11 et C12, nouveau mot de passe Neon avant l'étape 4, réconciliation de `main` avec `deploiement/v1.3`.
 
 La liste ci-dessous date d'avant les déploiements ; elle reste comme historique.
@@ -120,7 +133,7 @@ La liste ci-dessous date d'avant les déploiements ; elle reste comme historique
 
 ### Actions manuelles en attente
 
-À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1, les actions K à N l'étape 2.
+À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1, les actions K à N l'étape 2, les actions O à T l'étape 3.
 
 **Deux façons de déployer.** Le plan demande de déployer l'étape 0, de constater ses 8 critères, puis de déployer l'étape 1 : un incident n'a alors qu'une cause possible. Déployer les deux ensemble reste possible (actions A à C et E.1, puis directement G à J avec les images `v1.2`), mais les critères des deux étapes se vérifient alors en même temps. **Choix du 9 novembre : l'étape 0 seule d'abord**, obligatoire depuis que la production réelle est connue (E38, point 4).
 
@@ -357,7 +370,8 @@ Les images `ops-v1.1` et `scraper-v1.1` de l'étape 0 ne changent pas.
    | Concours sans fichier visibles | créer un concours sans fichier depuis l'administration : il apparaît dans la liste publique et sa page s'ouvre |
    | Avatar de la Navbar | compte avec photo, fenêtre de largeur tablette |
    | Développement local sous Windows | constaté le 5 octobre sur un poste Windows : ce critère ne se vérifie pas en production |
-   | URL des médias changée sans nouvelle image | mettre `MEDIA_BASE_URL=https://amame.ml` (valeur sans risque : les fichiers restent servis par le site), puis mettre la stack à jour. `https://amame.ml/config.js` affiche la valeur et les images des articles pointent vers `https://amame.ml/uploads/…`. Remettre la variable vide ensuite |
+   | URL des médias changée sans nouvelle image | ~~mettre `MEDIA_BASE_URL=https://amame.ml`~~ **À ne plus faire à partir de `frontend-v1.3`** (17 novembre) : le frontend redirige alors `/uploads/` vers `MEDIA_BASE_URL`, et cette valeur, le site lui-même, ferait tourner la redirection en boucle. Le changement d'URL sans nouvelle image est constaté à la bascule de l'étape 3.5, avec `https://media.amame.ml` |
+
 4. **Mémoire** : `docker stats --no-stream amame-backend` après 24 heures, puis après une semaine. Valeur attendue : environ 400 Mio sur 512. Au-delà de 460 Mio, le signaler avant d'aller plus loin.
    Sans accès à `docker stats` (E46) : dans la console d'`amame-backend`, `grep -E '^(anon|file) ' /sys/fs/cgroup/memory.stat`. `anon` est le chiffre à suivre. Avec la limite gardée à 768M (E48), le tas peut grandir jusqu'à 30 % de 768 Mio : si `anon` reste sous **420 Mio** après une semaine, `backend-v1.2` tiendra sous 512M, où son tas est plus petit. On supprime alors `BACKEND_MEMORY_LIMIT` (mise à jour séparée), puis on refait le relevé 24 heures plus tard.
 
@@ -427,6 +441,118 @@ Remettre `BACKEND_IMAGE_TAG=backend-v1.2`, sans toucher au schéma. Les migratio
 - la création d'une filière échoue de nouveau (C8), sans effet sur les données.
 
 Ce retour arrière, d'abord déduit du code et des migrations (écart E27), a été rejoué en local le 17 novembre 2026, avec la stack de production : `v1.2` démarre sur la base en V4 sans migration, les données et les fichiers restent lisibles, et le retour en `v1.3` ensuite donne un inventaire conforme (journal du 17 novembre). `backend-v1.2` n'a pas le correctif E51 : les variables qu'il lit doivent rester définies et non vides dans Portainer.
+
+**Plus possible une fois `backend-v1.4` déployé** (migration V5, étape 3) : l'empreinte devient obligatoire, et `backend-v1.2` n'en enregistre pas. Ses uploads échoueraient. Le retour arrière le plus lointain est alors `backend-v1.3`.
+
+#### O. Avant de déployer l'étape 3
+
+1. **Une semaine d'étape 2 en production** (prérequis du §5) : pas avant le **24 novembre 2026**.
+2. **Inventaire** : `inventory.sh` dans la console d'`amame-ops-backup`. Attendu : `inventaire conforme`, `sans empreinte SHA-256 : 0`. La migration V5 rend l'empreinte obligatoire et valide le format des clés : une seule ligne fautive la fait échouer, et `backend-v1.4` ne démarre pas. PostgreSQL annule alors la migration entière : la base reste en V4, revenir en `backend-v1.3` et transmettre le message.
+3. **Point de restauration** : `backup.sh` juste avant la mise à jour de la stack.
+4. ✅ **Tests** : `./mvnw test` le 17 novembre 2026, 115 tests, 0 échec. À relancer si le code change d'ici la construction des images.
+5. ✅ **Essai local** du passage `v1.3` → `v1.4`, de la copie, de la bascule et des deux retours arrière, avec la stack de production et un faux Bunny : 61 vérifications, puis 13 pour le retour en `v1.3`, 0 échec du code livré (journal du 17 novembre). À refaire si le code change d'ici la construction des images.
+6. **Fichier `actualite/fd838654-….pdf`** (sans ligne en base, relevé à l'étape 2) : il n'est pas copié, puisque la copie part de la base. Il reste sur le disque et dans les sauvegardes. Rien à faire, sauf si l'équipe le reconnaît comme un document à republier depuis l'administration.
+
+#### P. Images de l'étape 3, déploiement en stockage local (3.2)
+
+1. **Images** `backend-v1.4`, `frontend-v1.3` et `ops-v1.2`. Construites en local le 17 novembre pour l'essai, depuis le code non commité : à reconstruire depuis le commit, puis à publier, avec l'autorisation de l'équipe. `scraper-v1.1` ne change pas.
+
+   ```bash
+   docker build --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:backend-v1.4 backend
+   docker build --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:frontend-v1.3 frontend
+   docker build --build-arg PG_MAJOR=15 --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:ops-v1.2 ops/backup
+   docker push yayacode224/amame:backend-v1.4
+   docker push yayacode224/amame:frontend-v1.3
+   docker push yayacode224/amame:ops-v1.2
+   ```
+
+2. **Stack `amamestack`** : dans le contenu de la stack (version de l'équipe), ajouter au service `backend`, sous `environment`, ces cinq lignes, sans valeur :
+
+   ```yaml
+         - BUNNY_STORAGE_ENDPOINT=${BUNNY_STORAGE_ENDPOINT}
+         - BUNNY_PUBLIC_ZONE=${BUNNY_PUBLIC_ZONE}
+         - BUNNY_PUBLIC_ZONE_KEY=${BUNNY_PUBLIC_ZONE_KEY}
+         - BUNNY_PRIVATE_ZONE=${BUNNY_PRIVATE_ZONE}
+         - BUNNY_PRIVATE_ZONE_KEY=${BUNNY_PRIVATE_ZONE_KEY}
+   ```
+
+   Elles restent vides jusqu'à la bascule (action S) : `backend-v1.4` les traite comme absentes (E51) et ne les lit qu'avec `STORAGE_PROVIDER=bunny`. Variables : `BACKEND_IMAGE_TAG=backend-v1.4`, `FRONTEND_IMAGE_TAG=frontend-v1.3`. Ne rien changer d'autre : `STORAGE_PROVIDER` reste `local` (ou vide), `MEDIA_BASE_URL` reste vide, `STORAGE_PURGE_ENABLED` reste absent ou à `false`. Mettre la stack à jour, option *Re-pull image* activée.
+3. **Vérifications** :
+   - journal du backend : `Migrating schema "public" to version "5 - file metadata required"`, `Successfully applied 1 migration to schema "public", now at version v5`, puis `Started SiteAmameApplication` ;
+   - journal du frontend : `40-runtime-config.sh : /uploads/ servi depuis le disque` ;
+   - le site affiche les images des articles ; une adresse `https://amame.ml/uploads/utilisateur/…` répond 404.
+4. **Stack `amame-ops`** : `OPS_IMAGE_TAG=ops-v1.2`. Ajouter au service `backup`, sous `environment`, les sept lignes de [amame-ops.yml](../deploy/portainer/amame-ops.yml) : `BUNNY_PUBLIC_ZONE`, `BUNNY_PRIVATE_ZONE`, `BUNNY_PUBLIC_ZONE_KEY`, `BUNNY_PRIVATE_ZONE_KEY`, `BUNNY_PUBLIC_ZONE_READ_KEY`, `BUNNY_PRIVATE_ZONE_READ_KEY`, `BACKUP_FILES_SOURCE` (vide ou absente : `disk`). Mettre la stack à jour, *Re-pull image* activé. `backup.sh` doit se terminer comme avant.
+
+#### Q. Bunny : zones et Pull Zone (3.1)
+
+À faire dans le panneau Bunny, à tout moment avant l'action R. Ne jamais coller de mot de passe dans une conversation ou un ticket : ils vont directement dans les variables des stacks (fichier `.env` chargé dans Portainer, action K.7).
+
+1. **Deux zones de stockage**, même région que `amamestoragezone` (Francfort), tier Standard, sans réplication : `amame-public` et `amame-private`. Les noms de zone sont uniques chez Bunny, tous comptes confondus (E40) : si un nom est pris, en choisir un autre et le reporter tel quel dans `BUNNY_PUBLIC_ZONE` ou `BUNNY_PRIVATE_ZONE`.
+2. **Mots de passe** de chaque zone (*FTP & API Access*) :
+   - *Password* (écriture) : `BUNNY_PUBLIC_ZONE_KEY` et `BUNNY_PRIVATE_ZONE_KEY`, dans `amamestack` (à la bascule) et dans `amame-ops` (pendant la migration seulement) ;
+   - *Read-only password* : `BUNNY_PUBLIC_ZONE_READ_KEY` et `BUNNY_PRIVATE_ZONE_READ_KEY`, dans `amame-ops` seulement.
+   Si le point d'accès de ces zones n'est pas `storage.bunnycdn.com`, renseigner `BUNNY_STORAGE_ENDPOINT=https://<point d'accès>` dans les deux stacks.
+3. **Pull Zone** `amame-media`, origine : la zone de stockage **publique** seulement. Nom d'hôte `media.amame.ml` : enregistrement DNS `CNAME media → amame-media.b-cdn.net`, certificat gratuit, *Force SSL*. Aucune Pull Zone sur la zone privée.
+4. **Cookies** (D10) : rien à faire. `COOKIE_DOMAIN` est vide en production depuis le 15 novembre (E50) : les cookies ne partent jamais vers `media.amame.ml`. À constater à l'action T.
+5. **Tests de fumée**, une fois `ops-v1.2` en place avec les variables des zones : `copy-to-bunny.sh` (simulation) dans la console d'`amame-ops-backup`. Il liste les deux zones : un mot de passe faux ou un nom de zone erroné le fait échouer tout de suite. Attendu sur des zones vides : `déjà dans Bunny : 0`, et autant de lignes `à envoyer` que de lignes `file_entity`.
+
+#### R. Copie et réconciliation (3.3 et 3.4)
+
+Dans la console d'`amame-ops-backup`, le service tournant normalement :
+
+```bash
+copy-to-bunny.sh             # simulation : objets à envoyer
+copy-to-bunny.sh --apply     # attendu : « erreurs : 0 », puis « copie terminée »
+copy-to-bunny.sh             # relance : « SIMULATION : … 0 objet(s) à envoyer »
+reconcile-bunny.sh           # attendu : « réconciliation conforme »
+```
+
+- Une ligne `DIVERGENT` (fichier du disque différent de sa ligne) ou `ABSENT` : ne pas basculer, transmettre la sortie.
+- Relever le compteur `empreinte non fournie par Bunny` : 0 répond à la question des tests de fumée (§5, 3.1) ; le listing de Bunny restitue alors l'empreinte, et la réconciliation la contrôle pour chaque objet.
+- Contrôle du CDN : ouvrir `https://media.amame.ml/uploads/<clé d'une image publique>` (clé lue dans `file_entity` ou dans la sortie de la copie) : l'image s'affiche. Une clé `uploads/utilisateur/…` sur `media.amame.ml` répond 404.
+
+#### S. Bascule (3.5)
+
+1. `backup.sh`, puis `reconcile-bunny.sh` : `réconciliation conforme`. Sinon, ne pas basculer.
+2. **Stack `amamestack`**, variables : `STORAGE_PROVIDER=bunny`, `MEDIA_BASE_URL=https://media.amame.ml`, `BUNNY_PUBLIC_ZONE`, `BUNNY_PUBLIC_ZONE_KEY`, `BUNNY_PRIVATE_ZONE`, `BUNNY_PRIVATE_ZONE_KEY` (mots de passe d'**écriture**). Mettre la stack à jour (pas besoin de *Re-pull*). Le backend et le frontend redémarrent.
+3. **Aussitôt**, dans `amame-ops-backup` : `copy-to-bunny.sh --apply` (lignes créées entre la copie et la bascule), puis `reconcile-bunny.sh`.
+4. **Stack `amame-ops`** : `BACKUP_FILES_SOURCE=bunny`, mise à jour de la stack, puis `backup.sh`. Attendu : `fichiers : N dans Bunny, M nouveau(x) copié(s)`. Les nouveaux fichiers ne sont plus sur le disque : sans ce réglage, ils manqueraient aux sauvegardes.
+5. **Journaux** :
+   - backend : `Stockage des fichiers dans Bunny : zone publique …, zone privée …`, puis `Started SiteAmameApplication`. Un refus de démarrer cite la variable manquante (`STORAGE_PROVIDER=bunny : à définir : …`) : la renseigner, ou revenir en arrière (ci-dessous) ;
+   - frontend : `40-runtime-config.sh : /uploads/ redirigé vers https://media.amame.ml`.
+
+#### T. Vérifications et critères de l'étape 3
+
+| Vérification | Comment la constater |
+| --- | --- |
+| Les images du site viennent du CDN | outils de développement du navigateur, onglet Réseau : les images ont des adresses `https://media.amame.ml/uploads/…` ; aucun cookie n'est envoyé avec elles (E50) |
+| Une ancienne adresse redirige | `https://amame.ml/uploads/<clé>`, en navigation privée (C14) ou avec `curl -I` : réponse 301 vers `https://media.amame.ml/uploads/<clé>` |
+| Les fichiers privés restent privés | `https://amame.ml/uploads/utilisateur/<clé>` et `https://media.amame.ml/uploads/utilisateur/<clé>` : 404. Un membre voit sa photo et son CV dans son espace ; un administrateur aussi |
+| Un upload va dans Bunny | créer un article de test avec image : il s'affiche, et `reconcile-bunny.sh` le compte parmi les objets cohérents. Remplacer l'image : l'ancienne clé entre dans la file de purge, son objet reste dans Bunny |
+| Sauvegarde depuis Bunny | `backup.sh` puis `restore-test.sh` : réussis |
+
+Critères de sortie (§5), à cocher avec leur date :
+
+| Critère | Comment le constater |
+| --- | --- |
+| La recette est passée | le tableau ci-dessus, en entier |
+| Zéro référence cassée, zéro écart d'empreinte | `reconcile-bunny.sh` après la bascule : `réconciliation conforme` |
+| Aucun 404 sur les médias pendant 48 h | statistiques de la Pull Zone `amame-media` : aucune réponse 404 ; `reconcile-bunny.sh` toujours conforme au bout de 48 h |
+| Plus aucune requête `/uploads/` servie depuis le disque | journal du frontend (`redirigé vers`) et redirection 301 constatée ci-dessus |
+
+**3.6, après 48 h sans anomalie** : `STORAGE_PURGE_ENABLED=true` dans `amamestack`, mise à jour de la stack. La purge efface alors dans Bunny les objets en file depuis plus de 10 jours. La réconciliation hebdomadaire et son mode `enforce` restent à écrire (E52) : d'ici là, `reconcile-bunny.sh` à la main, une fois par semaine.
+
+#### Retour arrière de l'étape 3
+
+**Avant la bascule** (après l'action P seulement) : `BACKEND_IMAGE_TAG=backend-v1.3`, `FRONTEND_IMAGE_TAG=frontend-v1.2`. La migration V5 reste en place ; `backend-v1.3` enregistre toujours une empreinte, et sa validation du schéma ne contrôle pas `NOT NULL`. Essayé en local le 17 novembre (phase F de l'essai n° 4). Pas plus loin que `v1.3` (voir le retour arrière de l'étape 2).
+
+**Après la bascule** : aucune donnée en base n'est à modifier, et rien n'est effacé dans Bunny.
+
+1. `STORAGE_PURGE_ENABLED` absent ou à `false` pendant l'opération.
+2. **Rapatriement**, encore en mode Bunny : `copy-from-bunny.sh /data/uploads` (simulation) dans `amame-ops-backup`, puis l'écriture dans un conteneur ponctuel (procédure dans [ops/README.md](../ops/README.md)). Les fichiers créés depuis la bascule reviennent sur le disque, contrôlés par leur taille et leur empreinte.
+3. **Stack `amamestack`** : `STORAGE_PROVIDER=local`, `MEDIA_BASE_URL` vide, mise à jour. Le frontend sert de nouveau `/uploads/` depuis le disque.
+4. Relancer le rapatriement (fichiers créés entre l'étape 2 et l'étape 3 ; ceux déjà présents ne sont pas réécrits), puis supprimer le conteneur ponctuel.
+5. **Stack `amame-ops`** : `BACKUP_FILES_SOURCE=disk`, mise à jour. `inventory.sh` : `inventaire conforme`.
 
 ### Faits relevés en production
 
@@ -518,6 +644,11 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | E49 | **La stack de production n'est pas [amamestack.yml](../deploy/portainer/amamestack.yml)** | « Un seul fichier pour les étapes 0, 1 et 2 : seules les variables `BACKEND_IMAGE_TAG` et `FRONTEND_IMAGE_TAG` changent » | constaté le 16 novembre 2026, au premier démarrage de `backend-v1.2` en production. La version de l'équipe (15 novembre) remplace les valeurs par défaut `${VAR:-…}` par `${VAR}`. Une variable non définie dans Portainer arrive vide, et Spring ne remplace pas une valeur vide par sa valeur par défaut : `DB_POOL_MIN_IDLE` vide a empêché le démarrage. Retour aux tags `v1.1.1` fait, base inchangée (`flyway_schema_history` absente). Relevé des variables : `DB_POOL_MIN_IDLE`, `DATABASE_PASSWORD`, `COOKIE_DOMAIN` et `MAIL_DEBUG` vides. Correction : les deux premières dans les variables de la stack, vérifiées sous `v1.1.1` avant de repasser en `v1.2` (journal du 16 novembre). Proposé le 17 novembre : recoller le fichier du dépôt, par une mise à jour séparée et avant l'étape 2 (action K.4). Avec les variables de la production, seules `MAIL_DEBUG` et `STORAGE_PURGE_ENABLED` changent (de vide à `false`), et aucune des deux n'est lue par `v1.2`. À chaque étape, de nouvelles variables apparaissent : le fichier réellement en production doit être relevé avant chaque déploiement |
 | E50 | **Cookies sans domaine en production depuis le 15 novembre 2026** | `COOKIE_DOMAIN=.amame.ml` en production (CLAUDE.md, action 3.1) | constaté le 16 novembre 2026 par le relevé des variables : `COOKIE_DOMAIN` est définie vide dans la stack, sans doute reprise de `.env.example`, où la valeur vide est celle du développement local. Une variable d'environnement l'emporte sur `cookie.domain=.amame.ml` du profil `prod`. Gardé tel quel au déploiement de `v1.2` : revenir à `.amame.ml` laisserait dans chaque navigateur connecté depuis le 15 novembre deux `refresh_token`, dont le backend ne lit que le premier. **Décidé le 17 novembre : cookies sans domaine, gardés.** Raisons : aucune transition ; aucun sous-domaine n'en a besoin ; avec `.amame.ml`, l'`access_token` partirait vers le CDN des médias (`media.amame.ml`, étape 3). Le profil `prod` et [amamestack.yml](../deploy/portainer/amamestack.yml) ont désormais une valeur vide par défaut. Le renouvellement lit tous les cookies `refresh_token` (dans `main`, livré avec `backend-v1.3`) : la session coupée venait d'un ancien cookie `.amame.ml` lu en premier, et ces cookies disparaissent seuls d'ici le 22 novembre (journal du 17 novembre) |
 | E51 | **Une variable d'environnement vide est traitée comme absente** (`backend-v1.3` et suivants) | une valeur par défaut dans la stack pour chaque variable (`${VAR:-…}`, E49) | constaté le 17 novembre 2026 par l'essai de `v1.2` → `v1.3` avec la stack de production du même jour, qui n'a plus aucune valeur par défaut. `STORAGE_PURGE_ENABLED` arrive vide, et `backend-v1.3` refuse de démarrer (`Failed to bind properties under 'app.storage.purge.enabled'`) **après** avoir appliqué V2, V3 et V4. L'équipe garde sa version de la stack. Corrigé dans le code, une fois pour toutes les variables : [EmptyEnvironmentVariablesPostProcessor.java](../backend/src/main/java/com/example/siteamame/config/EmptyEnvironmentVariablesPostProcessor.java) retire de l'environnement de Spring toute variable vide ou faite d'espaces, ce qui applique la valeur par défaut de la configuration. Aucune variable lue par l'application ne donne à « vide » un autre sens qu'« absente ». Une variable sans valeur par défaut (`JWT_SECRET`, `DATABASE_*`) fait échouer le démarrage par un message explicite au lieu de passer vide. Les noms des variables ignorées sont écrits au démarrage. `backend-v1.2` n'a pas ce correctif : pour un retour arrière en `v1.2`, les variables qu'il lit doivent rester définies dans Portainer |
+| E52 | **Réconciliation : un script d'exploitation, en mode rapport** | DT8 : tâche du backend, verrou consultatif, modes `off`, `report` et `enforce`, chaque dimanche | 17 novembre 2026 : [reconcile-bunny.sh](../ops/backup/reconcile-bunny.sh) dans `ops-v1.2`, lancé à la main avant la bascule (3.4). Raisons : il doit tourner avant la bascule, quand le backend est encore en stockage local et n'a pas les mots de passe des zones ; il reste hors du backend (limite de 512 Mo, aucun réveil de la base ajouté) ; il se contente des mots de passe en lecture seule. Bloquants : référence cassée, mauvaise zone, fichier privé en zone publique, écart de taille ou d'empreinte. Le mode `enforce` et la planification hebdomadaire sont reportés à 3.6, après plusieurs semaines de rapports |
+| E53 | **Retour arrière de la bascule : un outil de rapatriement** | « Rapatrier sur le disque les objets des lignes créées depuis la bascule », sans outil | [copy-from-bunny.sh](../ops/backup/copy-from-bunny.sh) : pour chaque ligne dont le fichier manque sur le disque, lecture dans sa zone, contrôle de la taille et de l'empreinte, écriture sans jamais remplacer. Le service `backup` monte les uploads en lecture seule, sous un utilisateur sans droits : l'écriture se fait dans un conteneur ponctuel créé depuis Portainer (procédure dans [ops/README.md](../ops/README.md)). Sauvegarde après la bascule : `BACKUP_FILES_SOURCE=bunny` (DT9) |
+| E54 | **Indicateur de santé de Bunny d'après le dernier appel** | « indicateur de santé Bunny placé hors de la sonde de vivacité » | `bunnyStorage` n'envoie aucune requête à Bunny pour répondre à une sonde : ni trafic ni latence ajoutés. État : inconnu avant le premier appel, `UP` après un succès (un objet absent est une réponse normale), `DOWN` après un échec. Hors de `/actuator/health/liveness` et `/readiness` |
+| E55 | **Redirection de `/uploads/` commandée par `MEDIA_BASE_URL`** | redirection Nginx 301 vers le CDN (3.5) | `frontend-v1.3` : `40-runtime-config.sh` écrit au démarrage la règle de `location ^~ /uploads/` : disque si `MEDIA_BASE_URL` est vide, `return 301` vers lui sinon. `/uploads/utilisateur/` reste en 404. Aucune variable de plus, mais `MEDIA_BASE_URL` ne doit jamais désigner le site lui-même (redirection en boucle) : le critère de l'étape 1 qui proposait `https://amame.ml` est retiré. L'image porte aussi la nouvelle adresse de la page À propos |
+| E56 | **V5 livrée avec l'étape 3** | une migration ultérieure valide les contraintes `NOT VALID` et rend l'empreinte obligatoire (E30) | [V5__file_metadata_required.sql](../backend/src/main/resources/db/migration/V5__file_metadata_required.sql) dans `backend-v1.4` : production à 100 % d'empreintes et sans ligne hors format le 17 novembre. La copie vers Bunny envoie l'empreinte de la base, qui doit donc exister pour chaque ligne. Conséquence : retour arrière au plus loin en `backend-v1.3` |
 
 **Constats hors du périmètre de l'étape 0**, à traiter ou à planifier :
 
@@ -536,6 +667,7 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | C11 | Une requête mal formée renvoie `500` au lieu d'une erreur `4xx`, avec le message de l'exception dans la réponse. Exemples : partie `user` absente de l'inscription, JSON illisible, méthode non permise. `GlobalHandlerException.handleGlobalException` intercepte aussi les exceptions de Spring MVC, qui portent pourtant leur propre statut. Constaté en production le 16 novembre 2026 (inscription sans partie `user`). Même code dans `main`, où C9 n'a traité que `NoResourceFoundException` | 🟡 | dans le gestionnaire générique, reprendre le statut des exceptions qui implémentent `ErrorResponse` (400, 405, 415…) ; pour un vrai `500`, ne plus renvoyer `ex.getMessage()` au client, seulement le journaliser. À faire dans `main`, pas de correctif dédié |
 | C12 | **Après chaque déploiement, une page ouverte avant la mise à jour peut ne plus charger une section.** Les sections (administration, espace membre…) sont des fichiers JavaScript chargés à la demande, dont le nom change à chaque construction. Un onglet resté ouvert demande l'ancien nom, et Nginx répond `404`. La section ne s'affiche qu'après un rechargement de la page. Constaté en production le 16 novembre 2026 (`LayoutAdmin-B8YmbZu6.js`, juste après le passage en `v1.1.1`). Même code dans `main` | 🟡 | intercepter l'événement `vite:preloadError` et recharger la page une seule fois (garde en `sessionStorage` contre une boucle). À faire dans `main` avant les déploiements des étapes 1 à 4 |
 | C13 | **La modification d'un article envoyée sans `tags` répond `500` après avoir été enregistrée** (`failed to lazily initialize a collection … Article.tags … no Session`). Le mapper mettait dans la réponse la collection de l'entité, non chargée, que Jackson lit après la fermeture de la session (`open-in-view` désactivé depuis l'étape 1). Le formulaire d'administration envoie toujours `tags` : la production n'est pas touchée par l'interface. Constaté le 17 novembre 2026 par l'essai de l'étape 2, dans `v1.3` et dans `v1.2` | 🟡 | corrigé dans `main` pour `backend-v1.3` : `ArticleMapper.convertToDTO` copie les tags dans la transaction ; [ArticleMapperTest.java](../backend/src/test/java/com/example/siteamame/mapper/ArticleMapperTest.java) |
+| C14 | **Dans un navigateur où le site est déjà installé, ouvrir directement une adresse `/uploads/…` affiche l'application, pas le fichier.** Le service worker répond à toute navigation par `index.html` (`NavigationRoute` sans liste d'exclusion, `frontend/dist/sw.js`). Les images affichées dans les pages ne sont pas concernées : ce ne sont pas des navigations. Antérieur à la migration (même chose en stockage local) ; après la bascule, ces navigateurs ne suivent pas la redirection 301 vers le CDN. Constaté le 17 novembre 2026 en préparant l'étape 3 | 🟡 | **corrigé dans `frontend-v1.3`** (17 novembre, avec l'accord de l'équipe) : `navigateFallbackDenylist: [/^\/uploads\//, /^\/api\//]` dans `vite.config.ts`. Concerne aussi un fichier privé ouvert dans un onglet (`/api/user/files/…`). Le nouveau service worker remplace l'ancien à la première visite qui suit le déploiement : constater la redirection (action T) en navigation privée ou avec `curl -I` |
 
 ### Notes pour les étapes suivantes
 
@@ -1263,6 +1395,33 @@ L'action K.5 est faite. **Non vérifié** : rien n'a tourné sur le serveur ; `b
 - N.3 et N.4, 12:04 UTC : `delete-orphan-rows.sh --apply`, 5 lignes supprimées. `inventory.sh` : 26 lignes, toutes cohérentes, 0 ligne orpheline, 0 sans empreinte (critère coché), 2 fichiers en attente de purge, `inventaire conforme`.
 - À 12:04, l'inventaire ne montre toujours aucune trace des vérifications déclarées dans l'interface. Le nombre de lignes (26 = 31 − 5) et les 2 fichiers en attente de purge, ceux des lignes 20 et 31, ne laissent la place à aucun remplacement d'image ni à aucune suppression de compte avec fichiers en production. Les critères correspondants restent non cochés : ils n'ont été constatés que par l'essai local.
 - **Décision de l'équipe, 17 novembre** : s'appuyer sur l'essai local (74 vérifications, avec la stack de production) pour les critères de l'étape 2 non constatés en production, comme pour l'étape 1. Ces critères ne sont pas cochés. L'étape 2 est close de ce fait, et l'étape 3 peut commencer. Le premier remplacement de fichier en production fera ce constat : il doit ajouter une entrée dans la file de purge (`inventory.sh` : « fichiers en attente de purge » augmente).
+
+#### 17 novembre 2026 — étape 3 écrite et essayée en local, avec la stack de production et un faux Bunny
+
+À la demande de l'équipe (« we go ahead for next »), le jour même du déploiement de l'étape 2. Le code peut précéder la production ; le déploiement attend le 24 novembre (action O.1).
+
+**Livré dans le dépôt, non commité** (détail dans « Étape 3 — détail » et les écarts E52 à E56) :
+
+- backend : client Bunny (`BunnyStorageClient`, client HTTP du JDK, budget de DT5), `BunnyFileStorageService`, indicateur de santé `bunnyStorage`, refus de démarrer sur une configuration incomplète, migration V5 ;
+- frontend : redirection de `/uploads/` vers `MEDIA_BASE_URL` quand elle est définie ;
+- exploitation : `copy-to-bunny.sh`, `reconcile-bunny.sh`, `copy-from-bunny.sh`, sauvegarde depuis Bunny (`BACKUP_FILES_SOURCE`) ; variables ajoutées aux deux stacks de production et aux exemples ;
+- documentation : [ops/README.md](../ops/README.md), [CLAUDE.md](../CLAUDE.md), actions O à T et retour arrière de l'étape 3 dans ce suivi. Constat C14 (service worker).
+
+**Vérifié en local** :
+
+- Suite complète, `./mvnw test` : **115 tests, 0 échec** (7 min 26), dont 25 nouveaux pour Bunny : client contre un faux serveur (tentatives, délais, empreinte refusée), service, configuration, et un test d'intégration en mode `bunny` avec PostgreSQL. `SiteAmameApplicationTests` contrôle V5 : aucune contrainte non validée, empreinte `NOT NULL`.
+- Images `backend-v1.4`, `frontend-v1.3` et `ops-v1.2` construites, révision `c80f0cb+etape3-non-commite`. **Ni commitées ni publiées.** Les deux fichiers de la stack `amame-ops` passent `docker compose config`.
+- Avant l'essai, deux défauts corrigés dans les scripts d'exploitation : une boucle de `backup.sh` qui se terminait par `[ … ] && …` aurait fait échouer la sauvegarde sous `set -e` ; le choix du mot de passe de lecture passait par `eval`.
+- **Essai de bout en bout n° 4** : stack jetable `amame-e1-v14`, la stack de production de l'équipe telle quelle, plus les cinq lignes `BUNNY_*` de l'action P.2, variables à la forme de la production (vides ou absentes comme en production). Un faux Bunny en conteneur reproduit l'API de stockage : zones distinctes, mots de passe d'écriture et de lecture seule, refus d'un envoi dont l'en-tête `Checksum` ne correspond pas, listing avec empreinte. **61 vérifications, 0 échec.**
+  - **Phase A** : base créée par V1 (empreintes de la production), `backend-v1.3` et `frontend-v1.2` : base en V4. Deux comptes, dont un avec photo et CV, un article et une filière avec image.
+  - **Phase B, action P** : `backend-v1.4` et `frontend-v1.3`, stockage local. « Migrating schema "public" to version "5 - file metadata required" », « now at version v5 » ; les cinq `BUNNY_*` vides sont listées parmi les variables traitées comme absentes ; frontend : « /uploads/ servi depuis le disque ». Photo et image relues à l'identique, listes publiques `200`, `inventory.sh` conforme.
+  - **Phase C, action R** : un fichier du disque modifié exprès est signalé `DIVERGENT` et refusé. Simulation : 4 objets à envoyer, rien d'envoyé ; `--apply` : 4 envoyés, 0 erreur ; relance : rien à renvoyer. Les 2 fichiers privés ne sont que dans la zone privée. `reconcile-bunny.sh` : `réconciliation conforme`, **empreinte non fournie par Bunny : 0**. Un fichier privé déposé dans la zone publique rend la réconciliation non conforme ; un objet orphelin de 3 jours est signalé sans bloquer.
+  - **Phase D, action S** : `STORAGE_PROVIDER=bunny`, `MEDIA_BASE_URL=https://media.amame.ml`. Journal du backend sans aucun mot de passe. L'image d'un article a une adresse `https://media.amame.ml/uploads/…` ; l'ancienne adresse `/uploads/…` répond `301` vers elle ; `/uploads/utilisateur/…` reste en `404`. La photo d'un membre est relue à l'identique depuis la zone privée, par l'API. Un nouvel article : objet dans la zone publique, rien sur le disque. Remplacement d'une image : nouvelle clé dans Bunny, ancienne clé dans la file de purge, ancien objet toujours dans Bunny. Inscription avec photo et CV : zone privée seulement. Copie de rattrapage : rien à envoyer ; réconciliation conforme, 1 objet en attente de purge. `backup.sh` avec `BACKUP_FILES_SOURCE=bunny` : « fichiers : 8 dans Bunny, 8 nouveau(x) copié(s) », puis 0 à la relance ; les fichiers privés restaurés depuis la sauvegarde ont les empreintes de la base. Mémoire du backend : 468 Mio pour une limite de 768 Mio.
+  - **Phase E, retour arrière** : `STORAGE_PROVIDER=local`, `MEDIA_BASE_URL` vide. Les 4 fichiers créés depuis la bascule manquent sur le disque. `copy-from-bunny.sh` : simulation, 4 à rapatrier ; `--apply` refusé sur le montage en lecture seule du service `backup` ; dans un conteneur ponctuel (`root`, montage en écriture) : « rapatriés : 4 ; erreurs : 0 », puis rien à la relance. Image et CV relus à l'identique depuis le disque. `inventory.sh` : 7 lignes cohérentes, 1 fichier en attente de purge, `inventaire conforme`.
+- **Phase F, retour arrière avant la bascule**, sur la même base : `backend-v1.3` et `frontend-v1.2` sur la base en V5. « Schema "public" has a version (5) that is newer than the latest available migration (4) ! », « Schema "public" is up to date. No migration necessary. », démarrage sans erreur. Inscription avec photo et CV `201`, article avec image : image relue à l'identique, empreinte enregistrée (64 caractères), aucune ligne sans empreinte, `inventory.sh` conforme. Retour en `backend-v1.4` et `frontend-v1.3` : aucune migration, image et CV relus. 13 vérifications réussies ; la quatorzième a échoué sur une requête du script (version `1.1` convertie en entier), la version 5 étant constatée par le journal et l'historique Flyway (`1`, `1.1`, `2`, `3`, `4`, `5`, tous réussis).
+- La stack jetable est supprimée ensuite (`amame-e1-*` seulement).
+
+**Non vérifié** : rien n'a touché le vrai Bunny. Le faux serveur suit la documentation de l'API de stockage ; l'essai réel est l'action Q.5, puis R (dont la présence de l'empreinte dans le listing, question de 3.1). Ni Pull Zone, ni DNS, ni certificat, ni navigateur : l'essai passe par `curl`. La mémoire sous 512M n'est pas mesurée (la production reste à 768M, E48). Le conteneur ponctuel du retour arrière a été lancé avec `docker run`, pas depuis le formulaire de Portainer : la procédure de [ops/README.md](../ops/README.md) a été reprise pour tenir compte de ce formulaire, qui n'accepte qu'un réseau.
 
 ---
 

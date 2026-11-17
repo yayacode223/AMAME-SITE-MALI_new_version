@@ -33,20 +33,65 @@ decrypt_file() {  # decrypt_file <fichier chiffré> <fichier en clair>
       --decrypt --output "$2" "$1" 3<<<"$BACKUP_PASSPHRASE"
 }
 
-# ── Bunny Storage (zone de sauvegarde) ────────────────────────────────────────
+# ── Bunny Storage : toute zone ────────────────────────────────────────────────
 # Encode chaque segment d'un chemin pour une URL, en conservant les « / ».
 urlencode_path() {
   jq -rn --arg p "$1" '$p | split("/") | map(@uri) | join("/")'
 }
 
-bunny_url() {
-  printf '%s/%s/%s' "${BUNNY_STORAGE_ENDPOINT%/}" "$BUNNY_BACKUP_ZONE" "$(urlencode_path "$1")"
+zone_url() {  # zone_url <zone> <chemin>
+  printf '%s/%s/%s' "${BUNNY_STORAGE_ENDPOINT%/}" "$1" "$(urlencode_path "$2")"
 }
 
-# La clé de la zone passe par un fichier de configuration curl, pas par la ligne de commande.
-bunny_curl() {
+# Le mot de passe de la zone, lu dans la variable nommée, passe par un fichier de configuration
+# curl, jamais par la ligne de commande (invisible dans « ps »).
+zone_curl() {  # zone_curl <nom de la variable du mot de passe> <arguments curl…>
+  local keyvar="$1"
+  shift
   curl --silent --show-error --retry 3 --retry-delay 5 --connect-timeout 15 \
-       -K <(printf 'header = "AccessKey: %s"\n' "$BUNNY_BACKUP_ZONE_KEY") "$@"
+       -K <(printf 'header = "AccessKey: %s"\n' "${!keyvar}") "$@"
+}
+
+# Liste un dossier d'une zone, sans descendre dans les sous-dossiers. Une ligne par entrée :
+#   <true|false si dossier> TAB <nom> TAB <taille> TAB <empreinte SHA-256 en minuscules, ou -> TAB <date de création>
+# Un dossier absent donne une liste vide.
+zone_list() {  # zone_list <zone> <nom de la variable du mot de passe> <dossier>
+  local body code
+  body="$(mktemp)"
+  code="$(zone_curl "$2" --output "$body" --write-out '%{http_code}' -H 'Accept: application/json' \
+                    "$(zone_url "$1" "${3%/}")/")" || code="000"
+  case "$code" in
+    200) jq -r '.[] | [(.IsDirectory | tostring), .ObjectName, (.Length | tostring),
+                       ((.Checksum // "") | ascii_downcase | if . == "" then "-" else . end),
+                       (.DateCreated // "-")] | @tsv' "$body" ;;
+    404) ;;
+    *)   rm -f "$body"; fail "listing de « $1/$3 » impossible (HTTP $code)" ;;
+  esac
+  rm -f "$body"
+}
+
+# Liste récursive des fichiers sous <dossier> :
+#   <chemin complet> TAB <taille> TAB <empreinte ou -> TAB <date de création>
+zone_list_recursive() {  # zone_list_recursive <zone> <nom de la variable du mot de passe> <dossier>
+  local dir="${3%/}" listing is_dir name size sum created
+  listing="$(zone_list "$1" "$2" "$dir")"
+  [ -n "$listing" ] || return 0
+  while IFS=$'\t' read -r is_dir name size sum created; do
+    if [ "$is_dir" = "true" ]; then
+      zone_list_recursive "$1" "$2" "$dir/$name"
+    else
+      printf '%s\t%s\t%s\t%s\n' "$dir/$name" "$size" "$sum" "$created"
+    fi
+  done <<<"$listing"
+}
+
+# ── Bunny Storage : zone de sauvegarde ────────────────────────────────────────
+bunny_url() {
+  zone_url "$BUNNY_BACKUP_ZONE" "$1"
+}
+
+bunny_curl() {
+  zone_curl BUNNY_BACKUP_ZONE_KEY "$@"
 }
 
 # L'empreinte SHA-256 accompagne l'envoi : Bunny refuse un contenu qui ne lui correspond pas.
@@ -68,30 +113,34 @@ bunny_delete() {  # bunny_delete <chemin distant>
 # Liste un dossier distant, sans descendre dans les sous-dossiers.
 # Une ligne par objet : <true|false si dossier> TAB <nom> TAB <taille>. Un dossier absent donne une liste vide.
 bunny_list() {  # bunny_list <dossier distant>
-  local body code
-  body="$(mktemp)"
-  code="$(bunny_curl --output "$body" --write-out '%{http_code}' -H 'Accept: application/json' \
-                     "$(bunny_url "${1%/}")/")" || code="000"
-  case "$code" in
-    200) jq -r '.[] | [(.IsDirectory | tostring), .ObjectName, (.Length | tostring)] | @tsv' "$body" ;;
-    404) ;;
-    *)   rm -f "$body"; fail "listing de « $1 » impossible (HTTP $code)" ;;
-  esac
-  rm -f "$body"
+  zone_list "$BUNNY_BACKUP_ZONE" BUNNY_BACKUP_ZONE_KEY "$1" | cut -f1-3
 }
 
 # Liste récursive : affiche le chemin complet de chaque fichier sous <dossier distant>.
 bunny_list_recursive() {  # bunny_list_recursive <dossier distant>
-  local dir="${1%/}" listing is_dir name _size
-  listing="$(bunny_list "$dir")"
-  [ -n "$listing" ] || return 0
-  while IFS=$'\t' read -r is_dir name _size; do
-    if [ "$is_dir" = "true" ]; then
-      bunny_list_recursive "$dir/$name"
-    else
-      printf '%s\n' "$dir/$name"
-    fi
-  done <<<"$listing"
+  zone_list_recursive "$BUNNY_BACKUP_ZONE" BUNNY_BACKUP_ZONE_KEY "$1" | cut -f1
+}
+
+# ── Bunny Storage : zones de l'application (étape 3) ──────────────────────────
+# La zone d'une clé se déduit de la clé, comme dans le backend (StoragePaths.isPrivate).
+key_zone_kind() {  # key_zone_kind <clé> : affiche « private » ou « public »
+  case "$1" in
+    uploads/utilisateur/*) printf 'private' ;;
+    *)                     printf 'public' ;;
+  esac
+}
+
+# Mot de passe de lecture d'une zone : le mot de passe en lecture seule s'il est défini, sinon celui
+# d'écriture (présent dans amame-ops pendant la migration seulement). Affiche le NOM de la variable.
+read_key_var() {  # read_key_var public|private
+  local upper read_var
+  upper="$(printf '%s' "$1" | tr 'a-z' 'A-Z')"
+  read_var="BUNNY_${upper}_ZONE_READ_KEY"
+  if [ -n "${!read_var:-}" ]; then
+    printf '%s' "$read_var"
+  else
+    printf 'BUNNY_%s_ZONE_KEY' "$upper"
+  fi
 }
 
 # ── Base : références vers file_entity ────────────────────────────────────────

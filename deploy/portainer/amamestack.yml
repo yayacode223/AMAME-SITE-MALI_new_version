@@ -83,6 +83,15 @@ services:
       - STORAGE_PURGE_ENABLED=${STORAGE_PURGE_ENABLED:-false}
       - STORAGE_PURGE_RETENTION=${STORAGE_PURGE_RETENTION:-10d}
       - STORAGE_PURGE_SCHEDULE=${STORAGE_PURGE_SCHEDULE:-0 30 2 * * *}
+      # ── Bunny (étape 3), lu seulement avec STORAGE_PROVIDER=bunny ────────────
+      # Zones de l'application et leurs mots de passe d'écriture : à renseigner avant la bascule
+      # (étape 3.5), jamais en dur ici. Jamais ceux de la zone de sauvegarde, qui restent dans amame-ops.
+      # Avec STORAGE_PROVIDER=bunny, le backend refuse de démarrer s'il en manque un, ou MEDIA_BASE_URL.
+      - BUNNY_STORAGE_ENDPOINT=${BUNNY_STORAGE_ENDPOINT:-https://storage.bunnycdn.com}
+      - BUNNY_PUBLIC_ZONE=${BUNNY_PUBLIC_ZONE:-}
+      - BUNNY_PUBLIC_ZONE_KEY=${BUNNY_PUBLIC_ZONE_KEY:-}
+      - BUNNY_PRIVATE_ZONE=${BUNNY_PRIVATE_ZONE:-}
+      - BUNNY_PRIVATE_ZONE_KEY=${BUNNY_PRIVATE_ZONE_KEY:-}
       # ── Réveils de la base ──────────────────────────────────────────────────
       - PUBLIC_LISTS_CACHE_TTL=${PUBLIC_LISTS_CACHE_TTL:-0}
       - AUTH_TOKEN_CLEANUP_SCHEDULE=${AUTH_TOKEN_CLEANUP_SCHEDULE:-0 30 2 * * *}
