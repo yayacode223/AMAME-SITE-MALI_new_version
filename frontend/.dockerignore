@@ -7,3 +7,6 @@ uploads/
 # Originaux des images statiques et outillage : hors de l'image Docker
 image-sources/
 scripts/
+# Fichiers d'environnement locaux : jamais dans le contexte de construction
+.env
+.env.*

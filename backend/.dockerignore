@@ -1,3 +1,6 @@
 uploads/
 target/
 .git/
+# Fichiers d'environnement locaux : jamais dans le contexte de construction
+.env
+.env.*

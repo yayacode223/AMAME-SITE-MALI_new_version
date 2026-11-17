@@ -1,6 +1,8 @@
 # Secrets — ne jamais commiter
 .env
 *.env.local
+# Copie remplie d'un modèle de deploy/portainer/ (ex. amamestack.env) : les *.env.example restent suivis.
+*.env
 
 # Builds frontend
 frontend/dist/

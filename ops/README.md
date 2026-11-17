@@ -39,27 +39,29 @@ Ne pas lui associer de Pull Zone. Relever son mot de passe (**FTP & API Access �
 
 ### 2. Construire et publier les images
 
-Depuis la racine du dépôt, sur un poste de développement :
+Depuis la racine du dépôt, sur un poste de développement connecté à Docker Hub (`docker login`) :
 
 ```bash
-docker compose -f ops/docker-compose.yml --env-file .env build
-docker compose -f ops/docker-compose.yml --env-file .env push
+docker build -t yayacode224/amame:ops-v1.1 --build-arg PG_MAJOR=15 ops/backup
+docker build -t yayacode224/amame:scraper-v1.1 scraper
+docker push yayacode224/amame:ops-v1.1
+docker push yayacode224/amame:scraper-v1.1
 ```
 
-`--env-file .env` est nécessaire parce que le compose est dans un sous-dossier. Les variables obligatoires doivent avoir une valeur dans ce fichier, même factice, pour que la commande s'exécute.
+Ces commandes n'ont besoin d'aucun `.env`. `docker compose -f ops/docker-compose.yml --env-file .env build` produit les mêmes images, mais exige une valeur, même factice, pour chaque variable obligatoire.
 
 ### 3. Créer la stack dans Portainer
 
-**Stacks → Add stack**, nom `amame-ops`, à partir du dépôt Git avec le chemin `ops/docker-compose.yml` (ou en collant le contenu du fichier). Variables à saisir :
+**Stacks → Add stack**, nom `amame-ops`, **Web editor** : coller le contenu de [deploy/portainer/amame-ops.yml](../deploy/portainer/amame-ops.yml). C'est `ops/docker-compose.yml` sans les sections `build`, que Portainer ne peut pas exécuter : les sources ne sont pas sur le serveur. Les variables à saisir sont ci-dessous. [deploy/portainer/amame-ops.env.example](../deploy/portainer/amame-ops.env.example) en donne la liste, prête à remplir hors du dossier du projet, puis à coller dans Portainer en *Advanced mode*.
 
 | Variable | Valeur | Secret |
 | --- | --- | --- |
-| `BACKUP_DATABASE_URL` | `postgresql://postgres:<mot de passe>@database:5432/amame_db` tant que la base est sur le VPS | oui |
+| `BACKUP_DATABASE_URL` | `postgresql://postgres:<mot de passe>@amame-database:5432/amame_db` tant que la base est sur le VPS. Le nom du conteneur, unique sur l'hôte, plutôt que `database` : le réseau de production est partagé avec d'autres conteneurs | oui |
 | `BACKUP_PASSPHRASE` | phrase longue, générée (`openssl rand -base64 48`) | oui |
-| `BUNNY_BACKUP_ZONE` | `amame-backups` | non |
+| `BUNNY_BACKUP_ZONE` | nom de la zone de sauvegarde : `amamestoragezone` en production (la zone a été créée sous ce nom, écart E40 du suivi) | non |
 | `BUNNY_BACKUP_ZONE_KEY` | mot de passe de la zone | oui |
 | `UPLOADS_HOST_PATH` | chemin **réel** du dossier des uploads sur l'hôte | non |
-| `AMAME_NETWORK` | réseau Docker de la stack `amame` (`amame_common_net` par défaut) | non |
+| `AMAME_NETWORK` | réseau Docker de la stack applicative : `common_net` en production, valeur par défaut du fichier de production (`amame_common_net` par défaut dans `ops/docker-compose.yml`) | non |
 | `SCRAPER_DATABASE_URL` | même forme que `BACKUP_DATABASE_URL` | oui |
 | `BACKUP_DB_SCHEDULE` | `02:30 14:30` par défaut (heures UTC, soit l'heure de Bamako) | non |
 | `BACKUP_DB_RETENTION_DAYS` | `30` par défaut | non |
@@ -68,8 +70,8 @@ docker compose -f ops/docker-compose.yml --env-file .env push
 Trois points demandent de l'attention.
 
 - **`BACKUP_PASSPHRASE` doit aussi être conservée hors du serveur**, par exemple dans le gestionnaire de mots de passe de l'association. Sans elle, aucune sauvegarde n'est lisible. Elle ne doit jamais changer sans raison : les sauvegardes déjà envoyées resteraient chiffrées avec l'ancienne.
-- **`UPLOADS_HOST_PATH`** se relève dans Portainer : conteneur `amame-backend` → *Volumes* → source du montage `/app/uploads`. Un chemin erroné ne provoque aucune erreur : Docker crée un dossier vide. Le journal affiche alors `ATTENTION : aucun fichier dans /data/uploads`, et le test de restauration échoue.
-- **`AMAME_NETWORK`** se relève avec `docker network ls`. Il porte le nom de la stack applicative suivi de `_common_net`.
+- **`UPLOADS_HOST_PATH`** se relève dans Portainer : conteneur `amame-backend` → *Volumes* → source du montage `/app/uploads`. La valeur de production est consignée dans le suivi (« Faits relevés »). La stack `amamestack` utilise la même variable : la valeur doit être identique dans les deux stacks. Un chemin erroné ne provoque aucune erreur : Docker crée un dossier vide. Le journal affiche alors `ATTENTION : aucun fichier dans /data/uploads`, et le test de restauration échoue.
+- **`AMAME_NETWORK`** se relève dans Portainer (**Networks**) : c'est le réseau auquel est branché `amame-database`. En production, `common_net`. Ce réseau ne sort pas vers Internet. La stack crée donc aussi son propre réseau, `amame-ops_sortie`, par lequel elle joint Bunny (et les sites des scrapers). Sans lui : `Could not resolve host: storage.bunnycdn.com`.
 
 ### 4. Première sauvegarde et test de restauration
 
@@ -108,7 +110,7 @@ Une ligne `ERREUR` signale un échec. Il n'y a pas encore d'alerte par e-mail : 
 
 ```bash
 restore-db.sh                                  # liste les dumps disponibles
-restore-db.sh amame-20261003T023000Z.dump.gpg "postgresql://postgres:<mot de passe>@database:5432/amame_db"
+restore-db.sh amame-20261003T023000Z.dump.gpg "postgresql://postgres:<mot de passe>@amame-database:5432/amame_db"
 ```
 
 La commande **remplace le contenu de la base cible**. Avant de restaurer la production :

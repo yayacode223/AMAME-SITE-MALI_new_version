@@ -1,0 +1,171 @@
+# Stack « amamestack » de PRODUCTION : contenu à coller dans Portainer
+# (Stacks → amamestack → Editor), puis « Update the stack » avec « Re-pull image ».
+#
+# Ce fichier n'est pas le compose de développement (docker-compose.yml, à la racine).
+# Il décrit le serveur réel, relevé le 9 novembre 2026 :
+#   - aucune section « build » : Portainer tire les images publiées sur Docker Hub ;
+#   - réseau EXTERNE common_net, partagé avec Nginx Proxy Manager (conteneur « npm ») et
+#     d'autres projets. Il est INTERNE (« Internal: true », relevé le 14 novembre 2026) :
+#     aucune sortie vers Internet. Le backend, qui envoie des e-mails, a donc aussi un réseau
+#     à lui, « sortie » ;
+#   - Nginx Proxy Manager joint le frontend par « amame-frontend:80 » sur common_net : aucun
+#     port n'est publié sur l'hôte (l'ancien « 3000:80 » ne servait pas) ;
+#   - réglages mémoire de PostgreSQL repris de la stack précédente ;
+#   - pas de pgAdmin : sans accès SSH, personne ne pourrait le joindre.
+#
+# Un seul fichier pour les étapes 0, 1 et 2 de la migration : seules les variables
+# BACKEND_IMAGE_TAG et FRONTEND_IMAGE_TAG changent d'une étape à l'autre, et le retour
+# arrière se fait en remettant les tags précédents. Elles n'ont volontairement pas de
+# valeur par défaut : une image plus récente que prévu sur la base actuelle l'abîmerait.
+#
+# Ne pas retirer les valeurs par défaut « ${VAR:-…} » ni les refus « ${VAR:?…} ». Sans elles, une
+# variable absente des variables de la stack arrive VIDE dans le conteneur, et Spring ne remplace
+# pas une valeur vide par sa valeur par défaut. Le 16 novembre 2026, une version sans valeurs par
+# défaut a empêché backend-v1.2 de démarrer (écart E49). Une variable définie et non vide dans
+# Portainer l'emporte toujours sur la valeur par défaut. Depuis backend-v1.3, le backend traite une
+# variable vide comme absente (écart E51) ; les valeurs par défaut restent utiles au retour arrière
+# en v1.2 et aux valeurs lues par Compose lui-même (tags, limite mémoire, chemin des uploads).
+#
+# Variables et ordre des opérations : docs/03-implementation-migration-neon-bunny.md,
+# rubrique « Actions manuelles en attente ». Aucun secret dans ce fichier.
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: amame-database
+    environment:
+      POSTGRES_DB: amame_db
+      POSTGRES_USER: postgres
+      # N'est appliqué qu'à la création du volume. Sur la base existante, changer d'abord
+      # le mot de passe avec ALTER USER, puis cette variable, puis mettre la stack à jour.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD}
+    command: >
+      postgres
+      -c shared_buffers=1GB
+      -c work_mem=16MB
+      -c maintenance_work_mem=256MB
+      -c effective_cache_size=4GB
+    networks:
+      - common_net
+    volumes:
+      # Volume « amamestack_database_data » : il dépend du nom de la stack.
+      # Toujours mettre à jour la stack existante, ne jamais en créer une nouvelle.
+      - database_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: yayacode224/amame:${BACKEND_IMAGE_TAG:?Définir BACKEND_IMAGE_TAG (backend-v1.1 à l'étape 0)}
+    container_name: amame-backend
+    # Pas de port publié : le backend n'est joint que par le frontend, sur common_net.
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # ── Base de données (backend-v1.2 et suivants) ──────────────────────────
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://database:5432/amame_db}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
+      - DATABASE_MIGRATION_USERNAME=${DATABASE_MIGRATION_USERNAME:-postgres}
+      - DATABASE_MIGRATION_PASSWORD=${DATABASE_MIGRATION_PASSWORD:-${POSTGRES_PASSWORD}}
+      # Seul nom que lit backend-v1.1 (étape 0). Toujours égal à DATABASE_PASSWORD :
+      # sans effet sur les versions suivantes. À retirer quand le retour à v1.1 n'aura plus lieu d'être.
+      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
+      - DB_POOL_MAX_SIZE=${DB_POOL_MAX_SIZE:-10}
+      - DB_POOL_MIN_IDLE=${DB_POOL_MIN_IDLE:-0}
+      - DB_POOL_IDLE_TIMEOUT=${DB_POOL_IDLE_TIMEOUT:-60000}
+      - DB_POOL_KEEPALIVE_TIME=${DB_POOL_KEEPALIVE_TIME:-0}
+      # ── Fichiers ────────────────────────────────────────────────────────────
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
+      - STORAGE_PURGE_ENABLED=${STORAGE_PURGE_ENABLED:-false}
+      - STORAGE_PURGE_RETENTION=${STORAGE_PURGE_RETENTION:-10d}
+      - STORAGE_PURGE_SCHEDULE=${STORAGE_PURGE_SCHEDULE:-0 30 2 * * *}
+      # ── Réveils de la base ──────────────────────────────────────────────────
+      - PUBLIC_LISTS_CACHE_TTL=${PUBLIC_LISTS_CACHE_TTL:-0}
+      - AUTH_TOKEN_CLEANUP_SCHEDULE=${AUTH_TOKEN_CLEANUP_SCHEDULE:-0 30 2 * * *}
+      # ── JWT et cookies : valeurs de production par défaut ───────────────────
+      - JWT_SECRET=${JWT_SECRET:?Définir JWT_SECRET (openssl rand -base64 32)}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-900000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+      - FRONTEND=${FRONTEND:-https://amame.ml}
+      # Vide : cookies sans domaine, posés pour amame.ml seul et jamais envoyés à un sous-domaine
+      # (le CDN des médias à l'étape 3). Valeur de la production depuis le 15 novembre (E50).
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - COOKIE_SECURE=${COOKIE_SECURE:-true}
+      # Premier administrateur : seulement sur une table des utilisateurs vide. À laisser vides.
+      - BOOTSTRAP_ADMIN_EMAIL=${BOOTSTRAP_ADMIN_EMAIL:-}
+      - BOOTSTRAP_ADMIN_PASSWORD=${BOOTSTRAP_ADMIN_PASSWORD:-}
+      # ── Email SMTP ──────────────────────────────────────────────────────────
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME:?Définir MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:?Définir MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM:?Définir MAIL_FROM}
+      - MAIL_DEBUG=${MAIL_DEBUG:-false}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    deploy:
+      resources:
+        limits:
+          # 512M est la limite visée pour backend-v1.2 et suivants (396 Mio sous charge en local).
+          # En production, backend-v1.1.1 occupe 528 Mio : 768M (BACKEND_MEMORY_LIMIT) reste en
+          # place au premier déploiement de v1.2, puis 512M après une semaine de relevés (écart E48).
+          memory: ${BACKEND_MEMORY_LIMIT:-512M}
+    networks:
+      - common_net   # joint par le frontend ; joint la base
+      - sortie       # joint Gmail (SMTP) : common_net ne sort pas vers Internet
+    # common_net est partagé avec un autre projet : pour ce conteneur, « database » ne désigne
+    # que la base d'AMAME, même si un service du même nom apparaît un jour sur ce réseau.
+    # (Lien Docker : alias local au conteneur, résolu avant les noms du réseau.)
+    links:
+      - database
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      # Chemin ABSOLU des uploads sur l'hôte : le même dans les deux services, et le même
+      # que UPLOADS_HOST_PATH de la stack amame-ops. Un chemin faux ne provoque aucune
+      # erreur (Docker crée un dossier vide) : vérifier qu'une image existante s'affiche.
+      - ${UPLOADS_HOST_PATH:?Définir UPLOADS_HOST_PATH}:/app/uploads
+    restart: unless-stopped
+
+  frontend:
+    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:?Définir FRONTEND_IMAGE_TAG (frontend-v1.1 à l'étape 0)}
+    container_name: amame-frontend
+    # Aucun port publié : Nginx Proxy Manager (sur common_net) joint « amame-frontend:80 ».
+    networks:
+      - common_net
+    # INDISPENSABLE : le Nginx du frontend envoie l'API à « backend:8080 », et sur common_net
+    # ce nom désigne AUSSI le backend d'un autre projet (sahel_academy_backend, relevé le
+    # 14 novembre 2026). Sans ce lien, une partie des appels, cookies compris, partirait chez
+    # lui (essai local : 8 appels sur 20). Le lien rend « backend » local à ce conteneur et ne
+    # désignant que le backend d'AMAME.
+    links:
+      - backend
+    depends_on:
+      - backend
+    volumes:
+      - ${UPLOADS_HOST_PATH:?Définir UPLOADS_HOST_PATH}:/app/uploads
+    environment:
+      # Lues au démarrage du conteneur (frontend-v1.2 et suivants) ; ignorées par frontend-v1.1.
+      - MEDIA_BASE_URL=${MEDIA_BASE_URL:-}
+      - MEDIA_OPTIMIZER_ENABLED=${MEDIA_OPTIMIZER_ENABLED:-false}
+    restart: unless-stopped
+
+  # Le scraper a quitté cette stack : il est dans la stack amame-ops (deploy/portainer/amame-ops.yml).
+
+networks:
+  common_net:
+    external: true
+    name: common_net
+  # Réseau ordinaire propre à la stack (« amamestack_sortie »), créé par Portainer : seul le
+  # backend y est branché, pour sortir vers Internet. Un réseau interne ne fournit pas de
+  # passerelle : la route par défaut du backend passe par celui-ci. Même parade que amame-ops.
+  sortie: {}
+
+volumes:
+  database_data:

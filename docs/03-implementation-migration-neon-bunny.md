@@ -15,7 +15,7 @@
 
 > **À lire en premier à chaque nouvelle session.** Cette section dit où en est la migration, ce qui reste à faire et ce qui a été décidé en cours de route. Le reste du rapport (§1 à §13) est la référence de conception : il ne change que si une décision change.
 
-**Dernière mise à jour : 8 novembre 2026.**
+**Dernière mise à jour : 17 novembre 2026.**
 
 ### Comment reprendre le travail
 
@@ -37,9 +37,9 @@
 
 | Étape | Contenu | Code (dépôt) | Production | Critères de sortie |
 | --- | --- | --- | --- | --- |
-| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`) depuis le 8 novembre, **pas encore poussé** | ⬜ rien n'est déployé | 0 / 8 |
-| **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`) depuis le 8 novembre, **pas encore poussé** | ⬜ rien n'est déployé | 0 / 7 |
-| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) le 8 novembre, **pas encore poussé** ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable | ⬜ | 0 / 6 |
+| **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`), poussé sur GitHub le 8 novembre | 🟡 images publiées le 13 novembre ; stack `amame-ops` en service depuis le 14 novembre (sauvegarde et test de restauration réussis) ; application mise à jour le 15 novembre (`v1.1`), secrets changés, e-mails envoyés, limite de débit active et propre à chaque visiteur, accès aux données d'autrui refusé par le serveur, images de l'accueil à 0,16 Mo (16 novembre) ; correctif `v1.1.1` déployé et vérifié le 16 novembre (E44 corrigé) ; reste la sécurisation de Portainer (E43) ; à éclaircir : la session administrateur qui semble expirer au bout de 15 minutes | 7 / 8 |
+| **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`), poussé sur GitHub le 8 novembre ; images `v1.2` construites le 16 novembre avec le correctif E44 (E45), V1 corrigée et migration `V1_1` (E47), passage `v1.1.1` → `v1.2` essayé en local sur une base à la structure de la production (47 vérifications) ; commitées sur la branche locale `deploiement/v1.2` (`3baba45`) et **publiées le 16 novembre** ; `main` porte les mêmes corrections, non commitées | 🟡 **`v1.2` déployé le 16 novembre à 20:05 UTC** : baseline, migration 1.1 appliquée, validation du schéma sans erreur. Une première tentative, à 17:25, avait échoué sur deux variables vides de la stack (E49) : retour à `v1.1.1`, base inchangée, variables corrigées. L'équipe n'a pas fait les autres vérifications. Reste la mémoire (J.4) avant de passer à 512M (E48). Cookies sans domaine (E50) | 1 / 7 |
+| **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13 dans `main`, non commités, 90 tests ; image `backend-v1.3` construite, non publiée ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) | ⬜ en attente de la publication de l'image | 0 / 6 |
 | **3** | Bascule du stockage vers Bunny | ⬜ | ⬜ | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
@@ -47,7 +47,7 @@
 
 ### Étape 0 — détail
 
-Code figé dans la branche locale `sauvegarde/etape-0` (commit `b14e7dd`). Rien n'est déployé : tout ce qui suit attend les actions manuelles A à F.
+Code dans le commit `b14e7dd` de `main`. Rien n'est déployé : tout ce qui suit attend les actions manuelles A à F. La stack à coller dans Portainer est [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml), écrite le 9 novembre pour le serveur réel (écart E39) : le compose du commit `b14e7dd` ne s'y applique pas tel quel (E38).
 
 | # | Action (§5, étape 0) | Dépôt | Ce qui a été livré | Reste à faire en production |
 | --- | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ Code figé dans la branche locale `sauvegarde/etape-0` (commit `b14e7dd`). Rien 
 | 0.2 | Secrets | 🟡 | `backend/.env`, `frontend/.env` et `backend/uploads/` retirés de l'index Git (39 fichiers) ; plus aucun mot de passe ni secret par défaut dans le compose, les `application-*.properties` et les 3 scrapers ; [.env.example](../.env.example) complet | changer le mot de passe d'application Gmail, `JWT_SECRET` et le mot de passe de la base ; saisir les variables de stack |
 | 0.3 | Compte administrateur | 🟡 | [UserDataInitializer.java](../backend/src/main/java/com/example/siteamame/datainitializer/UserDataInitializer.java) : plus d'identifiants dans le code, création seulement si `BOOTSTRAP_ADMIN_EMAIL` et `BOOTSTRAP_ADMIN_PASSWORD` sont fournis | vérifier que le mot de passe de l'administrateur par défaut a été changé |
 | 0.4 | Fichiers privés | 🟡 | Nginx : 404 sur `/uploads/utilisateur/` **et** `/amame-uploads/utilisateur/` ; Spring Security : `denyAll` ; endpoint authentifié `/api/user/files/{id}` ; 6 écrans du frontend basculés sur `imageUrl` et `cvUrl`. **Deux failles d'accès corrigées au passage** (écarts E10 et E11) | déployer, constater les 404, **auditer les comptes à privilèges** |
-| 0.5 | Sauvegarde couplée | 🟡 | image d'exploitation [ops/backup/](../ops/backup/) : `backup.sh`, `restore-test.sh`, `restore-db.sh`, `restore-files.sh`, planificateur | créer la zone `amame-backups` ; première sauvegarde ; test de restauration |
+| 0.5 | Sauvegarde couplée | 🟡 | image d'exploitation [ops/backup/](../ops/backup/) : `backup.sh`, `restore-test.sh`, `restore-db.sh`, `restore-files.sh`, planificateur | ~~créer la zone de sauvegarde~~ (fait le 13 novembre : `amamestoragezone`, E40) ; première sauvegarde ; test de restauration |
 | 0.6 | Durcissement | 🟡 | `restart` sur la base ; pgAdmin, Grafana et Prometheus sur `127.0.0.1` ; port 8080 non publié ; mémoire JVM mesurée et bornée sous la limite du conteneur ; limitation de débit de l'inscription sur la vraie IP | vérifier que la limite s'applique bien par visiteur |
 | 0.7 | Images statiques | 🟡 | 34 images converties en 70 fichiers WebP (2,9 Mo au lieu de 67 Mo) ; 128 fichiers jamais référencés et `favicon.svg` supprimés ; `public/` passe de 92 Mo à 6,4 Mo ; composant [StaticImage.tsx](../frontend/src/components/StaticImage.tsx) (`srcset`, dimensions, chargement différé) ; logo de 9 Ko au lieu de 292 Ko | mesurer le poids réel de l'accueil |
 
@@ -92,11 +92,16 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 
 **Côté équipe**, dans cet ordre :
 
-1. **Tout de suite** : ne lancer aucun `git pull` sur le serveur avant d'avoir mis les fichiers à l'abri (action A.1). Le commit qui retire `backend/uploads/` du suivi est déjà sur GitHub.
-2. Régulariser Git (action A.2) : **fait en local le 8 novembre**, `main` porte les commits des étapes 0, 1 et 2. Reste le `git push`, **seulement après avoir vérifié** que Portainer ne met pas la stack à jour automatiquement depuis GitHub (voir A.2).
+1. Action A.1 : la production ne se déploie pas par `git pull` (fait relevé le 8 novembre). La précaution ne vaut donc que pour un éventuel clone du dépôt sur le serveur et pour le poste de chaque développeur : le commit qui retire `backend/uploads/` du suivi est sur GitHub.
+2. ~~Régulariser Git (action A.2)~~ : **fait le 8 novembre**, `main` porte les étapes 0, 1 et 2, poussé sur GitHub.
 3. ~~Lancer la suite de tests complète avant de déployer `backend-v1.3`~~ : **fait le 8 novembre 2026** en local, 70 tests, aucun échec. À relancer seulement si le code change d'ici le déploiement.
-4. Dérouler les actions manuelles de l'étape 0 (A à F), puis celles de l'étape 1 (G à J), puis celles de l'étape 2 (K à N).
-5. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
+4. **Avant toute mise à jour de la stack** (écarts E38 et E39). Fait le 9 novembre : sauvegarde manuelle de la base ; relevé du nom de la stack, du réseau, du chemin des uploads et du volume de la base ; fichiers de stack de production écrits. **Reste à faire** :
+   - conserver hors du dépôt une copie **complète** du contenu actuel de la stack `amamestack` : c'est le retour arrière. Contenu transmis le 14 novembre, sans ses secrets ; l'équipe garde la version complète ;
+   - ~~relever la cible de Nginx Proxy Manager~~ : **fait le 14 novembre**, `amame-frontend:80`, *Custom locations* vide ;
+   - ~~relever les autres conteneurs de `common_net`~~ : **fait le 14 novembre**, dont `sahel_academy_backend` et `sahel_academy_web`, d'un autre projet. `backend` désigne deux conteneurs : corrigé par des liens Docker (E42) ;
+   - ~~`common_net` interne ? le backend résout-il `smtp.gmail.com` ?~~ : **fait le 14 novembre**, interne, et le backend ne sort pas. `amamestack.yml` a reçu un réseau `sortie` (E41). Le port 587 sort bien vers Gmail (essai depuis `amame-ops-backup`).
+5. Dérouler les actions manuelles de l'étape 0 (B à F, dans l'ordre de E), puis celles de l'étape 1 (G à J), puis celles de l'étape 2 (K à N).
+6. Noter ce qui a été constaté en production : faits relevés, critères remplis avec leur date.
 
 **Côté implémentation, à la prochaine session** :
 
@@ -109,7 +114,7 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 
 À faire par l'équipe, **dans cet ordre**. Rien de ce qui suit n'a été fait : l'implémentation s'est arrêtée au dépôt local. Les actions A à F concernent l'étape 0, les actions G à J l'étape 1, les actions K à N l'étape 2.
 
-**Deux façons de déployer.** Le plan demande de déployer l'étape 0, de constater ses 8 critères, puis de déployer l'étape 1 : un incident n'a alors qu'une cause possible. Déployer les deux ensemble reste possible (actions A à C et E.1, puis directement G à J avec les images `v1.2`), mais les critères des deux étapes se vérifient alors en même temps. Le choix se consigne dans les faits relevés.
+**Deux façons de déployer.** Le plan demande de déployer l'étape 0, de constater ses 8 critères, puis de déployer l'étape 1 : un incident n'a alors qu'une cause possible. Déployer les deux ensemble reste possible (actions A à C et E.1, puis directement G à J avec les images `v1.2`), mais les critères des deux étapes se vérifient alors en même temps. **Choix du 9 novembre : l'étape 0 seule d'abord**, obligatoire depuis que la production réelle est connue (E38, point 4).
 
 #### A. Avant tout déploiement
 
@@ -142,7 +147,7 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
 
    Les deux branches de sauvegarde peuvent ensuite être supprimées (`git branch -d sauvegarde/etape-0 sauvegarde/etape-1`).
 
-   **État au 8 novembre 2026 : fait en local, sauf le `git push`.** `main` pointe sur `7466a23` (étape 2), dont les parents sont `5c62c07` (étape 1), `b14e7dd` (étape 0) et `f5252df` ; `origin/main` est toujours sur `f5252df`. Le commit de l'étape 2 contient 56 fichiers (les 54 de l'étape 2 et les 2 de C8) ; aucun `.env` ni fichier de `backend/uploads/`. Le suivi a été mis à jour dans un second commit. **Avant le `git push`**, vérifier que la stack `amame` de Portainer n'est pas déployée depuis GitHub avec mise à jour automatique (fait « Le serveur ou Portainer récupèrent-ils le dépôt par `git pull` ? ») : sinon le push déclencherait une mise à jour de la stack avec le compose de l'étape 2, alors que ni les images `v1.3` ni les variables de l'étape 0 ne sont en place. Garder les branches de sauvegarde jusqu'au push.
+   **Fait le 8 novembre 2026, push compris.** `main` pointe sur `7466a23` (étape 2), dont les parents sont `5c62c07` (étape 1), `b14e7dd` (étape 0) et `f5252df` ; le tout est poussé sur GitHub (`origin/main` = `ba50a0a`, commit de suivi) et les deux branches de sauvegarde sont supprimées. Le commit de l'étape 2 contient 56 fichiers (les 54 de l'étape 2 et les 2 de C8) ; aucun `.env` ni fichier de `backend/uploads/`. Le suivi a été mis à jour dans un second commit. Le push n'a été fait qu'après confirmation par l'équipe que la production se met à jour par les images Docker Hub, et non depuis Git : il ne pouvait pas déclencher de mise à jour de la stack.
 3. **Relever les faits** du tableau « Faits relevés en production », en particulier le chemin réel des uploads.
 
 #### B. Sécurité, sans attendre le déploiement
@@ -160,43 +165,107 @@ Code écrit le 7 novembre 2026, **avant** que les étapes 0 et 1 soient déploy�
    - mot de passe d'application Gmail : le révoquer, en créer un nouveau ;
    - `JWT_SECRET` : `openssl rand -base64 32`. Les utilisateurs connectés devront peut-être se reconnecter ;
    - mot de passe de la base, **dans cet ordre** : `ALTER USER postgres PASSWORD '…'` dans le conteneur de la base, puis la même valeur dans `POSTGRES_PASSWORD`, puis mise à jour de la stack. Une variable différente du mot de passe réel empêche le backend de démarrer ;
-   - Grafana : sans objet dès que la supervision est retirée (action I.4). D'ici là, changer le mot de passe du compte `admin` dans l'interface : la variable ne s'applique qu'à un volume neuf.
+   - Grafana : sans objet, la supervision n'a jamais été déployée en production (E38).
+   - Ces changements se font au moment de la mise à jour de la stack, dans l'ordre de l'action E (points 6 à 10).
 
 #### C. Bunny
 
-1. Créer la zone de stockage `amame-backups` : Standard, Francfort, sans réplication, sans Pull Zone. Détail dans [ops/README.md](../ops/README.md).
+1. Créer la zone de stockage `amame-backups` : Standard, Francfort, sans réplication, sans Pull Zone. Détail dans [ops/README.md](../ops/README.md). **Fait le 13 novembre** : zone **`amamestoragezone`**, Francfort (déclaré par l'équipe ; écart E40). Elle sert aux sauvegardes et à rien d'autre : `BUNNY_BACKUP_ZONE=amamestoragezone`. Son mot de passe (*Access Key*) va dans `BUNNY_BACKUP_ZONE_KEY` de `amame-ops`, et nulle part ailleurs. Si son point d'accès (*Storage Zone Region Endpoint*) n'est pas `storage.bunnycdn.com` (Francfort), saisir aussi `BUNNY_STORAGE_ENDPOINT=https://<point d'accès>`.
 
 #### D. Images Docker
 
-1. Créer un `.env` local à partir de [.env.example](../.env.example), puis construire et publier :
+**Fait le 13 novembre 2026** (journal du jour) : les quatre images sont construites, contrôlées et publiées ; chacune porte son commit dans l'étiquette `org.opencontainers.image.revision`.
 
-   ```bash
-   docker compose build backend frontend && docker compose push backend frontend
-   docker compose -f ops/docker-compose.yml --env-file .env build
-   docker compose -f ops/docker-compose.yml --env-file .env push
-   ```
+| Image | Commit | Empreinte publiée |
+| --- | --- | --- |
+| `backend-v1.1` | `b14e7dd` | `sha256:dcf48c471be9765391b278d573cacee2ddabc18bc2943a78625b81f3d9fe2a2c` |
+| `frontend-v1.1` | `b14e7dd` | `sha256:751da1afdf53f2930e5c5431f2e37eb547195cb83ea906dac52e0ae8fdd26f86` |
+| `ops-v1.1` | `ba50a0a` | `sha256:c58ce8866553fd445181a6235a2d2f3240f7e999a874b8b7b826f8dcc9f84a2a` |
+| `scraper-v1.1` | `ba50a0a` | `sha256:a909c6944a4f690add6682f07dff7361ad5186c8c2a59b048e1467d3e0a71349` |
+| `backend-v1.1.1` | `b548a4a` (correctif E44, branche `correctif/v1.1.1`) | `sha256:6ac5dd132c7c681326008c878b4d81bf35d152965dde3298298eba58cf47c38a` |
+| `frontend-v1.1.1` | `b548a4a` (correctif E44, branche `correctif/v1.1.1`) | `sha256:995c61c2391e438a3527459270041becca199a7c906f09ce8b6568d384605fa5` |
+| `backend-v1.2` | `3baba45` (étape 1 + E44 + E47, branche locale `deploiement/v1.2`) | `sha256:9addf348903e848d204bd29bfdf963bcfe6f78e3e4dd73320bc80cad0cf30dd1` |
+| `frontend-v1.2` | `3baba45` (étape 1 + E44, branche locale `deploiement/v1.2`) | `sha256:de99015c5ae88ee35bc6f9cc0de3b7ed5e0a57112f99486648537167ef7dd7da` |
 
-   Tags produits : `backend-v1.1`, `frontend-v1.1`, `ops-v1.0`, `scraper-v1.1`.
+Les deux images `v1.1.1` ont été publiées le 16 novembre 2026 (journal du jour). Elles remplacent `backend-v1.1` et `frontend-v1.1` dans la stack `amamestack`. Les images `ops-v1.1` et `scraper-v1.1` ne changent pas.
 
-   Les images `backend-v1.1` et `frontend-v1.1` se construisent **depuis le commit de l'étape 0**, et non depuis `main` une fois l'étape 1 commitée : ses tags par défaut sont `v1.2`. Le plus simple est un second dossier de travail :
+Les deux images `v1.2` ont été publiées le même jour, après l'essai n° 2 et avec l'autorisation de l'équipe. Elles sont construites depuis la branche locale `deploiement/v1.2` : `5c62c07`, puis `0d39229` (correctif E44 repris de `b548a4a`), puis `3baba45` (V1 corrigée, `V1_1`, écart E47). Leurs couches sont identiques, une à une, à celles des images essayées : seule l'étiquette de révision change. La branche n'est pas poussée sur GitHub.
+
+Pour reconstruire un jour ces images, la marche à suivre reste celle-ci.
+
+1. Sur le poste de développement : Docker Desktop démarré, `docker login` avec le compte `yayacode224`. Les commandes `docker build` ci-dessous n'ont besoin d'aucun `.env` (les commandes `docker compose build` exigeraient une valeur pour chaque variable obligatoire). Le serveur est en `linux/amd64`, comme le poste.
+
+   Les images `backend-v1.1` et `frontend-v1.1` se construisent **depuis le commit de l'étape 0**, et non depuis `main`, par un second dossier de travail. Il ne contient que les fichiers suivis par Git : aucun `.env` local ne peut entrer dans l'image. Depuis la racine du dépôt :
 
    ```bash
    git worktree add ../amame-etape-0 b14e7dd
-   cp .env ../amame-etape-0/.env && cd ../amame-etape-0
-   docker compose build backend frontend && docker compose push backend frontend
+   docker build -t yayacode224/amame:backend-v1.1  ../amame-etape-0/backend
+   docker build -t yayacode224/amame:frontend-v1.1 ../amame-etape-0/frontend
+   docker build -t yayacode224/amame:ops-v1.1 --build-arg PG_MAJOR=15 ops/backup
+   docker build -t yayacode224/amame:scraper-v1.1 scraper
    ```
 
-   Les images `ops-v1.0` et `scraper-v1.1` sont les mêmes pour les deux étapes.
+   `ops-v1.1` (depuis `main`) remplace `ops-v1.0` dès l'étape 0 : mêmes scripts de sauvegarde, plus les outils de l'étape 2, qui vérifient la présence des migrations avant d'agir (action L).
+2. Publier les quatre images, une fois toutes construites :
+
+   ```bash
+   docker push yayacode224/amame:backend-v1.1
+   docker push yayacode224/amame:frontend-v1.1
+   docker push yayacode224/amame:ops-v1.1
+   docker push yayacode224/amame:scraper-v1.1
+   ```
+
+   Le dépôt Docker Hub est public : les images ne contiennent aucun secret (le backend ne copie que `pom.xml` et `src`, le frontend vient du dossier de travail propre, les deux `.dockerignore` excluent `.env` depuis le 9 novembre).
+3. Supprimer le second dossier de travail : `git worktree remove ../amame-etape-0`.
 
 #### E. Portainer
 
-1. **Sécuriser Portainer** : interface non exposée publiquement (tunnel SSH ou VPN), mot de passe fort, version à jour (§3.1).
-2. **Stack `amame`** : ajouter les variables `POSTGRES_PASSWORD`, `JWT_SECRET`, `PGADMIN_PASSWORD`, `GRAFANA_ADMIN_PASSWORD`, `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE`, les `MAIL_*`, et les deux tags d'image. Mettre la stack à jour. Si l'étape 0 est déployée seule, le compose à utiliser est celui de son commit (`git show b14e7dd:docker-compose.yml`) : il déclare encore la supervision, et `GRAFANA_ADMIN_PASSWORD` n'est à saisir que dans ce cas. La supervision disparaît avec le compose de l'étape 1 (écart E14).
-3. **Supprimer l'ancien conteneur `amame-scraper`**, devenu orphelin : la stack `amame-ops` crée un conteneur du même nom.
-4. **Stack `amame-ops`** : la créer avec les variables décrites dans [ops/README.md](../ops/README.md), puis lancer `backup.sh` et `restore-test.sh` depuis la console du conteneur `amame-ops-backup`.
-5. **Conserver `BACKUP_PASSPHRASE` hors du serveur.** Sans elle, aucune sauvegarde n'est lisible.
+Ordre revu le 9 novembre pour le serveur réel (E39) : les uploads n'ont pas pu être copiés à la main faute d'accès SSH, la première sauvegarde de `amame-ops` doit donc réussir **avant** toute mise à jour de l'application.
+
+1. **Sécuriser Portainer** : interface non exposée publiquement (tunnel SSH ou VPN), mot de passe fort, version à jour (§3.1). Même chose pour l'administration de Nginx Proxy Manager (port `81`, publique en HTTP le 9 novembre).
+2. **Supprimer l'ancien conteneur `amame-scraper`** (Containers → `amame-scraper` → Remove). Il est arrêté et ne sert pas au site ; la stack `amame-ops` crée un conteneur du même nom et échouerait sinon. **Fait le 13 novembre.**
+3. **Créer la stack `amame-ops`** en collant [deploy/portainer/amame-ops.yml](../deploy/portainer/amame-ops.yml), avec les variables de [ops/README.md](../ops/README.md). Valeurs propres au serveur : `UPLOADS_HOST_PATH=/data/compose/64/backend/uploads` ; `BUNNY_BACKUP_ZONE=amamestoragezone` (E40) ; `AMAME_NETWORK` inutile (`common_net` par défaut) ; base désignée par `amame-database`, avec le mot de passe **actuel** de la base. Puis, dans la console du conteneur `amame-ops-backup` : `backup.sh`, puis `restore-test.sh`, qui doit se terminer par `test de restauration RÉUSSI`. **Ne pas continuer sans ce résultat.** Stack créée le 13 novembre : le planificateur a démarré à 14:52 UTC (sauvegardes à 02:30 et 14:30 UTC). Le premier `backup.sh` a échoué : `Could not resolve host: storage.bunnycdn.com`, car le DNS par défaut des conteneurs ne fonctionne pas sur ce serveur (faits relevés, ligne « DNS des conteneurs »). Le fichier de stack a été corrigé le jour même : serveurs DNS explicites, comme le backend. Le 14 novembre, après la mise à jour de la stack (conteneur recréé), même échec. Le diagnostic a montré que la cause n'est pas le DNS : `common_net` ne sort pas vers Internet (faits relevés, ligne « Sortie vers Internet depuis `common_net` »). Le fichier de stack ajoute donc un second réseau, propre à `amame-ops`. Stack mise à jour le 14 novembre : `curl https://storage.bunnycdn.com/` répond `200` depuis `amame-ops-backup`, la sortie vers Internet fonctionne. **Première sauvegarde réussie le 14 novembre à 11:42 UTC** : 29 fichiers copiés, dump `db/amame-20261114T114150Z.dump.gpg` (224 427 octets avant chiffrement). **Test de restauration réussi le 14 novembre à 11:47 UTC** : 25 tables ; 31 lignes `file_entity`, dont 26 référencées, toutes retrouvées, sans écart de taille ; 3 fichiers de la sauvegarde sans ligne référencée (information, à revoir avec l'inventaire de l'étape 2). Action E.3 faite.
+4. **Conserver `BACKUP_PASSPHRASE` hors du serveur.** Sans elle, aucune sauvegarde n'est lisible. **Fait** (déclaré par l'équipe le 14 novembre).
+5. **Vérifier la cible de Nginx Proxy Manager** (Prochaine action, point 4) : aucune cible sur le port `8080`. **Fait le 14 novembre** : `amame-frontend:80` (faits relevés, « Proxy frontal ») ; *Custom locations* à confirmer vide.
+6. **Préparer les nouveaux secrets**, sans rien changer encore : un mot de passe d'application Gmail neuf (l'ancien reste valide jusqu'au point 10), un `JWT_SECRET` neuf, un mot de passe de base neuf.
+7. **Changer le mot de passe de la base**, juste avant le point 8 :
+   - générer le nouveau mot de passe en lettres et chiffres seulement, par exemple `openssl rand -hex 24`. Il entre tel quel dans les URL de `amame-ops` (point 9), où `/`, `@`, `:`, `?`, `#` et `%` casseraient l'adresse ;
+   - recharger la page de Portainer avant de commencer : le 15 novembre, une page restée ouverte longtemps a fait échouer la mise à jour (`Network Error`) ;
+   - dans la console du conteneur `amame-database` : `psql -U postgres -d amame_db`, puis `\password postgres` (saisie masquée, absente de l'historique), puis `\q`.
+
+   À partir de là, le backend en place ne peut plus ouvrir de nouvelle connexion : enchaîner sans attendre. En cas d'échec de la suite, remettre l'ancien mot de passe de la même façon.
+
+   **Fait le 15 novembre, après le point 8** : la stack avait d'abord été mise à jour avec l'ancien mot de passe de la base, qui avait circulé en clair dans l'ancienne stack. Ensuite, à la suite : ce point 7 ; `POSTGRES_PASSWORD` dans la stack `amamestack`, puis *Update the stack* sans *Re-pull image* ; le point 9. Pour un prochain changement, même ordre.
+8. **Mettre à jour la stack `amamestack`** (Stacks → `amamestack` → Editor) :
+   - remplacer tout le contenu par [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) ;
+   - supprimer les anciennes variables éventuelles, puis saisir : `BACKEND_IMAGE_TAG=backend-v1.1`, `FRONTEND_IMAGE_TAG=frontend-v1.1`, `POSTGRES_PASSWORD` (le nouveau), `JWT_SECRET`, `MAIL_USERNAME`, `MAIL_PASSWORD` (le nouveau), `MAIL_FROM`, `UPLOADS_HOST_PATH=/data/compose/64/backend/uploads`, `BACKEND_MEMORY_LIMIT=768M`. `FRONTEND`, `COOKIE_DOMAIN` et `COOKIE_SECURE` ont leur valeur de production par défaut dans ce fichier. Liste prête à remplir : [deploy/portainer/amamestack.env.example](../deploy/portainer/amamestack.env.example), à recopier **hors du dossier du projet** (ou dans le gestionnaire de mots de passe), compléter, puis coller dans la section *Environment variables*, **sous** l'éditeur, en *Advanced mode*. Jamais dans l'éditeur du fichier lui-même. **Jamais le `.env.example` de la racine** : il porte les tags de l'étape 2, les valeurs de développement des cookies et les clés de sauvegarde ;
+   - **Update the stack**, option *Re-pull image* activée.
+
+   **Fait le 15 novembre**, après deux refus de Portainer (journal du 15 novembre) : conteneurs recréés, site accessible, données présentes (constaté par l'équipe). Vérifications de l'action F en cours.
+
+   Si Portainer répond `YAMLSyntaxError: Document contains trailing content not separated by a ... or --- line` : le 15 novembre, la cause était, selon l'équipe, un doublon dans le fichier `.env` préparé pour les variables ; une fois le doublon retiré, Portainer a accepté le fichier. En local, le même message vient d'une ligne qui n'est pas du YAML **au-dessus** de `services:` : des lignes `NOM=valeur` collées dans l'éditeur du fichier au lieu de la section *Environment variables*, un reste de l'ancien contenu, ou un commentaire qui a perdu son `#`. L'ancienne stack n'avait aucune variable : ses secrets étaient écrits en clair dans le fichier. Remède : vider entièrement l'éditeur (Ctrl+A, Suppr), coller le fichier du dépôt **sans le modifier**, puis vérifier la première et la dernière ligne. **Ne pas retirer les valeurs par défaut `${VAR:-…}`** : une variable absente de Portainer arriverait vide au backend, au lieu de prendre sa valeur de production.
+
+   Si Portainer répond `Failure` — `Network Error` : le navigateur n'a pas reçu la réponse de Portainer. Ce message ne dit pas ce que le serveur a fait : rien, une partie, ou tout. Le 15 novembre, le message apparaissait aussitôt après le clic, sans rien changer sur le serveur : il a suffi de recharger la page de Portainer dans le navigateur. Si le message arrive après une longue attente, en revanche, **ne pas recliquer** sur *Update the stack* avant d'avoir relevé l'état : date de création et image des trois conteneurs, images `v1.1` présentes ou non, réseau `amamestack_sortie` présent ou non, fin du journal de `amame-backend`. Si rien n'a été appliqué, recommencer en deux temps pour raccourcir l'attente : télécharger d'abord les deux images (Images → *Pull image*), puis mettre à jour la stack **sans** *Re-pull image*. Les tags versionnés ne changent jamais, et Compose télécharge de lui-même une image absente.
+
+   Si Portainer refuse le fichier sur une erreur d'interpolation à propos de `${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}`, sa version de Compose est trop ancienne pour les valeurs par défaut imbriquées : ajouter les variables `DATABASE_PASSWORD` et `DATABASE_MIGRATION_PASSWORD` avec la valeur de `POSTGRES_PASSWORD`, puis recommencer. Un refus de Portainer ne change aucun conteneur.
+9. **Mettre la stack `amame-ops` à jour** avec le nouveau mot de passe dans `BACKUP_DATABASE_URL` et `SCRAPER_DATABASE_URL`, puis relancer `backup.sh` : c'est le premier point de restauration de l'étape 0. **Fait le 15 novembre** : `backup.sh` réussi avec le nouveau mot de passe (déclaré par l'équipe).
+10. **Révoquer l'ancien mot de passe d'application Gmail**, une fois l'envoi d'un e-mail constaté (inscription de test, ou mot de passe oublié). **Fait le 15 novembre** : e-mail « mot de passe oublié » reçu, réinitialisation réussie, ancien mot de passe d'application révoqué.
+
+Les utilisateurs connectés sont déconnectés une fois : le `JWT_SECRET` change, et la session passe de 30 jours d'un seul jeton à 15 minutes renouvelées pendant 7 jours.
 
 #### F. Critères de sortie
+
+Juste après la mise à jour, avant les critères :
+
+- les trois conteneurs `amame-database`, `amame-backend` et `amame-frontend` sont *running* ; le journal du backend se termine par `Started SiteAmameApplication` ;
+- console de `amame-frontend` : `nslookup backend` renvoie **une seule** adresse, celle d'`amame-backend` (onglet *Networks* du conteneur dans Portainer) (E42) ;
+- console de `amame-backend` : `getent hosts smtp.gmail.com` renvoie une adresse (E41) ;
+- conteneur `amame-backend` → *Volumes* : `/data/compose/64/backend/uploads` → `/app/uploads`. Une image d'article **déjà existante** s'affiche sur le site : un chemin faux donnerait un dossier vide, sans erreur ;
+- connexion, puis déconnexion, avec un compte existant (cookies `.amame.ml`, `Secure`).
+
+**Constaté le 15 novembre par l'équipe** : les cinq vérifications ci-dessus. `nslookup backend` depuis `amame-frontend` renvoie une seule adresse (`172.20.0.5`, celle du backend recréé ; `sahel_academy_backend` est en `172.20.0.4`). `getent hosts smtp.gmail.com` depuis `amame-backend` renvoie une adresse, `rc=0` (le 14 novembre : `rc=2`). L'envoi réel d'un e-mail reste à constater (action E.10).
+
+**Fichiers privés : tester avec un fichier qui existe.** Une URL inventée, comme `/uploads/utilisateur/test`, renvoie 404 même avec l'ancienne configuration : elle ne prouve rien. Dans la console d'`amame-frontend`, `find /app/uploads/utilisateur -type f | head -n 1` donne un fichier réel. Ce nom peut porter des données personnelles : ne pas le transmettre. Ouvrir ce chemin dans une fenêtre privée du navigateur, derrière `https://amame.ml/uploads/` puis derrière `https://amame.ml/amame-uploads/` : 404 attendu dans les deux cas. Si le fichier s'affiche, refaire l'essai 30 minutes plus tard : le cache de Nginx Proxy Manager (*Cache Assets*) a pu le garder.
 
 Constater les critères de sortie de l'étape 0 (§5), puis les cocher avec leur date. Deux vérifications demandent une manipulation :
 
@@ -205,9 +274,19 @@ Constater les critères de sortie de l'étape 0 (§5), puis les cocher avec leur
 
 #### Retour arrière de l'étape 0
 
-Remettre `BACKEND_IMAGE_TAG=backend-v1.0` et `FRONTEND_IMAGE_TAG=frontend-v1.0` dans la stack, les deux ensemble. Les images `v1.0` rouvrent l'accès public aux fichiers privés et la faille des rôles : à n'utiliser que le temps de corriger.
+Recoller dans Portainer le contenu de la stack d'avant la mise à jour (images `yaya236/amame-web-site:*-v7`), conservé hors du dépôt, et mettre la stack à jour. Les images `yayacode224/amame:*-v1.0` n'ont jamais tourné en production (écart E38) : ne pas s'en servir. L'ancienne stack rouvre l'accès public aux fichiers privés et la faille des rôles : à n'utiliser que le temps de corriger. Avant de la recoller :
+
+- si le mot de passe de la base a été changé, reporter le nouveau dans l'ancienne stack, aux trois endroits où l'ancien figure (base, backend, scraper) ;
+- retirer son service `scraper` : le nom `amame-scraper` appartient désormais à la stack `amame-ops`.
+
+Côté schéma, `ddl-auto=update` de l'étape 0 n'ajoute que des tables et des colonnes, que l'ancien backend ignore. Ce n'est pas vérifié pour une colonne obligatoire que l'ancien code ne remplirait pas : le code de `v7` n'est pas dans le dépôt. Après un retour arrière, essayer une écriture (créer puis supprimer un article de test) ; en cas d'échec, restaurer le dump `amame-avant-etape0.dump` (faits relevés).
 
 #### G. Avant de déployer l'étape 1
+
+**Points 1 et 2 adaptés le 16 novembre 2026 (écart E46).** Sans SSH, le `pg_dump` et le `diff` décrits au point 1 ne peuvent pas se faire sur le serveur.
+
+- **Le schéma** : à la place, une requête collée dans la console d'`amame-database` donne une empreinte par table (colonnes, contraintes, index, noms). Elle est comparée à l'empreinte de V1 calculée en local. Les contraintes `CHECK` sont normalisées avant le calcul : PostgreSQL écrit différemment la même contrainte selon qu'elle a été créée par Hibernate ou par V1.
+- **La mémoire** (point 2) : elle se lit dans la console d'`amame-backend`, avec `cat /sys/fs/cgroup/memory.current`, sans `docker stats`.
 
 1. **Comparer le schéma de production à `V1__baseline.sql`.** Ce fichier a été produit à partir des entités, sur un PostgreSQL 15 neuf, et non à partir de la production, à laquelle l'implémentation n'a pas accès (écart E16). Sur le serveur :
 
@@ -231,32 +310,39 @@ Remettre `BACKEND_IMAGE_TAG=backend-v1.0` et `FRONTEND_IMAGE_TAG=frontend-v1.0` 
 
 #### H. Images de l'étape 1
 
-Les images `backend-v1.2` et `frontend-v1.2` se construisent **depuis le commit de l'étape 1** (`5c62c07`), et non depuis `main` une fois l'étape 2 commitée : ses tags par défaut sont `backend-v1.3`. Comme pour l'étape 0, par un second dossier de travail :
+**Changé le 16 novembre 2026 (écart E45)** : les images `v1.2` se construisent depuis `5c62c07` **plus le correctif E44** (`b548a4a`, appliqué sans conflit sauf `vite.config.ts`, résolu à l'identique de `main`). Sinon, elles réintroduiraient en production le problème du cache du navigateur, corrigé par `v1.1.1`. Les commandes ci-dessous restent valables, à partir de la branche qui porte ces deux commits.
+
+Les images `backend-v1.2` et `frontend-v1.2` se construisent **depuis le commit de l'étape 1** (`5c62c07`), et non depuis `main`. Comme pour l'étape 0 (action D), par un second dossier de travail :
 
 ```bash
 git worktree add ../amame-etape-1 5c62c07
-cp .env ../amame-etape-1/.env && cd ../amame-etape-1
-docker compose build backend frontend && docker compose push backend frontend
+docker build -t yayacode224/amame:backend-v1.2  ../amame-etape-1/backend
+docker build -t yayacode224/amame:frontend-v1.2 ../amame-etape-1/frontend
+docker push yayacode224/amame:backend-v1.2
+docker push yayacode224/amame:frontend-v1.2
+git worktree remove ../amame-etape-1
 ```
 
-Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scraper-v1.1` ne changent pas. L'image `ops-v1.1` de l'étape 2 peut les remplacer dès maintenant (action L).
+Les images `ops-v1.1` et `scraper-v1.1` de l'étape 0 ne changent pas.
 
 #### I. Stack `amame` dans Portainer
 
-1. **Compose.** Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par celui de l'étape 1 (`git show 5c62c07:docker-compose.yml`) : celui de `main` est déjà celui de l'étape 2, qui ne permet plus le retour arrière vers `backend-v1.1` (E24). Vérifier que `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` et `SPRING_JPA_HIBERNATE_DDL_AUTO` n'y figurent plus : `SPRING_JPA_HIBERNATE_DDL_AUTO=update` rendrait à Hibernate le droit de modifier le schéma.
-2. **Variables.** Retirer `GRAFANA_ADMIN_PASSWORD`. Passer `BACKEND_IMAGE_TAG=backend-v1.2` et `FRONTEND_IMAGE_TAG=frontend-v1.2`. Aucune variable nouvelle n'est obligatoire : tant que la base est sur le VPS, le backend se connecte avec `POSTGRES_PASSWORD`. Laisser `MEDIA_BASE_URL` vide et `STORAGE_PROVIDER` à `local`.
-3. **Mettre la stack à jour.** Si Portainer refuse le compose sur une erreur d'interpolation à propos de `${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}`, sa version de Compose est trop ancienne pour les valeurs par défaut imbriquées : mettre Portainer à jour, ou définir `DATABASE_PASSWORD` et `DATABASE_MIGRATION_PASSWORD` avec la valeur de `POSTGRES_PASSWORD`.
-4. **Supervision.** Supprimer les conteneurs `amame-prometheus`, `amame-grafana` et `amame-postgres-exporter` s'ils existent encore, puis les volumes `prometheus_data` et `grafana_data` de la stack. Ils ne contiennent aucune donnée métier.
+1. **Compose.** Rien à coller : [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) sert aussi aux étapes 1 et 2 (E39). **En production, c'est une version de l'équipe sans valeurs par défaut qui est en place (E49)** : toute variable lue par la nouvelle version doit y être définie et non vide. Il ne contient ni `SPRING_DATASOURCE_URL`, ni `SPRING_DATASOURCE_USERNAME`, ni `SPRING_JPA_HIBERNATE_DDL_AUTO` : `SPRING_JPA_HIBERNATE_DDL_AUTO=update` rendrait à Hibernate le droit de modifier le schéma. Seul `SPRING_DATASOURCE_PASSWORD` y reste, pour le retour arrière (E24).
+2. **Variables.** Passer `BACKEND_IMAGE_TAG=backend-v1.2` et `FRONTEND_IMAGE_TAG=frontend-v1.2`. **Garder `BACKEND_MEMORY_LIMIT=768M`** (écart E48, 16 novembre). Le passage à 512M est une mise à jour séparée, après la mesure du point J.4. Aucune variable nouvelle n'est obligatoire : tant que la base est sur le VPS, le backend se connecte avec `POSTGRES_PASSWORD`. Laisser `MEDIA_BASE_URL` vide et `STORAGE_PROVIDER` à `local`.
+3. **Mettre la stack à jour**, option *Re-pull image* activée.
+4. **Supervision.** Sans objet en production : elle n'y a jamais été déployée (E38).
 
 #### J. Vérifications après le déploiement de l'étape 1
 
-1. **Journal du backend**, au premier démarrage : `Successfully baselined schema with version: 1`, puis `Schema "public" is up to date`, puis `Started SiteAmameApplication`. Une erreur `Schema-validation` signale un écart entre la production et les entités : revenir en arrière (ci-dessous) et transmettre le message.
+1. **Journal du backend**, au premier démarrage : `Successfully baselined schema with version: 1`, puis `Migrating schema "public" to version "1.1 - enum check constraints"` et `Successfully applied 1 migration to schema "public", now at version v1.1` (écart E47), puis `Started SiteAmameApplication`. Une erreur `Schema-validation` signale un écart entre la production et les entités : revenir en arrière (ci-dessous) et transmettre le message. Une erreur sur la migration 1.1 est annulée par PostgreSQL (transaction) : même conduite.
+   Ensuite, dans la console d'`amame-database` : `SELECT version, type, success FROM flyway_schema_history ORDER BY installed_rank;` donne `1 | BASELINE | t`, puis `1.1 | SQL | t`. L'empreinte du schéma (E46), relancée, doit donner pour `users` et `user_permission` les valeurs de V1 corrigée + V1_1 (essai du 16 novembre), et rien d'autre ne doit changer.
+   **Défaut corrigé par V1_1** : connecté en SUPERADMIN, accorder `ADHESION_MANAGE` à un compte de test depuis l'administration, puis la retirer. Avant `v1.2`, la base refusait (erreur 500).
 2. **Journal du frontend** : `40-runtime-config.sh : mediaBaseUrl="", mediaOptimizerEnabled=false`.
 3. **Critères de sortie de l'étape 1** (§5), à cocher avec leur date :
 
    | Critère | Comment le constater |
    | --- | --- |
-   | Baseline Flyway, `validate` sans erreur | journal du backend, point 1 |
+   | ✅ Baseline Flyway, `validate` sans erreur — 16 novembre 2026 : baseline en 1, migration 1.1 appliquée, `EntityManagerFactory` initialisé sans erreur `Schema-validation` | journal du backend, point 1 |
    | Recette identique à avant | pages publiques, connexion et déconnexion, création puis suppression d'un article de test avec image, inscription d'un compte de test avec CV et photo |
    | 2 à 3 requêtes SQL par liste publique | mesuré en local : 1 à 3 (journal du 5 octobre). En production, la recette suffit |
    | Concours sans fichier visibles | créer un concours sans fichier depuis l'administration : il apparaît dans la liste publique et sa page s'ouvre |
@@ -264,15 +350,16 @@ Tags produits : `backend-v1.2` et `frontend-v1.2`. Les images `ops-v1.0` et `scr
    | Développement local sous Windows | constaté le 5 octobre sur un poste Windows : ce critère ne se vérifie pas en production |
    | URL des médias changée sans nouvelle image | mettre `MEDIA_BASE_URL=https://amame.ml` (valeur sans risque : les fichiers restent servis par le site), puis mettre la stack à jour. `https://amame.ml/config.js` affiche la valeur et les images des articles pointent vers `https://amame.ml/uploads/…`. Remettre la variable vide ensuite |
 4. **Mémoire** : `docker stats --no-stream amame-backend` après 24 heures, puis après une semaine. Valeur attendue : environ 400 Mio sur 512. Au-delà de 460 Mio, le signaler avant d'aller plus loin.
+   Sans accès à `docker stats` (E46) : dans la console d'`amame-backend`, `grep -E '^(anon|file) ' /sys/fs/cgroup/memory.stat`. `anon` est le chiffre à suivre. Avec la limite gardée à 768M (E48), le tas peut grandir jusqu'à 30 % de 768 Mio : si `anon` reste sous **420 Mio** après une semaine, `backend-v1.2` tiendra sous 512M, où son tas est plus petit. On supprime alors `BACKEND_MEMORY_LIMIT` (mise à jour séparée), puis on refait le relevé 24 heures plus tard.
 
 #### Retour arrière de l'étape 1
 
-Remettre `BACKEND_IMAGE_TAG=backend-v1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1` dans la stack, les deux ensemble, sans changer le compose : il transmet encore le nom de variable que lit `backend-v1.1`. La table `flyway_schema_history` reste en base, sans effet sur l'ancienne version. Rejoué en local le 5 octobre : l'ancien backend, lancé avec les variables du compose de l'étape 1 sur une base déjà passée par l'étape 1, démarre, répond, et ne touche pas au schéma. Le compose de l'étape 2 ne transmet plus `SPRING_DATASOURCE_PASSWORD` (E24) : ce retour arrière se fait avec le compose de l'étape 1 (`git show 5c62c07:docker-compose.yml`).
+Remettre `BACKEND_IMAGE_TAG=backend-v1.1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1.1` dans la stack, les deux ensemble (pas `v1.1`, qui a le défaut E44), avec `BACKEND_MEMORY_LIMIT=768M`, sans changer le compose : [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) transmet encore le nom de variable que lit `backend-v1.1` (`SPRING_DATASOURCE_PASSWORD`). La table `flyway_schema_history` reste en base, sans effet sur l'ancienne version. Rejoué en local le 5 octobre : l'ancien backend, lancé avec les variables du compose de l'étape 1 sur une base déjà passée par l'étape 1, démarre, répond, et ne touche pas au schéma. Le compose de développement de l'étape 2 ne transmet plus `SPRING_DATASOURCE_PASSWORD` (E24) ; le fichier de production le garde tant que ce retour arrière doit rester possible.
 
 #### K. Avant de déployer l'étape 2
 
 1. **L'étape 1 est en production et ses critères sont constatés** (§5.0). La suite de tests complète a été lancée une fois avec succès (`./mvnw test`) : fait le 8 novembre 2026, à refaire si le code a changé depuis.
-2. **Inventaire croisé.** Mettre la stack `amame-ops` à jour avec l'image `ops-v1.1` (action L), puis, dans la console du conteneur `amame-ops-backup` :
+2. **Inventaire croisé.** La stack `amame-ops` tourne en `ops-v1.1` depuis l'étape 0 (action D). Dans la console du conteneur `amame-ops-backup` :
 
    ```bash
    inventory.sh
@@ -280,28 +367,31 @@ Remettre `BACKEND_IMAGE_TAG=backend-v1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1` 
 
    Il doit se terminer par `inventaire conforme`. Sinon, **ne pas déployer** : une clé en double ferait échouer la migration V2 ; une référence cassée ou une ligne partagée est à traiter d'abord (tableau dans [ops/README.md](../ops/README.md)). Consigner les compteurs dans les faits relevés.
 3. **Point de restauration** : lancer `backup.sh` juste avant la mise à jour de la stack.
+4. ~~**Stack de production = fichier du dépôt** (écart E49)~~. **Abandonné le 17 novembre** : l'équipe garde sa version, sans valeurs par défaut. `backend-v1.3` traite une variable vide comme absente (E51), essayé avec cette version (journal du 17 novembre). Pour un retour arrière en `v1.2`, les variables que lit `v1.2` doivent rester définies dans Portainer : c'est le cas depuis le 16 novembre.
+5. ✅ **Tests qui demandent Docker**, avec le code du renouvellement de session : `AuthRefreshIntegrationTest`, `SiteAmameApplicationTests` et `FileLifecycleIntegrationTest`. Refait le 17 novembre après E51 et C13 : `./mvnw test`, 90 tests, 0 échec. `backend-v1.3` part de `main`, qui porte aussi les correctifs E44, E47, E50, E51 et C13. Si le backend change encore avant la construction, relancer `./mvnw test`.
+6. ✅ **Essai local du passage `v1.2` → `v1.3`, et du retour arrière**, avec la stack de production du 17 novembre : 74 vérifications, 0 échec (journal du 17 novembre).
+7. **Secrets dans un fichier `.env` chargé dans Portainer** (choix de l'équipe, 17 novembre) : un fichier par stack. `BACKUP_PASSPHRASE` et `BUNNY_BACKUP_ZONE_KEY` ne vont jamais dans celui d'`amamestack`. Le fichier reste hors du dépôt Git, et une copie est gardée hors du serveur.
 
 #### L. Images de l'étape 2
 
-Depuis `main`, une fois l'étape 2 commitée :
+Depuis `main` (commit `7466a23` ou un descendant qui ne touche pas au backend) :
 
 ```bash
-docker compose build backend && docker compose push backend
-docker compose -f ops/docker-compose.yml --env-file .env build backup
-docker compose -f ops/docker-compose.yml --env-file .env push backup
+docker build -t yayacode224/amame:backend-v1.3 backend
+docker push yayacode224/amame:backend-v1.3
 ```
 
-Tags produits : `backend-v1.3` et `ops-v1.1`. Le frontend ne change pas (`frontend-v1.2`). `ops-v1.1` contient les mêmes scripts de sauvegarde que `ops-v1.0`, plus les trois outils de l'étape 2 : il peut servir dès l'étape 0.
+Le frontend ne change pas (`frontend-v1.2`). `ops-v1.1`, publiée dès l'étape 0 (action D), contient déjà les trois outils de l'étape 2.
 
 #### M. Stack `amame` dans Portainer
 
-1. Passer `BACKEND_IMAGE_TAG=backend-v1.3`. Ne rien changer d'autre : `STORAGE_PURGE_ENABLED` reste absent ou à `false`. La purge ne s'active qu'à l'étape 3.6 ; d'ici là, la file se remplit sans que rien soit effacé.
-2. Si la stack n'est pas déployée depuis le dépôt Git, remplacer son contenu par [docker-compose.yml](../docker-compose.yml).
-3. Mettre la stack à jour.
+1. Passer `BACKEND_IMAGE_TAG=backend-v1.3`. Ne rien changer d'autre : `STORAGE_PURGE_ENABLED` reste absent, vide ou à `false`. La purge ne s'active qu'à l'étape 3.6 ; d'ici là, la file se remplit sans que rien soit effacé. `FRONTEND_IMAGE_TAG` reste `frontend-v1.2` et `BACKEND_MEMORY_LIMIT` reste `768M` (E48).
+2. Le contenu de la stack ne change pas : la version de l'équipe reste en place (K.4 abandonné, E51). Ne pas y coller le [docker-compose.yml](../docker-compose.yml) de développement.
+3. Mettre la stack à jour, option *Re-pull image* activée.
 
 #### N. Vérifications après le déploiement de l'étape 2
 
-1. **Journal du backend** : `Migrating schema "public" to version "2 - file metadata contract"`, puis versions 3 et 4, puis `Started SiteAmameApplication`. En cas d'erreur, revenir en arrière (ci-dessous) et transmettre le message.
+1. **Journal du backend** : `Migrating schema "public" to version "2 - file metadata contract"`, puis versions 3 et 4, `Successfully applied 3 migrations to schema "public", now at version v4`, la ligne `Variables d'environnement vides, traitées comme absentes : …` (liste attendue : celles que la stack transmet vides, sans aucun secret), puis `Started SiteAmameApplication`. En cas d'erreur, revenir en arrière (ci-dessous) et transmettre le message. Les migrations sont déjà appliquées à ce moment-là : le retour en `v1.2` sur une base en V4 a été essayé (journal du 17 novembre).
 2. **Empreintes** : `backfill-sha256.sh` (simulation), puis `backfill-sha256.sh --apply`. Objectif : `0 sans empreinte`. Les lignes restantes sont expliquées par le script (fichier absent, taille différente, clé refusée).
 3. **Lignes orphelines** : `delete-orphan-rows.sh` affiche la liste ; la faire valider, puis `delete-orphan-rows.sh --apply`. Leurs fichiers restent sur le disque, en attente de purge.
 4. **Inventaire** : `inventory.sh` à nouveau. Attendu : `inventaire conforme`, `lignes orphelines : 0`, `sans empreinte SHA-256 : 0`.
@@ -323,11 +413,11 @@ Tags produits : `backend-v1.3` et `ops-v1.1`. Le frontend ne change pas (`fronte
 
 Remettre `BACKEND_IMAGE_TAG=backend-v1.2`, sans toucher au schéma. Les migrations V2 à V4 sont additives : `backend-v1.2` crée toujours des clés neuves, conformes, avec MIME et taille ; Hibernate ignore la colonne et la table ajoutées ; Flyway ignore les migrations plus récentes que celles qu'il connaît. Deux conséquences à connaître, sans gravité :
 
-- `backend-v1.2` efface encore l'ancien fichier lors d'un remplacement et laisse sa ligne : `inventory.sh` la montrera comme ligne orpheline au fichier absent, à supprimer par `delete-orphan-rows.sh` au retour en `v1.3` ;
+- `backend-v1.2` efface encore l'ancien fichier lors d'un remplacement et laisse sa ligne : `inventory.sh` la montrera comme ligne orpheline au fichier absent, à supprimer par `delete-orphan-rows.sh` au retour en `v1.3`, une fois qu'elle a plus de 2 jours (délai du script) ;
 - si un compte qui avait une adhésion a été supprimé sous `v1.3`, l'adhésion détachée fait échouer la liste des adhésions de `v1.2` : supprimer ces adhésions (`DELETE FROM adhesions WHERE user_id IS NULL;`) ou revenir en `v1.3` ;
 - la création d'une filière échoue de nouveau (C8), sans effet sur les données.
 
-Ce retour arrière est déduit du code et des migrations ; il n'a pas été rejoué (écart E27).
+Ce retour arrière, d'abord déduit du code et des migrations (écart E27), a été rejoué en local le 17 novembre 2026, avec la stack de production : `v1.2` démarre sur la base en V4 sans migration, les données et les fichiers restent lisibles, et le retour en `v1.3` ensuite donne un inventaire conforme (journal du 17 novembre). `backend-v1.2` n'a pas le correctif E51 : les variables qu'il lit doivent rester définies et non vides dans Portainer.
 
 ### Faits relevés en production
 
@@ -335,16 +425,28 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 
 | Fait | Valeur | Relevé le |
 | --- | --- | --- |
-| Chemin réel du dossier des uploads sur l'hôte (§3.1, point 4) | *à relever dans Portainer : conteneur backend, onglet des volumes* | — |
-| Nom du réseau Docker de la stack `amame` | *à relever avec `docker network ls` ; valeur attendue : `amame_common_net`* | — |
-| Valeur effective de `COOKIE_DOMAIN` en production (étape 3.1) | *à relever dans les variables de la stack* | — |
-| Proxy frontal devant le conteneur Nginx (TLS) : sur le même hôte ou ailleurs ? | *à confirmer ; OpenResty d'après [B02 §4.10]* | — |
+| Chemin réel du dossier des uploads sur l'hôte (§3.1, point 4) | `/data/compose/64/backend/uploads` → `/app/uploads`. C'est le `./backend/uploads` relatif de la stack, résolu dans le dossier de travail de Portainer pour la stack n° 64. Le fichier de production le donne désormais en absolu (`UPLOADS_HOST_PATH`), pour ne plus dépendre de ce dossier (E39) | 9 novembre 2026 (Portainer, conteneur `amame-backend`) |
+| Stack applicative dans Portainer | nom **`amamestack`** (n° 64) ; volume de la base **`amamestack_database_data`**. Les deux dépendent du nom de la stack : toujours mettre à jour cette stack, ne jamais en créer une autre | 9 novembre 2026 |
+| Réseau `common_net` | externe, partagé, **interne** (`Internal: true` dans Portainer). Conteneurs branchés : `amame-frontend` (172.20.0.2), `amame-backend` (.3), `sahel_academy_backend` (.4), `sahel_academy_web` (.5), `amame-database` (.7), `amame-scraper` (.8), `amame-ops-backup` (.9), `npm`. Un autre projet partage donc ce réseau : les noms `backend` et `database` ne doivent désigner que les conteneurs d'AMAME (le frontend joint `backend:8080`, `backend-v1.1` joint `database:5432`). **`nslookup` du 14 novembre** : `database` → 172.20.0.7 seul, mais **`backend` → 172.20.0.3 et 172.20.0.4** : le service de `sahel_academy_backend` s'appelle aussi `backend`. Le Nginx du frontend répartit alors l'API entre les deux. Correction : liens Docker dans `amamestack.yml` (écart E42) | 9 et 14 novembre 2026 |
+| **Stack de production réelle** (écart E38) | images `yaya236/amame-web-site:backend-v7` (publiée le 7 juin 2026), `frontend-v7` (9 juin), `scraper-v2`, toutes `linux/amd64` ; réseau **externe** `common_net` ; ports publiés sur toutes les interfaces : `3000` (frontend) et `8080` (backend) ; base réglée par `command` (`shared_buffers=1GB`, `work_mem=16MB`, `maintenance_work_mem=256MB`, `effective_cache_size=4GB`) ; backend limité à 3 Go ; `ddl-auto=update` ; journaux `DEBUG` pour le web et la sécurité ; JWT de 30 jours ; `COOKIE_DOMAIN` et `COOKIE_SECURE` absents, donc `.amame.ml` et `true` par le profil `prod` ; scraper dans la stack (`restart: "no"`) ; mot de passe de la base par défaut et secrets écrits en clair dans la stack. Pas de supervision, pas de pgAdmin. **Son contenu, conservé hors du dépôt, est le retour arrière de l'étape 0** | 9 novembre 2026 (stack transmise par l'équipe) |
+| Docker Hub | poste de développement connecté avec le compte `yayacode224` ; dépôt `yayacode224/amame` **public**, qui ne contenait que les tags `backend-v1.0`, `frontend-v1.0` et `scraper-v1.0` (29 septembre), jamais utilisés en production. Tags de l'étape 0 publiés le 13 novembre : `backend-v1.1`, `frontend-v1.1`, `ops-v1.1`, `scraper-v1.1` (action D). Correctif publié le 16 novembre : `backend-v1.1.1`, `frontend-v1.1.1` (E44) | 9, 13 et 16 novembre 2026 |
+| Comptes Bunny et Neon | créés | 9 novembre 2026 (déclaré par l'équipe) |
+| Sortie vers Internet depuis `common_net` | **aucune**. Mesures dans `amame-ops-backup`, branché sur `common_net` seul, le 14 novembre : `nslookup … 8.8.8.8` et `… 1.1.1.1` donnent `Network unreachable`, et `curl https://1.1.1.1/` échoue immédiatement (« after 0 ms »). Ailleurs, tout fonctionne : le DNS interne résout `amame-database`, et les serveurs `dns: [8.8.8.8, 1.1.1.1]` de la stack sont bien appliqués. Diagnostic : le conteneur n'a pas de route par défaut, ce qui est le comportement d'un réseau déclaré `internal`. Docker y coupe aussi la résolution des noms extérieurs : d'où « DNS server returned general failure », avec ou sans `dns:`. Réseau `internal` **confirmé** dans Portainer le 14 novembre. Parade : un second réseau, ordinaire, propre à chaque stack, `amame-ops_sortie` puis `amamestack_sortie` pour le backend (écart E41). **Conséquence en production, constatée le 14 novembre** : dans `amame-backend`, `getent hosts smtp.gmail.com` échoue (`rc=2`). Le site actuel n'envoie donc aucun e-mail : inscription, mot de passe oublié. Les `dns: [8.8.8.8, 1.1.1.1]` de l'ancienne stack n'y pouvaient rien | 13 et 14 novembre 2026 |
+| Zone Bunny de sauvegarde | **`amamestoragezone`**, région Francfort (écart E40 : le plan l'appelait `amame-backups`) ; *Access Key* et point d'accès relevés par l'équipe | 13 novembre 2026 (déclaré par l'équipe) |
+| Projet Neon | région `eu-central-1` (Francfort), conforme. **Écarts avec le plan (§5, 4.1), à régler à l'étape 4** : base `amame-site-db` au lieu de `amame_db`, rôle propriétaire `amame-site-owner` au lieu de `amame_owner` (les tirets imposent des guillemets en SQL : créer plutôt la base et les rôles prévus) ; chaîne fournie sur le point d'accès **`-pooler`**, alors que Flyway et `pg_dump` demandent la connexion directe (§9) ; version de PostgreSQL *à relever* (17 prévu, `OPS_PG_MAJOR`). Le mot de passe du rôle propriétaire a été transmis dans une conversation : **à réinitialiser dans la console Neon avant l'étape 4**. Aucune valeur de connexion n'est écrite dans le dépôt | 13 novembre 2026 |
+| Portainer et son accès | Portainer **Community Edition 2.45.1 LTS**, ouvert par l'adresse du serveur et un port, en **HTTPS** ; Portainer et Nginx Proxy Manager **partagés avec les autres projets** du serveur ; l'équipe **n'a pas accès** au panneau client Contabo, donc pas à son pare-feu (E43) | 16 novembre 2026 (déclaré par l'équipe) |
+| Accès au serveur | **pas d'accès SSH** : uniquement Portainer et les consoles des conteneurs. Toute commande `docker exec <conteneur> …` de ce suivi se lance dans la console Portainer de ce conteneur, sans le préfixe `docker exec <conteneur>` | 9 novembre 2026 (déclaré par l'équipe) |
+| Proxy frontal | **Nginx Proxy Manager**, sur le même hôte : conteneur `npm`, image `jc21/nginx-proxy-manager:latest`. `amame.ml` répond avec `Server: openresty` (ports 80 et 443), le port 80 de l'hôte lui appartient. Le port 81 (administration de Nginx Proxy Manager par défaut) répond publiquement en HTTP. Les ports 3000, 8080 et 5432 ne sont pas joignables depuis Internet (pare-feu). **Cible du proxy, relevée le 14 novembre** : hôte `amame.ml` et `www.amame.ml` → `http://amame-frontend:80`, sur `common_net`, donc ni le port 3000 ni le 8080 de l'hôte. Réglages : *Force SSL*, *HTTP/2*, *Cache Assets* activé, *Block Common Exploits* et *Websockets* désactivés, HSTS désactivé ; *Custom locations* *à confirmer vide*. *Cache Assets* met en cache chez Nginx Proxy Manager les `.js`, `.css` et images, en ignorant le `Cache-Control` du site (voir les notes de l'étape 1) | 9 novembre 2026 (requêtes depuis l'extérieur, liste des conteneurs) |
+| Point de restauration manuel avant l'étape 0 | `pg_dump -Fc` de `amame_db` : `/var/lib/postgresql/data/amame-avant-etape0.dump` (219 Ko), dans le volume de la base, qui survit à la mise à jour de la stack. À supprimer une fois l'étape 0 vérifiée. Uploads non copiés faute d'accès SSH : la première sauvegarde de `amame-ops` les couvrira, **avant** la mise à jour de l'application | 9 novembre 2026 |
+| Nom du réseau Docker de la stack `amame` | `common_net`, externe (ligne « Réseau `common_net` ») ; `AMAME_NETWORK` de `amame-ops` vaut `common_net` par défaut dans le fichier de production | 9 novembre 2026 |
+| Valeur effective de `COOKIE_DOMAIN` en production (étape 3.1) | `.amame.ml` jusqu'au 15 novembre (profil `prod` de l'ancienne stack). **Vide depuis** : variable définie vide dans la stack, cookies sans domaine (écart E50) | 9 novembre 2026, corrigé le 16 novembre |
+| Proxy frontal devant le conteneur Nginx (TLS) : sur le même hôte ou ailleurs ? | même hôte, Nginx Proxy Manager en conteneur (ligne « Proxy frontal ») : son adresse est privée (172.16.0.0/12), déjà dans `set_real_ip_from` | 9 novembre 2026 |
 | Le mot de passe de l'administrateur par défaut a-t-il été changé ? | *à vérifier* | — |
 | La production définissait-elle `JWT_SECRET`, ou utilisait-elle la valeur par défaut du compose ? | *à vérifier dans les variables de la stack* | — |
 | Comptes `SUPERADMIN`, `ADMIN` et `EDITOR` : tous connus ? | *à vérifier (action B.1)* | — |
 | Poids des images de l'accueil, mesuré en production | *à mesurer ; estimation locale : 270 à 300 Ko pour la page entière* | — |
-| Déploiement de l'étape 0 seule, ou avec l'étape 1 ? | *à consigner* | — |
-| Le serveur ou Portainer récupèrent-ils le dépôt par `git pull` ? Les fichiers ont-ils été mis à l'abri avant (action A.1) ? | *à confirmer avant tout `pull`* | — |
+| Déploiement de l'étape 0 seule, ou avec l'étape 1 ? | **l'étape 0 seule d'abord** : la base n'a jamais connu le code des étapes 0 et 1 (E38, point 4) | 9 novembre 2026 (décision) |
+| Le serveur ou Portainer récupèrent-ils le dépôt par `git pull` ? Les fichiers ont-ils été mis à l'abri avant (action A.1) ? | non : les stacks sont mises à jour à partir des images publiées sur Docker Hub (contenu du compose collé dans Portainer). A.1 ne concerne qu'un éventuel clone du dépôt sur le serveur | 8 novembre 2026 (déclaré par l'équipe) |
 | Schéma de production comparé à `V1__baseline.sql` (action G.1) | *à faire avant de déployer l'étape 1* | — |
 | Mémoire du conteneur `amame-backend` : avant l'étape 1, puis 24 heures et une semaine après | *à relever avec `docker stats` ; mesuré en local sous charge : 396 Mio sur 512* | — |
 | Portainer accepte-t-il les valeurs par défaut imbriquées du compose (action I.3) ? | *à constater à la mise à jour de la stack* | — |
@@ -392,7 +494,21 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | E34 | Inventaire croisé | cinq catégories (§5, 2.1) | en plus : « ligne partagée » (référencée par plusieurs entités ; bloquante, car `orphanRemoval` supprimerait la ligne encore utilisée par l'autre), « fichier en attente de purge », écarts de taille, clés hors format, noms incohérents avec la clé, MIME ou taille manquants, empreintes manquantes. Session SQL en lecture seule imposée au serveur. `backfill-sha256.sh` ne remplit une empreinte que si la taille du disque correspond à celle de la base, et complète MIME et taille manquants (paquet `file` ajouté à l'image, d'où `ops-v1.1`). `delete-orphan-rows.sh` ne retient que les lignes de plus de 2 jours, et refuse de supprimer tant que le déclencheur de V3 n'existe pas |
 | E35 | Colonne `file_entity.user_id` | non relevée | elle existe (relation `File.user`) mais n'est jamais remplie : le lien entre un compte et ses fichiers passe par `users_files`. Conservée telle quelle pour ne pas mêler un nettoyage de schéma à l'étape ; sa clé étrangère passe en `ON DELETE SET NULL` (V4). À retirer plus tard, avec la relation |
 | E36 | Constat C9 corrigé à l'étape 2 | « à faire avant l'étape 3 » | une adresse inconnue renvoie 404 (`NoResourceFoundException`), et non plus 500 |
+| E38 | **La production réelle ne correspond pas à l'hypothèse du plan** | production supposée en `yayacode224/amame:*-v1.0`, sur le compose du dépôt | constaté le 9 novembre 2026 (voir « Stack de production réelle » dans les faits relevés). Conséquences : (1) le retour arrière de l'étape 0 est l'ancienne stack elle-même, et non les tags `v1.0` ; (2) le compose du dépôt publie le frontend sur le port 80 et crée son propre réseau, alors que la production publie `3000` et utilise le réseau externe `common_net` : il faut l'adapter à la façon dont le trafic arrive (proxy sur l'hôte ?) **avant** la mise à jour, sous peine de conflit de port ou de site coupé ; (3) la supervision n'a jamais existé en production et disparaît à l'étape 1 (E14) : elle n'est pas à déployer à l'étape 0, et `GRAFANA_ADMIN_PASSWORD` n'est pas à saisir ; (4) la base n'a jamais connu le code des étapes 0 et 1 : l'étape 0 se déploie seule d'abord, pour que `ddl-auto=update` mette le schéma au niveau du code avant la baseline Flyway de l'étape 1. Adaptation faite le 9 novembre, une fois le serveur relevé : écart E39 |
 | E37 | Constat C8 corrigé à l'étape 2 | « sans rapport avec la migration », non retenu le 7 novembre | corrigé le 8 novembre à la demande de l'équipe, dans le même tag `backend-v1.3` : la partie JSON `filiere` est lue par `@RequestPart`, comme pour la modification et pour les autres contrôleurs. Un nom vide renvoie désormais 400 (validation `@Valid`, déjà présente mais jamais atteinte). La modification d'une filière n'est pas validée (`@Valid` absent) : comportement inchangé, hors du périmètre de C8 |
+| E39 | **Fichiers de stack de production** | la stack Portainer reprend le `docker-compose.yml` du dépôt | décidé le 9 novembre 2026, à partir des relevés du serveur (E38). Le compose du dépôt reste celui du développement, **inchangé**. La production a ses propres fichiers, à coller dans Portainer : [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) et [deploy/portainer/amame-ops.yml](../deploy/portainer/amame-ops.yml). Leurs différences, chacune justifiée par le serveur : (1) aucune section `build`, les sources ne sont pas sur le serveur ; (2) réseau externe `common_net`, partagé avec Nginx Proxy Manager ; (3) frontend publié sur `3000`, comme avant, le port 80 appartenant à Nginx Proxy Manager ; backend non publié (à confirmer par la cible du proxy) ; (4) réglages mémoire de PostgreSQL de l'ancienne stack conservés ; (5) pas de pgAdmin, injoignable sans SSH ; (6) uploads par un chemin **absolu**, `UPLOADS_HOST_PATH`, la même variable que dans `amame-ops`, au lieu d'un chemin relatif résolu dans le dossier de travail de Portainer ; (7) `FRONTEND`, `COOKIE_DOMAIN` et `COOKIE_SECURE` ont leur valeur de production par défaut ; (8) `BACKEND_IMAGE_TAG` et `FRONTEND_IMAGE_TAG` n'ont **pas** de valeur par défaut : une image trop récente sur la base actuelle (baseline Flyway avant l'alignement de l'étape 0) l'abîmerait ; (9) limite mémoire du backend réglable (`BACKEND_MEMORY_LIMIT`, 512M par défaut) : 768M pendant l'étape 0, car `backend-v1.1` occupe 482 Mio sur 512 sous charge (E22). **Un seul fichier sert aux étapes 0, 1 et 2** : `backend-v1.1` lit `SPRING_DATASOURCE_PASSWORD` et ignore les variables `DATABASE_*`, `STORAGE_*` et `DB_POOL_*` ; les versions suivantes lisent `DATABASE_*`, et `SPRING_DATASOURCE_PASSWORD` y a la même valeur (E24). Le passage d'une étape à l'autre, comme le retour arrière, ne change que les tags. Dans `amame-ops`, la base est désignée par `amame-database`, nom de conteneur unique sur l'hôte, plutôt que par le nom de service `database`, que d'autres projets du réseau partagé pourraient porter. Les images se construisent par `docker build`, sans `.env` ; `.env` est exclu du contexte de construction du backend et du frontend : `frontend/.env`, non suivi par Git, existe sur le poste de développement et contient des identifiants. Vérifié : les deux fichiers passent `docker compose config` avec des valeurs factices (volume `amamestack_database_data`, chemin absolu, réseau externe, refus sans tag d'image) |
+| E40 | **Nom de la zone Bunny de sauvegarde** | zone `amame-backups` (DT6, §3.3, ops/README) | constaté le 13 novembre 2026 : l'équipe a créé la zone sous le nom **`amamestoragezone`**, à Francfort. Aucun code n'écrit le nom en dur : les scripts lisent `BUNNY_BACKUP_ZONE`, qui prend cette valeur. Partout où ce rapport dit `amame-backups`, lire `amamestoragezone`. Le principe de DT6 ne change pas : cette zone ne reçoit que les sauvegardes, sa clé ne quitte pas `amame-ops`, et les fichiers du site iront dans deux autres zones à l'étape 3 (`amame-public`, `amame-private`). Le nom générique invite à s'en servir pour autre chose : ne pas le faire |
+| E41 | **`common_net` est un réseau interne : un réseau de sortie par stack** | `common_net` supposé ordinaire (E39) | constaté le 14 novembre 2026 : `Internal: true`. Le DNS de Docker ne résout pas les noms extérieurs, et aucune route ne sort vers Internet. Conséquences : `amame-ops` ne joignait pas Bunny, et le site actuel n'envoie aucun e-mail. Décision : `common_net` reste le réseau qui relie les conteneurs entre eux et à Nginx Proxy Manager, et chaque stack ajoute un réseau ordinaire à elle, `sortie`, pour les seuls conteneurs qui doivent joindre Internet : `backup` et `scraper` dans `amame-ops`, `backend` dans `amamestack`. La base et le frontend n'y sont pas branchés. Au passage, le frontend ne publie plus `3000:80` : Nginx Proxy Manager joint `amame-frontend:80` par `common_net` (cible relevée le 14 novembre), et ce port ne servait pas. Sans changer `common_net`, qui appartient aussi à un autre projet (`sahel_academy_*`). Vérifié : `amame-ops`, mis à jour le 14 novembre, joint Bunny (`200`), sauvegarde et restauration réussies ; `amamestack.yml` passe `docker compose config` (réseau `amamestack_sortie`, volume `amamestack_database_data` inchangé). La sortie du backend se vérifie après la mise à jour, par l'envoi d'un e-mail (action E.10) |
+| E42 | **Le nom `backend` est partagé avec un autre projet sur `common_net`** | noms de service de la stack uniques sur son réseau | constaté le 14 novembre 2026 : `nslookup backend` renvoie `amame-backend` **et** `sahel_academy_backend`. Le Nginx du frontend (`proxy_pass` vers `backend:8080`, résolu par le DNS de Docker) répartirait les appels à l'API, cookies de session compris, entre les deux. Le frontend actuel (`frontend-v7`) est sans doute déjà touché s'il vise le même nom. Décision : des **liens Docker** (`links`) dans [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml), sans toucher aux images publiées ni à l'autre projet. Le frontend a `links: [backend]` et le backend `links: [database]`. Un lien crée un alias propre au conteneur, que le DNS de Docker résout avant les noms du réseau. `database` est aujourd'hui unique : le second lien protège contre un service de ce nom ajouté plus tard. Vérifié en local, sur un réseau interne avec un « voisin » portant le même nom. Sans lien, 8 appels sur 20 partaient chez le voisin ; avec le lien, 20 sur 20 arrivent chez AMAME et une seule adresse est résolue. Même résultat pour `database`, depuis un backend branché sur deux réseaux. Les liens sont une fonction ancienne de Docker, toujours prise en charge (Docker 29). Si elle disparaissait, il faudrait viser le nom de conteneur `amame-backend` dans `frontend/nginx.conf` et `amame-database` dans `DATABASE_URL` |
+| E43 | **Fermer Portainer et l'administration de Nginx Proxy Manager à Internet ne dépend pas de l'équipe** | critère de l'étape 0 : Portainer non joignable sans tunnel ou VPN (action E.1) | relevé le 16 novembre 2026 : Portainer s'ouvre par l'adresse du serveur et un port. Il est partagé avec les autres projets, comme Nginx Proxy Manager. L'équipe n'a ni SSH ni accès au panneau Contabo. Sans pare-feu de l'hébergeur, fermer un port demande de recréer le conteneur qui le publie : Portainer ne peut pas le faire pour lui-même sans risque, et toucher Nginx Proxy Manager coupe aussi les sites des autres projets. Le critère reste ouvert et passe par l'administrateur du serveur. En attendant, mesures à la portée de l'équipe : accès en HTTPS seulement, mot de passe fort et propre à chaque compte Portainer, comptes inutilisés supprimés |
+| E44 | **Des données privées restent dans le navigateur après la déconnexion** | contrôle d'accès des fichiers privés et des profils côté serveur (E1, E2, E11) | constaté le 16 novembre 2026 : un compte `USER` a relu, depuis le cache HTTP du navigateur, quatre photos privées affichées plus tôt sous un compte Super Admin. Le serveur, lui, répond `403`. Deux causes dans le code, en production comme sur `main` : (1) les photos privées partent avec `Cache-Control: private, max-age=3600`, et le cache du navigateur ne distingue pas les comptes ; (2) le service worker garde 24 heures toutes les réponses `GET /api/*` authentifiées (profil, listes de l'administration) dans `api-cache`, sans tenir compte de `no-store`. Portée : un ordinateur ou un navigateur partagé, pas l'accès d'un tiers à distance. Correctif prévu : photos privées en `no-store` ; cache du service worker limité aux réponses publiques (`/api/visitor/**`) ; à la déconnexion, `Clear-Site-Data: "cache"` côté serveur et suppression d'`api-cache` côté frontend. **Confirmé en production le même jour** : `api-cache` d'un navigateur utilisé sous Super Admin contenait trois pages de `/api/admin/users`, `/api/auth/me` et `/api/user/39`, à côté des listes publiques. **Décision de l'équipe (16 novembre) : correctif `v1.1.1`**, construit sur `b14e7dd` (branche `correctif/v1.1.1`), puis reporté dans `main`. `Clear-Site-Data` abandonné : une fois les photos en `no-store` et l'API privée hors du service worker, le cache HTTP ne garde plus rien de privé, et vider tout le cache du site à chaque déconnexion n'apporterait rien de plus. En attendant le déploiement, sur un poste qui n'est pas personnel, l'administration ne s'ouvre qu'en fenêtre privée, fermée après usage. **Déployé et vérifié en production le 16 novembre** : plus d'`api-cache` dans le navigateur, photo privée en `no-store` (journal du jour). La consigne de la fenêtre privée est levée |
+| E45 | **Les images de l'étape 1 portent le correctif E44** | images `v1.2` construites depuis le commit de l'étape 1 (`5c62c07`) seul (action H) | décidé le 16 novembre 2026 : le correctif `v1.1.1` est en production. Des images construites depuis `5c62c07` seul le retireraient : photos privées de nouveau gardées une heure, réponses privées de l'API de nouveau dans le cache du service worker. Les images `v1.2` sont donc construites depuis `5c62c07` plus `b548a4a`. Seul `frontend/vite.config.ts` était en conflit, résolu à l'identique de `main` (le frontend ne change pas entre les étapes 1 et 2). Les six fichiers du correctif sont identiques, octet pour octet, à ceux de `main`. La même règle vaudra pour `backend-v1.3` (étape 2) |
+| E46 | **Comparaison du schéma de production par empreintes** | `pg_dump --schema-only` sur le serveur, puis `diff` avec `V1__baseline.sql` (action G.1) | décidé le 16 novembre 2026 : l'équipe n'a ni SSH ni moyen de sortir un fichier du serveur, et V1 compte 1 171 lignes. Une requête en une ligne, collée dans la console d'`amame-database`, calcule une empreinte par table : colonnes (nom, type, longueur, nullabilité, défaut, identité), contraintes, index, noms. Ces 25 lignes se comparent à l'empreinte de V1, calculée en local sur un PostgreSQL 15 neuf. Les contraintes `CHECK` des énumérations sont normalisées avant le calcul : PostgreSQL rend différemment la même liste selon qu'elle vient d'Hibernate (`ANY ((ARRAY[…])::text[])`) ou de V1 rejouée (`ANY (ARRAY[(…)::text, …])`). Vérifié en local : sans normalisation, 8 tables diffèrent pour cette seule raison ; avec, le schéma créé par `backend-v1.1.1` est identique à V1 sur les 25 tables. Une table qui diffère en production fera l'objet d'une requête de détail sur cette seule table |
+| E47 | **V1 corrigée une fois, avant tout déploiement, et migration `V1_1`** | « ne jamais modifier `V1__baseline.sql` » ; V1 produite à partir des entités (E16) | relevé du 16 novembre 2026 : empreintes de production identiques à V1 pour 22 tables sur 25. Les trois écarts : (1) **`bourse`** a été créée par l'ancien scraper (`scraping_site_web_mina7.py`), non par Hibernate. Sa clé est tirée d'une séquence (`nextval('bourse_id_seq')`) et non d'une colonne d'identité. S'y ajoutent `DEFAULT CURRENT_TIMESTAMP` sur `date_scraping`, `DEFAULT 0` sur `nombres_vues`, la contrainte `bourse_url_source_key` (doublon de l'unicité d'Hibernate) et cinq index `idx_bourse_*` ; (2) **`users_role_check`** n'admet pas `VISITOR` ; (3) **`user_permission_permission_check`** n'admet pas `ADHESION_MANAGE`. Hibernate ne met jamais à jour une contrainte `CHECK` existante : en production, accorder ou retirer `ADHESION_MANAGE` est refusé par la base. Décision, conformément à l'action G.1 : V1 est corrigée pour décrire **exactement** la production. Elle n'a jamais été appliquée en production, et la baseline n'y exécutera pas V1 : la règle « ne jamais modifier V1 » vaut à partir de cette baseline ; la nouvelle migration [V1_1__enum_check_constraints.sql](../backend/src/main/resources/db/migration/V1_1__enum_check_constraints.sql) recrée les deux contraintes avec les listes du code. Elle tourne en production au premier démarrage de `backend-v1.2`, et sur toute base neuve juste après V1 (ordre de Flyway : 1 < 1.1 < 2). `bourse` reste telle quelle : une séquence vaut une colonne d'identité pour le backend, et l'ancien scraper compte sur ces valeurs par défaut. **Vérifié en local** : V1 corrigée, appliquée à un PostgreSQL 15 neuf, donne les **25 empreintes de la production à l'identique**. Après `V1_1`, `users` et `user_permission` retrouvent les empreintes du code, et `bourse` garde celles de la production. **Conséquence pour les postes de développement** : une base locale déjà passée par l'ancienne V1 refuse de démarrer (somme de contrôle de V1 changée, et `1.1` antérieure à la version courante). Il faut la recréer (`docker compose down -v`), ou lancer `flyway repair`. Toute nouvelle valeur d'une énumération stockée en base demande désormais une migration de ce type |
+| E48 | **`backend-v1.2` déployé avec la limite de 768M, et non 512M** | action I.2 : supprimer `BACKEND_MEMORY_LIMIT`, retour à 512M | proposé le 16 novembre 2026. Relevé de production : `backend-v1.1.1` occupe 528 Mio de mémoire anonyme, environ 50 Mio de plus que `v1.1` dans l'essai local (482). `backend-v1.2` mesure 376 à 396 Mio en local ; en production, environ 440 à 450 Mio sont plausibles, sous 512 mais au-delà du seuil d'alerte de 460 avec peu de marge. Un dépassement tuerait le conteneur, qui redémarrerait aussitôt : coupure courte, mais répétée. Changer l'image et la limite dans la même mise à jour donnerait aussi deux causes possibles à un incident. Décision proposée : déployer `v1.2` en gardant 768M, mesurer `anon` (action J.4), puis passer à 512M par une mise à jour séparée. La mesure à 768M majore celle à 512M, puisque le tas maximal est de 30 % de la limite : sous 420 Mio à 768M, la version tient à 512M |
+| E49 | **La stack de production n'est pas [amamestack.yml](../deploy/portainer/amamestack.yml)** | « Un seul fichier pour les étapes 0, 1 et 2 : seules les variables `BACKEND_IMAGE_TAG` et `FRONTEND_IMAGE_TAG` changent » | constaté le 16 novembre 2026, au premier démarrage de `backend-v1.2` en production. La version de l'équipe (15 novembre) remplace les valeurs par défaut `${VAR:-…}` par `${VAR}`. Une variable non définie dans Portainer arrive vide, et Spring ne remplace pas une valeur vide par sa valeur par défaut : `DB_POOL_MIN_IDLE` vide a empêché le démarrage. Retour aux tags `v1.1.1` fait, base inchangée (`flyway_schema_history` absente). Relevé des variables : `DB_POOL_MIN_IDLE`, `DATABASE_PASSWORD`, `COOKIE_DOMAIN` et `MAIL_DEBUG` vides. Correction : les deux premières dans les variables de la stack, vérifiées sous `v1.1.1` avant de repasser en `v1.2` (journal du 16 novembre). Proposé le 17 novembre : recoller le fichier du dépôt, par une mise à jour séparée et avant l'étape 2 (action K.4). Avec les variables de la production, seules `MAIL_DEBUG` et `STORAGE_PURGE_ENABLED` changent (de vide à `false`), et aucune des deux n'est lue par `v1.2`. À chaque étape, de nouvelles variables apparaissent : le fichier réellement en production doit être relevé avant chaque déploiement |
+| E50 | **Cookies sans domaine en production depuis le 15 novembre 2026** | `COOKIE_DOMAIN=.amame.ml` en production (CLAUDE.md, action 3.1) | constaté le 16 novembre 2026 par le relevé des variables : `COOKIE_DOMAIN` est définie vide dans la stack, sans doute reprise de `.env.example`, où la valeur vide est celle du développement local. Une variable d'environnement l'emporte sur `cookie.domain=.amame.ml` du profil `prod`. Gardé tel quel au déploiement de `v1.2` : revenir à `.amame.ml` laisserait dans chaque navigateur connecté depuis le 15 novembre deux `refresh_token`, dont le backend ne lit que le premier. **Décidé le 17 novembre : cookies sans domaine, gardés.** Raisons : aucune transition ; aucun sous-domaine n'en a besoin ; avec `.amame.ml`, l'`access_token` partirait vers le CDN des médias (`media.amame.ml`, étape 3). Le profil `prod` et [amamestack.yml](../deploy/portainer/amamestack.yml) ont désormais une valeur vide par défaut. Le renouvellement lit tous les cookies `refresh_token` (dans `main`, livré avec `backend-v1.3`) : la session coupée venait d'un ancien cookie `.amame.ml` lu en premier, et ces cookies disparaissent seuls d'ici le 22 novembre (journal du 17 novembre) |
+| E51 | **Une variable d'environnement vide est traitée comme absente** (`backend-v1.3` et suivants) | une valeur par défaut dans la stack pour chaque variable (`${VAR:-…}`, E49) | constaté le 17 novembre 2026 par l'essai de `v1.2` → `v1.3` avec la stack de production du même jour, qui n'a plus aucune valeur par défaut. `STORAGE_PURGE_ENABLED` arrive vide, et `backend-v1.3` refuse de démarrer (`Failed to bind properties under 'app.storage.purge.enabled'`) **après** avoir appliqué V2, V3 et V4. L'équipe garde sa version de la stack. Corrigé dans le code, une fois pour toutes les variables : [EmptyEnvironmentVariablesPostProcessor.java](../backend/src/main/java/com/example/siteamame/config/EmptyEnvironmentVariablesPostProcessor.java) retire de l'environnement de Spring toute variable vide ou faite d'espaces, ce qui applique la valeur par défaut de la configuration. Aucune variable lue par l'application ne donne à « vide » un autre sens qu'« absente ». Une variable sans valeur par défaut (`JWT_SECRET`, `DATABASE_*`) fait échouer le démarrage par un message explicite au lieu de passer vide. Les noms des variables ignorées sont écrits au démarrage. `backend-v1.2` n'a pas ce correctif : pour un retour arrière en `v1.2`, les variables qu'il lit doivent rester définies dans Portainer |
 
 **Constats hors du périmètre de l'étape 0**, à traiter ou à planifier :
 
@@ -404,14 +520,23 @@ Valeurs à relever une fois, puis à réutiliser dans toutes les étapes suivant
 | C4 | `./mvnw test` exige une base PostgreSQL locale sur le port 5454 : le seul test d'intégration ne tourne pas ailleurs | — | **réglé à l'étape 1** : le test lance son propre PostgreSQL (Testcontainers). Seul Docker est nécessaire |
 | C5 | `public/images/grid-image/` (6 fichiers, 2,4 Mo) n'est utilisé que par trois composants de gabarit jamais importés (`src/components/ui/images/`) | 🟡 | supprimer les composants et le dossier |
 | C6 | La mise à jour du profil accepte un nouvel e-mail sans vérification, et ignore le mot de passe envoyé par le formulaire d'administration | 🟡 | à étudier séparément |
-| C7 | **Un compte qui s'est déjà connecté ne peut pas être supprimé** : `DELETE /api/admin/user/{id}` échoue (500) sur la clé étrangère de `refresh_token`. Il en va sans doute de même pour un compte qui a une adhésion, une cotisation, un don ou un jeton de réinitialisation | 🟠 | **corrigé dans le dépôt le 7 novembre 2026** (migration V4, écart E28) ; à constater en production (action N.5) |
+| C7 | **Un compte qui s'est déjà connecté ne peut pas être supprimé** : `DELETE /api/admin/user/{id}` échoue (500) sur la clé étrangère de `refresh_token`. Il en va sans doute de même pour un compte qui a une adhésion, une cotisation, un don ou un jeton de réinitialisation | 🟠 | **corrigé dans le dépôt le 7 novembre 2026** (migration V4, écart E28). **Constaté en production le 16 novembre 2026** (journal du backend, clé étrangère de `refresh_token`) : jusqu'au déploiement de l'étape 2, aucun compte qui s'est déjà connecté ne peut être supprimé depuis l'administration. Correction à constater en production après l'étape 2 (action N.5) |
 | C8 | **La création d'une filière par l'API échoue toujours** (500) : `FiliereController.ajouterFiliere` lit la filière avec `@RequestParam` au lieu de `@RequestPart`. La modification fonctionne | 🟠 | **corrigé dans le dépôt le 8 novembre 2026** (écart E37) ; à constater en production (action N.6) |
 | C9 | Toute adresse inconnue du backend renvoie 500 au lieu de 404 : le gestionnaire d'erreurs générique intercepte aussi « ressource introuvable » | 🟡 | **corrigé dans le dépôt le 7 novembre 2026** (écart E36) |
 | C10 | `/actuator/health` ouvre une connexion SMTP à chaque appel et passe à `DOWN` si Gmail ne répond pas | 🟡 | n'interroger que `/actuator/health/liveness` et `/actuator/health/readiness`, qui n'en dépendent pas ; ou désactiver l'indicateur `mail` |
+| C11 | Une requête mal formée renvoie `500` au lieu d'une erreur `4xx`, avec le message de l'exception dans la réponse. Exemples : partie `user` absente de l'inscription, JSON illisible, méthode non permise. `GlobalHandlerException.handleGlobalException` intercepte aussi les exceptions de Spring MVC, qui portent pourtant leur propre statut. Constaté en production le 16 novembre 2026 (inscription sans partie `user`). Même code dans `main`, où C9 n'a traité que `NoResourceFoundException` | 🟡 | dans le gestionnaire générique, reprendre le statut des exceptions qui implémentent `ErrorResponse` (400, 405, 415…) ; pour un vrai `500`, ne plus renvoyer `ex.getMessage()` au client, seulement le journaliser. À faire dans `main`, pas de correctif dédié |
+| C12 | **Après chaque déploiement, une page ouverte avant la mise à jour peut ne plus charger une section.** Les sections (administration, espace membre…) sont des fichiers JavaScript chargés à la demande, dont le nom change à chaque construction. Un onglet resté ouvert demande l'ancien nom, et Nginx répond `404`. La section ne s'affiche qu'après un rechargement de la page. Constaté en production le 16 novembre 2026 (`LayoutAdmin-B8YmbZu6.js`, juste après le passage en `v1.1.1`). Même code dans `main` | 🟡 | intercepter l'événement `vite:preloadError` et recharger la page une seule fois (garde en `sessionStorage` contre une boucle). À faire dans `main` avant les déploiements des étapes 1 à 4 |
+| C13 | **La modification d'un article envoyée sans `tags` répond `500` après avoir été enregistrée** (`failed to lazily initialize a collection … Article.tags … no Session`). Le mapper mettait dans la réponse la collection de l'entité, non chargée, que Jackson lit après la fermeture de la session (`open-in-view` désactivé depuis l'étape 1). Le formulaire d'administration envoie toujours `tags` : la production n'est pas touchée par l'interface. Constaté le 17 novembre 2026 par l'essai de l'étape 2, dans `v1.3` et dans `v1.2` | 🟡 | corrigé dans `main` pour `backend-v1.3` : `ArticleMapper.convertToDTO` copie les tags dans la transaction ; [ArticleMapperTest.java](../backend/src/test/java/com/example/siteamame/mapper/ArticleMapperTest.java) |
 
 ### Notes pour les étapes suivantes
 
 Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
+
+- **Étape 1 (relevé du 14 novembre).** Nginx Proxy Manager a *Cache Assets* activé sur `amame.ml`. Avec cette option, il met en cache, pendant 30 minutes, tout ce qui finit par `.js`, `.css` ou une extension d'image. Il ignore et retire le `Cache-Control` du site, et pose sa propre date d'expiration.
+  - Les fichiers de l'application portent une empreinte dans leur nom : aucun effet.
+  - Pour `/config.js` (servi en `no-store`, action J) et `/sw.js`, en revanche, un changement de `MEDIA_BASE_URL` ou une nouvelle version mettraient du temps à arriver chez les visiteurs.
+  - À vérifier au déploiement de l'étape 1 : relire les en-têtes de `/config.js` à travers `https://amame.ml`. S'ils ne sont pas `no-store`, désactiver *Cache Assets*, ou exclure ces deux fichiers par une *Custom location*.
+- **Toutes les étapes (relevé du 14 novembre).** `common_net` est interne : un conteneur qui doit joindre Internet (Gmail, Bunny, sites des scrapers, et Neon à l'étape 4) doit aussi être branché sur un réseau ordinaire de sa stack (E41). À l'étape 3, le backend écrira dans Bunny par ce réseau `sortie`, déjà en place.
 
 - **Étape 2, livrée dans le dépôt le 7 novembre 2026.** [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java) attend désormais « version 4, 26 tables ». Toute nouvelle migration change ces deux nombres.
 - **Avant l'étape 3 : migration V5** (E30). Une fois `backfill-sha256.sh` passé en production avec 0 ligne sans empreinte et l'inventaire conforme : `VALIDATE CONSTRAINT` des trois contraintes `NOT VALID` de V2, puis `file_sha256` en `NOT NULL`. Elle échoue si une ligne ne respecte pas une contrainte : la faire précéder d'un nouvel `inventory.sh`.
@@ -420,6 +545,7 @@ Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
 - **Étape 6.** Le retrait des objets privés de la sauvegarde, 30 jours après leur purge (DT9), lit `storage_purge_queue` : `purged_at`, conservé 60 jours.
 - **Étape 3.** Ajouter `bunny` aux fournisseurs connus de [StorageConfig.java](../backend/src/main/java/com/example/siteamame/config/StorageConfig.java) : toute autre valeur de `STORAGE_PROVIDER` arrête déjà le démarrage avec un message. Le service de fichiers de Spring (`/uploads/**`) se désactive seul hors du mode local. La copie des fichiers de `backup.sh` lit aujourd'hui le dossier monté : elle devra lire les zones Bunny avec leurs mots de passe en lecture seule. Corriger C9 avant de surveiller les 404.
 - **Étape 3.** Mémoire : le client HTTP de Bunny et l'envoi de fichiers de 10 Mo demandent une nouvelle mesure, **sur le conteneur** (`docker stats`, `memory.stat`), pas sur les chiffres de la JVM (E22). Envoyer et lire par blocs, comme `StorageIo`.
+- **Étape 4.** Le projet Neon existe depuis le 13 novembre, avec des noms et un point d'accès qui diffèrent du plan (faits relevés, « Projet Neon ») : réinitialiser d'abord le mot de passe exposé, créer la base `amame_db` et les quatre rôles prévus, utiliser le point d'accès direct (sans `-pooler`) pour Flyway et les sauvegardes, et relever la version de PostgreSQL avant de fixer `OPS_PG_MAJOR`.
 - **Étape 4.** Reconstruire l'image d'exploitation avec `OPS_PG_MAJOR=17` : `pg_dump` refuse une base plus récente que lui. Passer l'image du test de démarrage à `postgres:17-alpine` (E19). Renseigner les cinq variables `DATABASE_*` ; les valeurs par défaut du compose, liées à `POSTGRES_PASSWORD`, disparaissent avec la base locale à l'étape 6. Le profil de pool « veille » est déjà celui de la production depuis l'étape 1.
 - **Étape 5.** Les images statiques sont déjà en WebP, nommées en ASCII avec leur largeur, et servies avec `srcset`. Il reste à déplacer `public/static/` dans `amame-public/static/` et à faire lire `MEDIA_BASE_URL` à `STATIC_BASE` ([staticImage.ts](../frontend/src/utils/staticImage.ts)), dans la même image (E23). Ramener la limite des images à 5 Mo une fois la compression dans le navigateur en place (E18). `<MediaImage>` porte déjà `maxWidth` et `sizes` sur chaque image : activer Optimizer ne demandera aucun code.
 - **Toutes les étapes.** La limite de 512 Mo du conteneur backend laisse environ 115 Mio de marge sous charge depuis E22. Elle se vérifie sur le conteneur après chaque ajout de dépendance. Relever la limite à 768 Mo reste possible si le VPS le permet : le tas suit (30 %).
@@ -549,7 +675,562 @@ Le journal contient une erreur `duplicate key … uklc76j4bqg2jrk06np18eve5yj` :
 
 **Non vérifié.** La sécurité (`FILIERE_CREATE`) n'est pas en jeu dans le test de C8, et le parcours dans l'interface d'administration n'a pas été essayé (action N.6). Le backend n'a pas été lancé comme serveur réel : le 404 sur une adresse inconnue (C9) et la suppression d'un compte par l'API n'ont pas été observés par HTTP ; la tâche de purge a tourné dans le test, appelée directement, pas à l'heure planifiée. Le retour arrière vers `backend-v1.2` reste déduit, pas rejoué. Rien n'a été exécuté contre la production.
 
-**Git (action A.2), à la demande de l'équipe.** Vérifié d'abord : `origin/main` toujours sur `f5252df` après `git fetch`, rien d'indexé, `main` ancêtre de `sauvegarde/etape-1`. Le contenu du futur commit a été prévisualisé par un index temporaire (56 fichiers, aucun `.env`, aucun upload), et les lignes ajoutées ont été parcourues à la recherche d'un secret écrit en dur : aucun. Puis `git reset sauvegarde/etape-1` (avance de `main`, sans toucher au disque), `git add -A` et commit `7466a23`. Arbre de travail propre ensuite ; `backend/uploads/` toujours présent sur le disque et hors du suivi. **Pas fait** : le `git push` (en attente de la vérification décrite en A.2) et la suppression des branches de sauvegarde.
+**Git (action A.2), à la demande de l'équipe.** Vérifié d'abord : `origin/main` toujours sur `f5252df` après `git fetch`, rien d'indexé, `main` ancêtre de `sauvegarde/etape-1`. Le contenu du futur commit a été prévisualisé par un index temporaire (56 fichiers, aucun `.env`, aucun upload), et les lignes ajoutées ont été parcourues à la recherche d'un secret écrit en dur : aucun. Puis `git reset sauvegarde/etape-1` (avance de `main`, sans toucher au disque), `git add -A` et commit `7466a23`. Arbre de travail propre ensuite ; `backend/uploads/` toujours présent sur le disque et hors du suivi. Ensuite, une fois confirmé par l'équipe que la production se déploie par Docker Hub et non par Git : `git push` (`f5252df..ba50a0a`, avance simple) et suppression des branches `sauvegarde/etape-0` et `sauvegarde/etape-1`.
+
+#### 9 novembre 2026 — production relevée, fichiers de stack de production
+
+**Constaté.** La stack de production n'est pas celle que supposait le plan (E38). Faits transmis par l'équipe ou relevés de l'extérieur : stack `amamestack` (n° 64), réseau externe partagé `common_net`, Nginx Proxy Manager en conteneur sur le même hôte, uploads dans `/data/compose/64/backend/uploads`, volume `amamestack_database_data`, aucun accès SSH. Point de restauration manuel de la base : `pg_dump -Fc` (219 Ko) dans le volume de la base. Détail dans les faits relevés.
+
+**Fait.**
+
+- [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) et [deploy/portainer/amame-ops.yml](../deploy/portainer/amame-ops.yml), nouveaux : les stacks à coller dans Portainer (E39).
+- `backend/.dockerignore` et `frontend/.dockerignore` : `.env` et `.env.*` exclus du contexte de construction.
+- [.env.example](../.env.example) : variables propres à la production (`UPLOADS_HOST_PATH` dans les deux stacks, `BACKEND_MEMORY_LIMIT`), base désignée par `amame-database`.
+- [ops/README.md](../ops/README.md) : construction par `docker build`, stack collée depuis le fichier de production, valeurs du serveur.
+- Ce suivi : actions D, E, F, H, I, K, L, M et retours arrière des étapes 0 et 1, réécrits pour le serveur réel ; l'ordre de E place la première sauvegarde de `amame-ops` avant la mise à jour de l'application, et la rotation des secrets au moment de cette mise à jour.
+
+Le `docker-compose.yml` de développement et `ops/docker-compose.yml` ne changent pas.
+
+**Vérifié en local.** `docker compose config` sur les deux fichiers, avec des valeurs factices : interpolation acceptée, valeurs par défaut imbriquées comprises ; volume nommé `amamestack_database_data` ; uploads montés depuis le chemin absolu dans le backend et le frontend ; réseau `common_net` externe ; limite mémoire de 768M prise en compte ; refus explicite sans `BACKEND_IMAGE_TAG`. Variables lues par `backend-v1.1` contrôlées dans son `application-prod.properties` : URL et compte de la base écrits en dur (`database`, `postgres`), mot de passe par `SPRING_DATASOURCE_PASSWORD`, `ddl-auto=update`.
+
+**Non vérifié.** Rien n'a tourné sur le serveur. La version de Compose de Portainer (valeurs par défaut imbriquées) n'est pas connue : la parade est décrite à l'action E.8. La cible de Nginx Proxy Manager et la liste complète des conteneurs de `common_net` restent à relever. Aucune image n'est construite : Docker Desktop n'était pas démarré.
+
+#### 13 novembre 2026 — zone de sauvegarde créée, images de l'étape 0 publiées, stack `amame-ops` créée
+
+**Constaté.** L'équipe a créé la zone Bunny de sauvegarde sous le nom `amamestoragezone`, à Francfort (écart E40), et le projet Neon (faits relevés, ligne « Projet Neon » ; rien à en faire avant l'étape 4).
+
+**Fait.**
+
+- Action C.1 close : nom de la zone reporté dans ce suivi (C.1, E.3, faits relevés, tableau de l'étape 0) et dans [ops/README.md](../ops/README.md) ; écart E40.
+- Action D : les quatre images construites par `docker build`, puis publiées sur Docker Hub (empreintes à l'action D).
+  - `backend-v1.1` et `frontend-v1.1` viennent d'un dossier de travail Git propre au commit `b14e7dd`, créé dans un dossier temporaire puis supprimé.
+  - `ops-v1.1` (`PG_MAJOR=15`) et `scraper-v1.1` viennent de `main` (`ba50a0a`). Leurs Dockerfiles ne copient que des fichiers nommés, tous suivis par Git et sans modification locale.
+  - Chaque image porte son commit dans l'étiquette `org.opencontainers.image.revision`.
+  - La première construction du backend a échoué sur une coupure réseau pendant le téléchargement d'un plugin Maven ; la deuxième a réussi.
+- Aucun fichier du code n'a changé.
+- Action E.2 faite par l'équipe, puis E.3 commencée : stack `amame-ops` créée, planificateur démarré.
+- Premier `backup.sh` en échec : le conteneur ne résout pas `storage.bunnycdn.com`. Rien n'a été envoyé ; l'échec est survenu avant le dump.
+  - Cause : le DNS par défaut des conteneurs ne fonctionne pas sur ce serveur. Le backend contourne ce problème depuis juin avec des serveurs DNS explicites, et je n'avais pas reporté ce réglage dans `amame-ops`.
+  - Correction : `dns: [8.8.8.8, 1.1.1.1]` sur les services `backup` et `scraper`, dans [deploy/portainer/amame-ops.yml](../deploy/portainer/amame-ops.yml) et [ops/docker-compose.yml](../ops/docker-compose.yml).
+  - **14 novembre** : même échec avec cette correction. Le diagnostic, lancé par l'équipe dans la console, a montré que la cause n'était pas le DNS : `common_net` n'a pas de route vers Internet (faits relevés). Les serveurs DNS explicites restent, sans dommage.
+  - Les services `backup` et `scraper` sont désormais branchés aussi sur un réseau ordinaire propre à la stack, `sortie` (`amame-ops_sortie`), dans les deux mêmes fichiers. `common_net` sert toujours à joindre `amame-database`.
+  - [ops/README.md](../ops/README.md) explique ce réseau.
+
+**Vérifié en local, avant la publication.**
+
+- Aucun des quatre tags n'existait sur Docker Hub : rien n'a été écrasé.
+- Les quatre images sont en `linux/amd64`. Elles ne contiennent aucun fichier `.env`, aucune clé ni aucun upload ; les seuls `.pem` sont les certificats publics du système.
+- Le jar du backend ne contient que les trois `application*.properties` du commit. Son profil `prod` lit les secrets dans l'environnement : URL `database`, compte `postgres`, `ddl-auto=update`, cookies `.amame.ml`.
+- La configuration Nginx du frontend est valide (`nginx -t`) et renvoie 404 sur `/uploads/utilisateur/` et `/amame-uploads/utilisateur/`.
+- L'image d'exploitation embarque `pg_dump` 15.19, ses 9 scripts sans fin de ligne Windows, et tourne sans root (`postgres`).
+- Après la publication, les quatre empreintes ont été relues sur Docker Hub.
+- Correction DNS : les deux fichiers d'`amame-ops` passent `docker compose config`.
+- Essai sur un réseau Docker jetable, avec l'image `ops-v1.1` et les mêmes serveurs DNS :
+  - le DNS interne reste en place (`127.0.0.11`) ;
+  - un conteneur voisin est trouvé par son nom ;
+  - `storage.bunnycdn.com` est résolu et répond en HTTPS (200).
+
+  Cet essai ne reproduisait pas le serveur : le réseau local n'est pas interne. Le second réseau, lui, est seulement validé par `docker compose config` (réseau `amame-ops_sortie` créé, deux services branchés sur les deux réseaux). La route par défaut qu'il doit apporter n'a pas pu être essayée en local, Docker Desktop étant arrêté : elle se vérifie sur le serveur, par `backup.sh`.
+
+**Non vérifié.** Aucune image n'a démarré : le backend `b14e7dd` avait été vérifié en local le 3 octobre, et la construction repart du même commit. Rien n'a tourné sur le serveur. Restent à relever : la cible de Nginx Proxy Manager, les autres conteneurs de `common_net`, la copie de la stack actuelle.
+
+#### 14 novembre 2026 — première sauvegarde et restauration réussies, `common_net` interne
+
+**Constaté.**
+
+- Dans la console de `amame-ops-backup`, `common_net` ne sort pas vers Internet : `Network unreachable`.
+- Portainer confirme `Internal: true` pour ce réseau.
+- Le backend actuel ne résout pas `smtp.gmail.com` : le site n'envoie aucun e-mail.
+- Nginx Proxy Manager envoie `amame.ml` vers `amame-frontend:80`.
+- Le réseau compte aussi deux conteneurs d'un autre projet, `sahel_academy_*`.
+- La phrase de chiffrement est rangée hors du serveur.
+- L'équipe a transmis le contenu de la stack actuelle, sans ses secrets.
+
+Détail dans les faits relevés.
+
+**Fait.**
+
+- `amame-ops` : second réseau `sortie`. Stack mise à jour par l'équipe, puis `backup.sh` (29 fichiers, dump de 224 Ko) et `restore-test.sh` réussis.
+- Deux critères de sortie de l'étape 0 cochés.
+- [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) : réseau `sortie` pour le backend ; port `3000:80` du frontend retiré (E41).
+- [ops/README.md](../ops/README.md) : note sur le réseau de sortie.
+
+- Ensuite, dans la console de `amame-ops-backup` : le port 587 sort vers Gmail (`220 smtp.gmail.com ESMTP`) ; `database` désigne un seul conteneur, mais **`backend` en désigne deux**, dont celui de l'autre projet. Les liens Docker sont ajoutés à `amamestack.yml` (E42). *Custom locations* de Nginx Proxy Manager : vide.
+- Action F : deux vérifications ajoutées après la mise à jour (`nslookup backend` depuis le frontend, `getent hosts smtp.gmail.com` depuis le backend).
+- [deploy/portainer/amamestack.env.example](../deploy/portainer/amamestack.env.example) et [deploy/portainer/amame-ops.env.example](../deploy/portainer/amame-ops.env.example), nouveaux : variables de chaque stack, sans secret, prêtes à remplir. Le `.env.example` de la racine avertit qu'il ne se charge pas dans Portainer.
+
+**Vérifié en local.**
+
+- `docker compose config` des trois fichiers de stack : réseaux, liens, volume `amamestack_database_data` inchangé, refus sans tag d'image.
+- Essais sur un réseau Docker **interne** jetable, avec l'image `frontend-v1.1` publiée et un « voisin » portant les mêmes noms :
+  - sans lien, 8 appels `/api/` sur 20 passent par le Nginx du frontend chez le voisin ; avec `links: [backend]`, 20 sur 20 arrivent chez AMAME ;
+  - le lien `database` d'un backend branché sur deux réseaux ne résout que la base d'AMAME, alors qu'un conteneur sans lien voit les deux ;
+  - un conteneur branché sur le réseau interne et sur un réseau ordinaire joint `smtp.gmail.com:587` ; branché sur le réseau interne seul, il n'a pas de route.
+
+**Non vérifié.** Rien n'a encore tourné sur le serveur avec `amamestack.yml` : les vérifications de l'action F le constateront.
+
+#### 15 novembre 2026 — mise à jour d'`amamestack` refusée par Portainer (YAML)
+
+**Constaté.**
+
+- Portainer refuse le contenu collé : `YAMLSyntaxError: Document contains trailing content not separated by a ... or --- line`. Un refus de ce type ne change aucun conteneur.
+- La version transmise par l'équipe différait du fichier du dépôt :
+  - en-tête de commentaires retiré ;
+  - la plupart des valeurs par défaut `${VAR:-…}` remplacées par `${VAR}`, entre autres `FRONTEND`, `COOKIE_*`, `JWT_EXPIRATION`, `MAIL_HOST`, `POSTGRES_USER` et `POSTGRES_DB` ;
+  - plus de refus explicite sans tag d'image.
+
+**Vérifié en local.**
+
+- Le fichier du dépôt et la version transmise sont tous deux du YAML valide pour `yaml` 1.10.2, `yaml` 2.6.0 et `js-yaml` 4.1.0.
+- Parmi douze défauts de collage essayés, seule une ligne de texte placée **avant** `services:` produit exactement ce message. Une ligne de trop à la fin, un contenu en double ou une clôture Markdown donnent d'autres messages.
+- En local, ce message vient d'une ligne présente au-dessus de `services:`, par exemple les 9 lignes de `amamestack.env.example` placées avant le YAML. L'action E.8 précise où saisir les variables.
+
+**Constaté ensuite.**
+
+- Cause donnée par l'équipe : un doublon dans le fichier `.env` des variables. Une fois le doublon retiré, l'erreur YAML a disparu. Cela corrige une lecture précédente de ce suivi, qui attribuait l'erreur à des variables collées dans l'éditeur.
+- Nouveau clic sur *Update the stack* : `Failure` — `Network Error`. Le navigateur n'a pas reçu la réponse de Portainer.
+
+- Précisé par l'équipe : le message apparaît **aussitôt** après le clic, et aucun conteneur n'est créé. La production n'a donc pas changé. La requête de mise à jour n'aboutit pas : soit quelque chose entre le navigateur et Portainer la coupe, soit Portainer échoue en la traitant. La mise à jour d'`amame-ops`, le 14 novembre, était passée par le même bouton.
+- Conséquence : l'action E.7 (mot de passe de la base) attend que la mise à jour passe.
+
+**Non vérifié.** Diagnostic demandé à l'équipe :
+
+- statut de la requête en échec dans l'onglet *Network* des outils du navigateur (F12), sans ouvrir son contenu, qui porte les secrets ;
+- heure de démarrage et journal du conteneur Portainer au moment du clic ;
+- adresse d'accès à Portainer (adresse et port, ou nom passant par Nginx Proxy Manager) et version de Portainer ;
+- mot de passe de la base déjà changé ou non.
+
+**Constaté ensuite par l'équipe.**
+
+- La mise à jour d'`amamestack` est passée. Les conteneurs ont été recréés, le site est accessible et les données sont présentes.
+- `Network Error` : il a suffi de recharger la page de Portainer dans le navigateur.
+- Le mot de passe de la base **n'a pas été changé** (action E.7) : la stack tourne avec le mot de passe actuel, et `amame-ops` reste valable sans l'action E.9. Le critère « Secrets changés » attend ce changement.
+- Vérifications de l'action F faites (détail dans l'action F). Le test des fichiers privés avec un nom inventé ne prouve rien : refait avec un fichier réel (action F).
+- `JWT_SECRET` et `MAIL_PASSWORD` sont des valeurs neuves (déclaré par l'équipe).
+- Fichiers privés retestés avec un fichier réel, en fenêtre privée : 404 par `/uploads/` et par `/amame-uploads/`. Critère coché.
+- Mot de passe de la base changé (actions E.7 puis E.9, stack `amamestack` remise à jour avec lui) ; `backup.sh` réussi ensuite.
+- E-mail « mot de passe oublié » reçu, et réinitialisation réussie : l'envoi SMTP par le réseau `sortie` fonctionne (E41). L'inscription fonctionne aussi. Ancien mot de passe d'application Gmail révoqué ensuite (action E.10 faite).
+- Critères « Secrets changés » et « inscription avec `role=SUPERADMIN` » constatés et cochés.
+- Critère « profil et fichiers d'un autre » : d'abord déclaré réussi. La sortie de la console, transmise ensuite, montre `401` sur `/api/auth/me` puis sur chaque appel : le navigateur n'était pas connecté (pas de session, ou jeton d'accès de 15 minutes expiré, que `fetch` ne renouvelle pas, contrairement au site). Critère non coché ; essai à refaire avec un script qui renouvelle la session et s'arrête s'il n'est pas connecté en `USER`. L'étape 0 en est à 5 critères sur 8.
+- Limite de débit à l'inscription : 10 requêtes vides rapprochées donnent 6 × `400` (formulaire refusé, aucun compte créé), puis `429`. Conforme à `rate=5r/m burst=5`. L'adresse enregistrée dans le journal d'`amame-frontend` reste à relever (relevée le 16 novembre : celle du visiteur, voir le journal de ce jour).
+- Restent, pour l'étape 0 : l'adresse du journal (action F) ; l'essai d'accès, à refaire ; le poids de l'accueil ; Portainer et l'administration de Nginx Proxy Manager non joignables depuis Internet (action E.1).
+- Leçon : cocher un critère sur la sortie transmise, pas sur un « oui ».
+
+#### 16 novembre 2026 — essai d'accès aux données d'un autre utilisateur, refait connecté
+
+**Constaté** (sortie de la console transmise par l'équipe).
+
+- Le script a vérifié la session avant de commencer : connecté en compte `39`, rôle `USER`.
+- Profils : `GET /api/user/{id}` pour les identifiants 1 à 200 donne `403` partout, sauf pour le profil `39`. Conforme.
+- Fichiers : `GET /api/user/files/{id}` donne `403` ou `404`, sauf pour **quatre fichiers lisibles : 5, 7, 12 et 13**.
+
+**Lecture du code** (`backend-v1.1`, `PrivateFileController`). Un fichier privé n'est rendu qu'à son propriétaire, d'après la table `users_files`, ou à un titulaire de `USER_READ_ALL`. Le compte 39 n'a pas `USER_READ_ALL` : sinon, les autres profils lui seraient lisibles. Ces quatre fichiers sont donc rattachés au compte 39 dans `users_files`, où chaque fichier n'a qu'un seul propriétaire (`UNIQUE (files_id)`).
+
+**Non vérifié.** On ne sait pas encore si le compte 39 est le compte de test, créé sans fichier, ou un compte réel qui possède ces fichiers. Requêtes demandées à l'équipe dans la console d'`amame-database`, sans donnée personnelle en sortie : fichiers rattachés au compte 39, et propriétaire des fichiers 5, 7, 12 et 13. Le critère reste décoché jusqu'à ce résultat. Si les quatre fichiers ne sont pas ceux du compte 39, c'est une fuite, à traiter avant toute autre action.
+
+**Constaté ensuite** (requêtes transmises).
+
+- Le compte 39 est bien le compte de test, et il ne possède **aucun** fichier (`{NULL}`).
+- Les fichiers 5, 7, 12 et 13 appartiennent aux comptes 1, 2, 12 et 13.
+- Un compte `USER` a donc obtenu `200` sur les fichiers de quatre autres comptes.
+
+**Hypothèse, non vérifiée** : le cache HTTP du navigateur, et non le serveur.
+
+- Le code refuse ces fichiers au compte 39, puisque `existsByIdAndFiles_Id(39, …)` est faux. Aucune autre route ne répond sur `/api/user/files/`, et le service worker n'y touche pas (`NetworkOnly`).
+- Mais une **photo** privée part avec `Cache-Control: private, max-age=3600` (`PrivateFileController`, même code sur `main`). Le navigateur la garde une heure sous son URL, quel que soit le compte connecté.
+- Si ce navigateur avait affiché ces photos plus tôt, sous un compte administrateur, un `fetch` les ressert depuis son cache sans interroger le serveur.
+
+**Vérification demandée** : relancer la lecture de ces quatre fichiers avec et sans cache (`cache: 'no-store'`), et relever le type de ces fichiers dans `file_entity`. Si les réponses sans cache sont `403`, le serveur est sain. Reste alors un défaut de moindre portée, à corriger dans le code : sur un ordinateur partagé, une photo privée vue par un compte reste lisible par le compte suivant, pendant une heure, dans le même navigateur. Correctif envisagé : `no-store` ou `private, no-cache` pour les photos privées, et `Clear-Site-Data: "cache"` à la déconnexion. Si une réponse sans cache est `200`, la fuite vient du serveur : à traiter avant toute autre action.
+
+**Constaté ensuite** (sortie transmise) : connecté en `39 USER`, pour les fichiers 5, 7, 12 et 13, `normal 200 / sans cache 403` à chaque fois. Les quatre sont de type `IMAGE`. Le navigateur avait servi plus tôt sous le compte Super Admin. **Hypothèse confirmée : le serveur refuse, les `200` venaient du cache HTTP du navigateur.** Critère coché côté serveur.
+
+**Vérifié dans le code** (`backend-v1.1` et `main`), un second point du même ordre. Le service worker garde dans son cache `api-cache` toutes les réponses `GET /api/*`, sauf les fichiers privés : profil connecté (`/api/auth/me`), listes de l'administration, adhésions… Il les garde 24 heures (50 entrées, règle `NetworkFirst` de [frontend/vite.config.ts](../frontend/vite.config.ts)). Workbox ne tient pas compte du `Cache-Control: no-store` posé par Nginx sur `/api/`. Après une déconnexion, ces réponses restent lisibles dans le navigateur (outils de développement → *Application* → *Cache storage*), et le service worker les ressert hors ligne. Voir E44.
+
+**Constaté ensuite.**
+
+- Dans le navigateur utilisé sous Super Admin, `api-cache` contient `/api/admin/users` (pages 1 à 3), `/api/auth/me`, `/api/user/39` et les listes publiques `/api/visitor/…`. Second point confirmé en production.
+- Accès à Portainer en HTTPS (déclaré par l'équipe).
+- Décision de l'équipe : correctif `v1.1.1` (option A).
+
+#### 16 novembre 2026 — correctif `v1.1.1` : rien de privé dans le cache du navigateur (E44)
+
+**Fait.**
+
+- Branche locale `correctif/v1.1.1`, partie de `b14e7dd` (le code en production), dans une copie de travail séparée. **Commit `b548a4a`**, autorisé par l'équipe après l'essai local. La branche n'est pas poussée sur GitHub.
+- Mêmes changements reportés dans `main`, non commités. Ils ne diffèrent de la branche que par les fins de ligne.
+- Images `backend-v1.1.1` et `frontend-v1.1.1` construites, essayées puis **publiées** (empreintes à l'action D). Après le commit, elles ont été reconstruites pour porter la révision `b548a4a`. Leurs couches sont identiques, une à une, à celles de l'image essayée : seule l'étiquette change.
+- [deploy/portainer/amamestack.env.example](../deploy/portainer/amamestack.env.example) passe aux tags `v1.1.1`.
+- Fichiers :
+  - `PrivateFileController` : `Cache-Control: no-store` pour tout fichier privé, photo comprise (au lieu de `private, max-age=3600` pour une photo) ;
+  - `PrivateFileControllerTest` : le test de la photo attend `no-store` ;
+  - `frontend/vite.config.ts` : le service worker ne garde plus que `/api/visitor/` (cache `api-public`), et tout autre `/api/` est en `NetworkOnly` ;
+  - `frontend/src/utils/privateCaches.ts` (nouveau) : supprime l'ancien `api-cache` ;
+  - appel de cette purge au démarrage, dans `frontend/src/main.tsx`, et à la déconnexion, dans `frontend/src/service/userService.ts`, même si l'appel de déconnexion échoue.
+
+**Vérifié en local**, sur la branche comme sur `main` :
+
+- `PrivateFileControllerTest` : 8 tests, aucun échec ;
+- `npx tsc --noEmit` sans erreur ;
+- `npm run build` réussi ;
+- `dist/sw.js` déclare, dans cet ordre : `/api/user/files/` `NetworkOnly`, `/api/visitor/` `NetworkFirst` (`api-public`), `/api/` `NetworkOnly`.
+
+**Non vérifié.**
+
+- ESLint ne tourne pas sur `b14e7dd`. Il plante au chargement de la règle `@typescript-eslint/no-unused-expressions`, sur un fichier non modifié (`App.tsx`) comme sur les fichiers changés. C'est un défaut d'outillage antérieur au correctif.
+- Comportement dans un vrai navigateur (purge d'`api-cache`, contenu de *Cache storage*) : à constater en production (point 3 ci-dessous).
+
+**Vérifié ensuite par un essai de bout en bout**, avec les images construites, sur une stack jetable `amame-e1-v111` (PostgreSQL 15, backend en profil `prod`, frontend). 16 vérifications sur 16 :
+
+- deux comptes inscrits : A avec une photo, B sans fichier ;
+- A lit sa photo : `200`, `Cache-Control: no-store`, contenu identique ;
+- B reçoit `403` sur la photo de A, un anonyme `401` ;
+- le `sw.js` servi par l'image déclare `api-public` et deux règles `NetworkOnly`, sans plus aucun `api-cache` ;
+- le code de l'application contient la purge d'`api-cache` ;
+- l'accueil et la liste publique des bourses répondent `200`, et la déconnexion aussi.
+
+La stack jetable est supprimée ensuite (`down -v`).
+
+**Déploiement** (action de l'équipe) :
+
+1. Recharger la page de Portainer.
+2. Dans Stacks → `amamestack`, variables `BACKEND_IMAGE_TAG=backend-v1.1.1` et `FRONTEND_IMAGE_TAG=frontend-v1.1.1`, puis *Update the stack*. *Re-pull image* n'est pas nécessaire : les tags sont neufs.
+3. Vérifier :
+   - les trois conteneurs sont *running*, et le journal du backend se termine par `Started SiteAmameApplication` ;
+   - le site s'affiche ;
+   - connecté en administrateur dans une fenêtre normale, après avoir ouvert Utilisateurs : F12 → *Application* → *Cache storage* ne contient plus `api-cache`, et `api-public` ne contient que des adresses `/api/visitor/…` ;
+   - dans *Network*, la réponse d'une photo `/api/user/files/<id>` porte `Cache-Control: no-store` ;
+   - après déconnexion, toujours pas d'`api-cache`.
+4. Retour arrière : remettre les tags `backend-v1.1` et `frontend-v1.1`, puis *Update the stack*.
+
+**Déployé le 16 novembre 2026** par l'équipe (stack mise à jour en `v1.1.1`, selon l'équipe). Le journal transmis montre `Started SiteAmameApplication in 71.171 seconds` à 12:00:55 UTC. **Constaté dans le navigateur le 16 novembre** (sortie transmise par l'équipe, connecté en administrateur, page Utilisateurs) :
+
+- caches : `workbox-precache-v2-https://amame.ml/` et `amame-images-cache`. **Plus d'`api-cache`** ;
+- photo `/api/user/files/5` : `200`, **`Cache-Control: no-store`**.
+
+E44 est donc corrigé en production : ni le cache HTTP ni le service worker ne gardent de données privées. Deux contrôles prévus n'ont pas été faits, et ne changent pas la conclusion :
+
+- **Pas d'`api-public` dans la liste** : aucune réponse `/api/visitor/…` n'est passée par le service worker pendant cette visite. Ce cache ne contient de toute façon que des données publiques.
+- **Le contrôle après déconnexion** : il n'apporte rien quand `api-cache` est déjà absent pendant la session. La purge à la déconnexion ne sert qu'à effacer l'ancien cache, et ce cache n'existe plus.
+
+#### 16 novembre 2026 — suppression du compte de test depuis l'administration
+
+**Signalé par l'équipe** : la suppression du compte de test (39) pose problème.
+
+**Cause confirmée par le journal du backend**, après le passage en `v1.1.1` (12:02:21 UTC) : `delete from users where id=39` refusé, `violates foreign key constraint "fkjtx87i0jvq2svedphegvdwcuy" on table "refresh_token"`, `Key (id)=(39) is still referenced from table "refresh_token"`. C'est le constat C7, désormais vu en production. Le correctif `v1.1.1` ne pouvait pas le corriger : il ne touche que le cache (E44), et le code en production n'a pas encore de migrations Flyway (elles arrivent avec l'étape 1, V4 avec l'étape 2).
+
+**Pas de second correctif** : la suppression d'un compte reste rare. Le compte de test est supprimé à la main ci-dessous. Un vrai compte attend l'étape 2, dont la règle (E28) conserve l'historique détaché du compte. Le refaire à la main, compte par compte, serait sujet à erreur.
+
+**Lecture du code** :
+
+- En production (`b14e7dd`), `UserService.deleteUser` appelle `deleteById` seul.
+- Or `refresh_token` et `password_reset_tokens` référencent `users(id)` sans `ON DELETE CASCADE`. Hibernate ne supprime pas ces jetons, qui ne sont pas des collections de `User`.
+- Tout compte qui s'est déjà connecté ne peut donc pas être supprimé : la base refuse au nom de la clé étrangère.
+- C'est corrigé dans `main` par la migration V4 (étape 2 : jetons supprimés en cascade, adhésions, cotisations et dons détachés). L'étape 2 n'est pas déployée.
+
+**Contournement proposé**, pour le seul compte de test :
+
+1. Compter dans la console d'`amame-database` les lignes qui le référencent.
+2. Si seuls des jetons apparaissent, les supprimer dans une transaction gardée par l'adresse du compte.
+3. Supprimer ensuite le compte depuis l'administration.
+
+**Fait le 16 novembre 2026** (sorties transmises par l'équipe) :
+
+- comptage : `refresh_token` 1, toutes les autres tables 0 (`password_reset_tokens`, `adhesions`, `cotisations`, `dons`, `user_permission`, `file_entity`) ;
+- transaction : `BEGIN`, `DELETE 1` (le jeton), `DELETE 0`, `COMMIT` ;
+- le compte 39 a ensuite été supprimé depuis l'administration, selon l'équipe.
+
+Cela confirme que le seul obstacle était le jeton de session, comme l'annonçait C7. Le compte de test n'existe plus en production.
+
+#### 16 novembre 2026 — limite de débit de l'inscription, nouvel essai sous `v1.1.1`
+
+Les journaux du 15 novembre ont disparu avec la recréation des conteneurs : l'adresse enregistrée lors d'un refus `429` devait être relevée sur un nouvel essai.
+
+**Constaté par l'équipe** (sortie de la console, 12:25:22 UTC, fenêtre privée, sans connexion) : 10 envois rapprochés donnent `500 500 429 429 500 429 429 429 429 429`.
+
+- **Les `500`** viennent du script, pas du correctif. Il envoyait un formulaire vide, sans la partie `user`, alors que celui du 15 novembre envoyait `user` = `{}` (réponse `400`). L'absence de cette partie lève `MissingServletRequestPartException`, que le gestionnaire générique transforme en `500` (constat C11). Aucun compte n'est créé.
+- **Seuls 3 envois sont passés au lieu de 6** : le quota de cette adresse était déjà à moitié consommé avant l'essai. Le 3ᵉ envoi est refusé et le 5ᵉ passe, ce qui correspond à une place libérée toutes les 12 s (`rate=5r/m`). Deux explications sont possibles : un essai lancé juste avant depuis la même connexion, ou un quota partagé par tous les visiteurs, si l'adresse retenue est celle du proxy. Le journal d'`amame-frontend` permet de trancher.
+
+**Constaté dans le journal d'`amame-frontend`** transmis par l'équipe (12:01 à 12:54 UTC) :
+
+- **L'adresse enregistrée est celle du visiteur.** Les lignes `limiting requests … client:` portent l'adresse publique du poste de test, la même que dans le champ `X-Forwarded-For` et que dans toutes les actions de l'administrateur faites depuis ce poste. Deux robots du même intervalle ont chacun leur propre adresse (`POST /xmlrpc.php` → `405`, `GET /api/session/properties` → `401`). Le quota est donc individuel, et `set_real_ip_from` n'a pas à changer.
+- **Le script a été lancé deux fois** (confirmé par l'équipe). Premier lancement, 12:24:45-46 : 6 envois passent (`500`), puis 4 refus `429`, exactement `rate=5r/m burst=5`. Second lancement, 35 s plus tard : le quota n'avait regagné que 3 places environ, d'où le résultat partiel. Rien d'anormal.
+
+La vérification « limitation de débit par visiteur » de l'étape 0 est donc faite en entier.
+
+**Autres constats du même journal :**
+
+- **Avatar de la Navbar** : `GET /a-propos/uploads/utilisateur/<uuid>.jpg` et `/orientation/uploads/…` reçoivent `200` de 1 766 octets. C'est `index.html` (même taille que `GET /`), pas la photo. La Navbar de `v1.1` construit l'adresse depuis `imagePath`, une adresse relative à la page courante, et l'avatar est cassé. C'est le constat B01 F1, corrigé dans `main` (étape 1, la Navbar lit `imageUrl`). Pas de fuite : `/uploads/utilisateur/…` répond `404`.
+- **Ancien fichier JavaScript demandé après le déploiement** (constat C12) : à 12:01:55, `open() "/usr/share/nginx/html/assets/LayoutAdmin-B8YmbZu6.js" failed`.
+- **Session administrateur coupée au bout de 15 minutes** (à confirmer) : à 12:23:52, 22 minutes après la connexion de 12:01:52, `GET /api/admin/users` → `401`, puis `POST /api/auth/refresh` → `401`. Aucune déconnexion n'est passée entre-temps. Le même cas s'est produit à 12:01:41 pour la session ouverte avant le déploiement.
+  - Le corps de ces `401` fait 164 octets, contre 162 pour le `401` d'une fenêtre privée sans cookie (« Refresh token absent »). Les deux viennent du même gestionnaire : un message plus long de 2 octets, répété deux fois dans la réponse, correspond à « Refresh token expiré ». « invalide » donnerait +4, « révoqué » +6.
+  - Or la durée par défaut est de 7 jours (`JWT_REFRESH_EXPIRATION=604800000`, en millisecondes). Hypothèse : une valeur plus courte est définie dans les variables de la stack `amamestack`, par exemple `604800` (des secondes lues comme des millisecondes, soit 10 minutes). Un fuseau horaire décalé ne suffirait pas à expliquer l'écart : il serait au plus de 14 heures.
+  - Vérification demandée à l'équipe : `printenv JWT_REFRESH_EXPIRATION` dans la console d'`amame-backend`, et la durée réelle des derniers jetons dans `refresh_token` (`expiry_date - created_at`, sans la colonne `token`).
+  - **Hypothèse de la variable réfutée le même jour** (sorties transmises par l'équipe). `JWT_REFRESH_EXPIRATION=604800000` et `JWT_EXPIRATION=900000`. Les trois derniers jetons (09:03:51, 12:01:52, 13:10:14) durent `6 days 23:59:59.99…` et ne sont pas révoqués.
+  - Le jeton de 12:01:52 n'a jamais été renouvelé : sinon il serait révoqué, et un nouveau jeton serait apparu à 12:23. Le jeton de 13:10:14 correspond à une nouvelle connexion, après la coupure de 12:54.
+  - **Nouvelle hypothèse** : le navigateur envoie un **ancien** cookie `refresh_token`, dont le jeton existe encore en base mais a expiré. Il le ferait parce qu'il garde deux cookies de ce nom avec un domaine ou un chemin différents, et que `extractRefreshTokenFromCookies` prend le premier. Cela suppose aussi que le nettoyage des jetons expirés (`cleanupExpiredTokens`, au démarrage puis toutes les 24 h) n'a pas effacé ce jeton.
+  - Vérifications demandées : la liste des cookies du site dans le navigateur de l'administrateur (nom, domaine, chemin, expiration, **jamais la valeur**), et les jetons expirés encore présents dans `refresh_token`.
+  - **Cookies relevés vers 13:35** (transmis par l'équipe, sans les valeurs) : un seul `access_token` (domaine `amame.ml`, chemin `/`, expire à 13:46:39) et un seul `refresh_token` (domaine `amame.ml`, chemin `/api/auth`, expire le 23 novembre à 13:31:39). Il n'y a donc plus de doublon au moment du relevé, et les deux cookies datent de 13:31:39.
+  - **Indice** : le domaine s'affiche `amame.ml`, sans point. Chrome affiche `.amame.ml` quand le serveur fixe le domaine. Le backend ne le fixe donc plus, alors que l'ancienne production le fixait à `.amame.ml` (relevé du 9 novembre).
+  - **Hypothèse retenue, à confirmer** : le domaine des cookies a changé avec `v1.1`, le 15 novembre. Un navigateur connecté avant cette date garde l'ancien cookie `.amame.ml`, que la nouvelle version ne peut ni remplacer ni effacer, puisque ce n'est pas le même cookie pour le navigateur. À chaque renouvellement, le navigateur l'envoie en premier (même chemin, cookie plus ancien), et le serveur le refuse. Ce cookie disparaît seul, 7 jours après avoir été posé. Posé le 9 novembre, il aurait expiré aujourd'hui, entre 12:54 et le relevé de 13:35.
+  - Vérifications demandées : `printenv COOKIE_DOMAIN` dans la console d'`amame-backend`, puis un renouvellement observé dans l'onglet *Network*, après l'expiration de l'`access_token` (statut, et en cas de `401` le champ `message` de la réponse).
+
+**Vérifié en local.** `git ls-files` ne suit aucun `.env` (seulement `.env.example`) et rien sous `backend/uploads/`. Le `.gitignore` ignore aussi `*.env`, pour qu'une copie remplie d'un modèle de `deploy/portainer/` ne soit jamais commitée par erreur. Les modèles `*.env.example` restent suivis.
+
+#### 16 novembre 2026 — étape 1 : images `v1.2` avec le correctif E44, passage `v1.1.1` → `v1.2` essayé en local
+
+À la demande de l'équipe (« passons à l'étape suivante »), l'étape 1 commence. La session coupée au bout de 15 minutes et E43 restent ouverts, à reprendre ensuite.
+
+**Fait :**
+
+- Dossier de travail séparé, détaché sur `5c62c07`. Le correctif `b548a4a` y est appliqué **sans commit** (`git cherry-pick --no-commit`). Seul conflit : `frontend/vite.config.ts`, résolu à l'identique de `main` (écart E45).
+- Images `backend-v1.2` et `frontend-v1.2` construites, avec l'étiquette `org.opencontainers.image.revision=5c62c07+correctif-E44-non-commité`. **Ni commitées ni publiées** : il faut l'autorisation de l'équipe.
+- Action G.1 remplacée par une requête d'empreintes (écart E46). Empreintes de V1 calculées en local, puis commande envoyée à l'équipe.
+
+**Vérifié en local :**
+
+- `PrivateFileControllerTest` sur le code de l'étape 1 corrigé : 8 tests, aucun échec.
+- **Essai de bout en bout**, stack jetable `amame-e1-v12`, mêmes variables que [deploy/portainer/amamestack.yml](../deploy/portainer/amamestack.yml) : **38 vérifications, 0 échec**.
+  - **Phase A** : `backend-v1.1.1` et `frontend-v1.1.1` créent le schéma (Hibernate, comme la production actuelle). Puis deux comptes, l'un avec photo, et un administrateur de départ.
+  - **Phase B** : passage en `v1.2` sur la même base et les mêmes fichiers.
+  - Flyway : `Successfully baselined schema with version: 1`, puis `Schema "public" is up to date`, sans erreur `Schema-validation`. Le premier administrateur n'est pas recréé.
+  - Frontend : `config.js` écrit au démarrage (`mediaBaseUrl` vide), servi en `no-store`, et hors précache.
+  - Comptes créés sous `v1.1.1` : connexion possible. La photo d'avant le passage est relue à l'identique, en `no-store`. Un autre compte reçoit `403`, un anonyme est refusé.
+  - Renouvellement de session (`POST /api/auth/refresh` avec le cookie de connexion) : `200`, avec un nouvel `access_token`.
+  - Service worker : `api-public`, deux règles `NetworkOnly`, plus d'`api-cache`. La purge d'`api-cache` est présente dans l'application.
+  - Accueil et 7 listes publiques : `200`. Administrateur : liste des utilisateurs `200`. Un concours créé sans fichier apparaît dans la liste publique, et sa page répond `200`.
+  - Mémoire du backend : 376 Mio sur 512 en fin d'essai.
+- Empreintes : le schéma créé par `backend-v1.1.1` est identique à V1 sur les 25 tables, une fois les `CHECK` normalisées. Sans normalisation, 8 tables diffèrent par la seule écriture de ces contraintes.
+- Les stacks jetables sont supprimées ensuite (`amame-e1-*` seulement).
+
+**Non vérifié :**
+
+- le schéma réel de la production (empreintes demandées à l'équipe) ;
+- le comportement dans un vrai navigateur. L'essai passe par `curl` et lit `sw.js` : le service worker n'est pas exécuté ;
+- la suite de tests complète (`./mvnw test`) sur ce code corrigé. Seul le test du contrôleur modifié a tourné, et le code de l'étape 1 n'a pas changé ailleurs depuis la suite complète du 8 novembre.
+
+**Relevés de l'équipe, même jour :**
+
+- **Empreintes du schéma de production** (action G.1, écart E46) : **22 tables sur 25 identiques à V1**. Trois diffèrent :
+  - `bourse` : colonnes, contraintes, index et noms. La structure diffère ;
+  - `users` et `user_permission` : contraintes seulement, avec les mêmes noms. Probablement une liste `CHECK` de valeurs plus ancienne.
+
+  Détail transmis le même jour : voir l'écart E47 (`bourse` créée par l'ancien scraper ; `VISITOR` et `ADHESION_MANAGE` absents des deux listes `CHECK`).
+- **Mémoire d'`amame-backend`** (`v1.1.1`, démarré à 12:00:55, relevé vers 14:00) : `memory.current` 534 Mio pour une limite de 768 Mio ; `memory.stat` : `anon` 554 020 864 octets (**528 Mio**), `file` 2,5 Mio. Le chiffre comparable à `docker stats` est donc d'environ **532 Mio**, contre 482 mesurés en local pour `v1.1` sous charge : la production consomme environ 50 Mio de plus que l'essai. Voir l'écart E48 pour la limite de `backend-v1.2`.
+
+**Suite, même jour (écart E47)** :
+
+- [V1__baseline.sql](../backend/src/main/resources/db/migration/V1__baseline.sql) corrigée et [V1_1__enum_check_constraints.sql](../backend/src/main/resources/db/migration/V1_1__enum_check_constraints.sql) ajoutée, dans `main` et dans le dossier de travail `v1.2` (fichiers identiques). [CLAUDE.md](../CLAUDE.md) précise la règle de V1 et celle des énumérations.
+- [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java), dans les deux copies : nouveau test `enumCheckConstraintsListEveryValueOfTheCode`. Il vérifie que les deux contraintes listent toutes les valeurs de `RoleType` et de `Permission`. Dans la copie `v1.2`, la version attendue passe de `1` à `1.1`.
+- Image `backend-v1.2` reconstruite (révision `5c62c07+correctif-E44+E47-non-commité`). `frontend-v1.2` ne change pas.
+
+**Vérifié en local :**
+
+- V1 corrigée sur une base neuve : les 25 empreintes de la production à l'identique.
+- Tests Testcontainers :
+  - `main` : `SiteAmameApplicationTests` et `FileLifecycleIntegrationTest`, 6 tests, puis `SiteAmameApplicationTests` seul, 3 tests, avec le nouveau test. Chaîne complète V1 → V1_1 → V2 → V3 → V4 ;
+  - copie `v1.2` : `SiteAmameApplicationTests`, 3 tests.
+  - Aucun échec. Le premier essai de la copie `v1.2` échouait comme attendu, sur la version `1` au lieu de `1.1`.
+- **Essai de bout en bout n° 2** : **47 vérifications, 0 échec**.
+  - **Phase A** : la base est créée par V1 corrigée, donc à la structure de la production (empreintes vérifiées), puis `v1.1.1` (`ddl-auto=update`) n'y change rien. Sous `v1.1.1`, l'octroi d'`ARTICLE_CREATE` répond `200`. L'octroi d'`ADHESION_MANAGE` répond `500` (`violates check constraint "user_permission_permission_check"`) : le défaut de production est reproduit.
+  - **Phase B** : `v1.2` pose la baseline en V1, applique `1.1 - enum check constraints` (« Successfully applied 1 migration … now at version v1.1 »), et valide le schéma. Historique Flyway : `1 BASELINE`, `1.1 SQL`. Schéma final identique à V1 corrigée + V1_1 sur une base neuve.
+  - L'octroi d'`ADHESION_MANAGE` répond `200` et la permission est enregistrée. Une bourse créée par l'administration reçoit sa clé de la séquence.
+  - Les 38 vérifications du premier essai repassent (fichiers, cache, session, listes, concours sans fichier). Mémoire du backend : 378 Mio sur 512.
+- Séquences de V1 + V1_1 (`pg_sequences`) : 19, toutes `bigint`, pas de 1.
+
+**Non vérifié :**
+
+- le type de `bourse_id_seq` en production (`SERIAL` donnerait `integer`), demandé à l'équipe : les empreintes ne couvrent pas les séquences ;
+- le comportement dans un vrai navigateur ;
+- la suite de tests complète sur la copie `v1.2` : seuls `SiteAmameApplicationTests` et `PrivateFileControllerTest` y ont tourné.
+
+**Commit et publication, même jour, avec l'autorisation de l'équipe** :
+
+- Branche locale `deploiement/v1.2` : `0d39229` (correctif E44 repris de `b548a4a`), puis `3baba45` (E47). Non poussée sur GitHub.
+- Images reconstruites avec la révision `3baba45`. Leurs couches sont identiques à celles des images essayées. Publiées (empreintes à l'action D).
+- [deploy/portainer/amamestack.env.example](../deploy/portainer/amamestack.env.example) passe aux tags `v1.2`. Le commentaire de la limite mémoire d'[amamestack.yml](../deploy/portainer/amamestack.yml) cite E48 ; ce n'est qu'un commentaire, rien à recoller dans Portainer.
+
+**Retour arrière essayé en local** : `backend-v1.1.1` démarre sur une base passée par V1 corrigée et `V1_1`, avec l'historique Flyway en `1.1`. L'inscription (`201`) et la liste des bourses (`200`) fonctionnent, et l'empreinte du schéma ne change pas. Les listes `CHECK` élargies restent en place, sans effet sur l'ancienne version.
+
+**Empreintes attendues en production après le déploiement** :
+
+- `users` : `a4a455db | 08cec326 | d898bdd8 | 39625f50` ;
+- `user_permission` : `231a0848 | 25a11ac3 | 8cfabd61 | 91b915f6` ;
+- les 23 autres tables inchangées, dont `bourse` : `321922c9 | 061a29b2 | 0d1c31dd | 81624f77`.
+
+#### 16 novembre 2026 — déploiement de `v1.2` : le backend refuse de démarrer
+
+**Constaté** (journal d'`amame-backend`, 17:25 UTC) :
+
+- `APPLICATION FAILED TO START` sur `spring.datasource.hikari.minimum-idle`, valeur `${DB_POOL_MIN_IDLE:0}` : « A null value cannot be assigned to a primitive type ».
+- L'échec survient à la lecture des réglages du pool, avant toute connexion à la base. Flyway n'a donc pas tourné et la base n'a pas changé (vérification demandée).
+
+**Cause** (écart E49) :
+
+- La stack en production n'est pas [amamestack.yml](../deploy/portainer/amamestack.yml). C'est la version de l'équipe, relevée le 15 novembre, où les valeurs par défaut `${VAR:-…}` sont remplacées par `${VAR}`. Une variable que Portainer ne définit pas arrive donc **vide** dans le conteneur.
+- Pour Spring, une variable vide n'est pas une variable absente. La valeur par défaut de `${DB_POOL_MIN_IDLE:0}` ne s'applique pas, et une chaîne vide ne se convertit pas en nombre.
+- `backend-v1.1.1` ne lit pas les variables apparues à l'étape 1 : leur valeur vide ne se voyait pas.
+- Défaut de vérification de ma part :
+  - l'essai n° 2 passait les valeurs en clair, sans le fichier de production ni la version de l'équipe ;
+  - la procédure disait de ne pas toucher au fichier de la stack, sans tenir compte du relevé du 15 novembre.
+
+**Variables lues par `backend-v1.2` qu'une valeur vide empêche de démarrer** (lecture du code) :
+
+- les quatre `DB_POOL_*` ;
+- `STORAGE_PROVIDER` : plus aucun stockage de fichiers n'est créé ;
+- `PUBLIC_LISTS_CACHE_TTL` : durée nulle à la création du cache ;
+- `AUTH_TOKEN_CLEANUP_SCHEDULE` : tâche planifiée sans horaire ;
+- les cinq `DATABASE_*`.
+
+**Lien probable avec la session coupée.** Une variable d'environnement l'emporte sur les fichiers de propriétés. Un `COOKIE_DOMAIN` vide remplace donc `cookie.domain=.amame.ml` du profil `prod`, et les cookies sont posés sans domaine : ce sont ceux relevés le 16 novembre. À confirmer par le relevé ci-dessous.
+
+**Demandé à l'équipe** :
+
+- remettre les tags `v1.1.1` ;
+- constater que la base n'a pas changé : pas de table `flyway_schema_history` ;
+- relever, dans la console d'`amame-backend` revenu en `v1.1.1`, les variables qu'il reçoit. Les secrets sont masqués : seul « DEFINIE », « VIDE » ou « ABSENTE » s'affiche. La commande, essayée dans l'image `backend-v1.1.1`, est dans `scratchpad/etape1/commande-variables.txt`.
+
+**Non vérifié.** Les valeurs effectives en production. La correction attend ce relevé : recoller le fichier du dépôt, ou compléter les variables de la stack.
+
+**Constaté ensuite par l'équipe.**
+
+- Base inchangée : `flyway_schema_history` est absente.
+- Le relevé des variables a tourné dans la console d'`amame-database`, et non dans celle d'`amame-backend` : même invite que la commande `psql`. Tout y est « ABSENTE », `JWT_SECRET` compris, ce qu'aucun backend en marche ne peut avoir. Relevé à refaire dans la console d'`amame-backend`.
+
+**Relevé des variables d'`amame-backend`** (`v1.1.1`, même jour, secrets masqués).
+
+- Seules quatre valeurs sont vides, alors que le fichier du dépôt leur donne une valeur par défaut :
+  - `DB_POOL_MIN_IDLE`, cause de l'échec ;
+  - `DATABASE_PASSWORD`, qui ferait échouer la connexion de l'application après la migration (Flyway, lui, utilise `DATABASE_MIGRATION_PASSWORD`, définie) ;
+  - `COOKIE_DOMAIN` ;
+  - `MAIL_DEBUG`, sans effet : `spring.mail.debug` n'est pas une propriété que Spring Boot lit, en `v1.1.1` comme en `v1.2`.
+- Les autres variables lues par `v1.2` ont la valeur du fichier du dépôt : `DATABASE_URL` vaut `jdbc:postgresql://database:5432/amame_db`, `DATABASE_USERNAME` et `DATABASE_MIGRATION_USERNAME` valent `postgres`, et les trois autres `DB_POOL_*`, `STORAGE_PROVIDER`, `PUBLIC_LISTS_CACHE_TTL`, `AUTH_TOKEN_CLEANUP_SCHEDULE`, `JWT_*`, `FRONTEND`, `COOKIE_SECURE`, `MAIL_HOST` et `MAIL_PORT` sont conformes.
+- `MEDIA_BASE_URL` et `BOOTSTRAP_ADMIN_*` sont vides, comme prévu.
+
+**`COOKIE_DOMAIN` vide** (écart E50) :
+
+- Une variable d'environnement l'emporte sur les fichiers de propriétés. La valeur vide remplace donc `cookie.domain=.amame.ml` du profil `prod` : les cookies sont posés sans domaine depuis la mise à jour du 15 novembre. C'est ce qu'a montré le relevé des cookies du 16 novembre.
+- `.env.example` porte `COOKIE_DOMAIN=` vide, la valeur du développement local : c'est l'origine probable.
+- Cela n'explique pas, à lui seul, la session coupée : le navigateur relevé n'avait aucun cookie restant de l'ancien domaine.
+
+**Décision proposée.**
+
+- Corriger seulement `DB_POOL_MIN_IDLE=0` et `DATABASE_PASSWORD`, qui doit valoir le mot de passe actuel de la base, dans les variables de la stack. La version de l'équipe reste en place : une seule modification à la fois.
+- Ne pas toucher `COOKIE_DOMAIN` dans ce déploiement. Revenir à `.amame.ml` changerait le domaine de tous les cookies posés depuis le 15 novembre. Un navigateur garderait alors deux `refresh_token`, et le backend ne lit que le premier, qui peut être le périmé. À décider avec l'enquête sur la session, et le correctif du code qui lit tous les cookies.
+- Procéder en deux mises à jour :
+  - d'abord les variables seules, tags toujours en `v1.1.1`, qui ne lit aucune des deux. Puis vérifier dans la console, sans afficher les secrets, que plus aucune variable de `v1.2` n'est vide et que les deux mots de passe égalent celui avec lequel `v1.1.1` se connecte (`SPRING_DATASOURCE_PASSWORD`) ;
+  - ensuite seulement les tags `v1.2`.
+
+**Variables corrigées, constaté par l'équipe** (console d'`amame-backend`, `v1.1.1`, même jour) :
+
+- aucune des douze variables critiques de `v1.2` n'est vide ;
+- `DB_POOL_MIN_IDLE=[0]` ;
+- `DATABASE_PASSWORD` et `DATABASE_MIGRATION_PASSWORD` sont identiques au mot de passe avec lequel `v1.1.1` se connecte.
+
+Les deux autres variables vides, `COOKIE_DOMAIN` et `MAIL_DEBUG`, sont laissées telles quelles. Prochaine action : `backup.sh`, puis les tags `v1.2`.
+
+#### 16 novembre 2026 — `v1.2` en production, deuxième tentative
+
+**Constaté** (journal d'`amame-backend`, collé par l'équipe) :
+
+- `Successfully baselined schema with version: 1` ;
+- à 20:05:32, `Current version of schema "public": 1`, `Migrating schema "public" to version "1.1 - enum check constraints"`, puis `Successfully applied 1 migration to schema "public", now at version v1.1` (67 ms) ;
+- `HikariPool-1 - Start completed`, puis `Initialized JPA EntityManagerFactory` : la validation du schéma par Hibernate est passée sans erreur ;
+- `Cache des listes publiques : désactivé` et `Stockage local des fichiers : /app/uploads` ;
+- le collage s'arrête à 20:05:58, sur `Exposing 3 endpoints`, juste avant la ligne `Started SiteAmameApplication`.
+
+L'équipe juge le déploiement réussi et **ne fait pas les autres vérifications**.
+
+**Non vérifié** :
+
+- la ligne `Started SiteAmameApplication` ;
+- la ligne `40-runtime-config.sh` du frontend ;
+- `flyway_schema_history` et l'empreinte du schéma après la migration ;
+- l'octroi d'`ADHESION_MANAGE` en production ;
+- la recette (critères de l'action J.3 autres que la baseline) ;
+- la mémoire (action J.4). Ce relevé reste nécessaire pour passer de 768M à 512M (E48).
+
+#### 17 novembre 2026 — session coupée et domaine des cookies (E50), fichier de la stack (E49)
+
+**Session coupée : cause.**
+
+- L'ancienne production posait les mêmes cookies, `access_token` pour 15 minutes et `refresh_token` pour 7 jours, mais avec le domaine `.amame.ml` (code d'avant l'étape 0, commit `f5252df`). Depuis le 15 novembre, la valeur vide de `COOKIE_DOMAIN` donne des cookies sans domaine : pour le navigateur, ce sont d'autres cookies.
+- Un navigateur connecté avant le 15 novembre garde donc l'ancien `refresh_token` `.amame.ml`, que la nouvelle version ne remplace ni n'efface. Il l'envoie en premier : même chemin, cookie plus ancien. `extractRefreshTokenFromCookies` ne lisait que le premier : `401` à chaque renouvellement. C'est la coupure du 16 novembre, dont la réponse avait la longueur du message « Refresh token expiré ».
+- Ces anciens cookies ont tous été posés avant le 15 novembre. Ils auront tous disparu le **22 novembre au plus tard**. D'ici là, un compte touché s'en sort en effaçant une fois les cookies du site dans son navigateur.
+
+**Décision : cookies sans domaine** (E50).
+
+- C'est la valeur effective depuis le 15 novembre : aucune transition, aucune session coupée.
+- Aucun sous-domaine n'a besoin des cookies : l'API est servie par le même hôte que le site, sous `/api`.
+- À l'étape 3, `media.amame.ml` sera servi par Bunny. Avec `.amame.ml`, le navigateur enverrait l'`access_token` (chemin `/`) avec chaque image demandée au CDN.
+
+**Code, dans `main`, pour `backend-v1.3`** :
+
+- Le renouvellement essaie chaque cookie `refresh_token` reçu, dans l'ordre, et garde le premier jeton utilisable (`RefreshTokenService.validateFirstUsable`). Le refus d'un jeton est rattrapé par un appel interne : il ne marque pas pour annulation la transaction du renouvellement.
+- La déconnexion révoque tous les jetons reçus. Elle efface le cookie sans domaine et, si un domaine est configuré, celui de ce domaine.
+- `cookie.domain=${COOKIE_DOMAIN:}` dans le profil `prod`, qui valait `.amame.ml` en dur ; `COOKIE_DOMAIN=${COOKIE_DOMAIN:-}` dans [amamestack.yml](../deploy/portainer/amamestack.yml). [CLAUDE.md](../CLAUDE.md) et [.env.example](../.env.example) sont à jour.
+- Un changement de `COOKIE_DOMAIN` ne coupera plus les sessions ouvertes.
+
+**Vérifié en local** :
+
+- `RefreshTokenServiceTest` (5 tests) et `AuthentificationServiceCookieTest` (6) ;
+- la suite complète, `./mvnw test` avec Docker Desktop : `BUILD SUCCESS`, 83 tests, 0 échec, 3 min 46. Elle comprend :
+  - `AuthRefreshIntegrationTest`, qui couvre la transaction réelle : connexion, renouvellement, puis renouvellement avec l'ancien cookie révoqué envoyé en premier (`200`), et déconnexion qui révoque tout ;
+  - `SiteAmameApplicationTests` (migrations sur une base vide, `validate` sans erreur) et `FileLifecycleIntegrationTest`.
+
+L'action K.5 est faite. **Non vérifié** : rien n'a tourné sur le serveur ; `backend-v1.3` n'est pas construite.
+
+**Fichier de la stack : décision proposée** (E49).
+
+- Recoller [amamestack.yml](../deploy/portainer/amamestack.yml) dans Portainer, à la place de la version de l'équipe. Ses valeurs par défaut et ses refus explicites évitent qu'une variable vide arrive dans le conteneur. Les variables déjà définies dans Portainer l'emportent toujours.
+- Comparaison faite en local (`docker compose config`, sans moteur Docker) : les deux fichiers, avec des variables de la forme relevée en production le 16 novembre, donnent la même configuration à deux valeurs près, `MAIL_DEBUG` et `STORAGE_PURGE_ENABLED`, qui passent de vide à `false`. `v1.2` ne lit ni l'une ni l'autre. Seul le backend serait recréé. La base et le frontend sont identiques, si `POSTGRES_DB` et `POSTGRES_USER` valent `amame_db` et `postgres` en production : à vérifier avant de recoller.
+- Comparaison faite avec la version transmise le 15 novembre. La version actuellement dans Portainer a pu changer depuis : le relevé des variables après la mise à jour fait foi.
+
+**Fichier de la stack : version de production du 17 novembre.**
+
+- L'équipe a transmis la version en place. Depuis le 15 novembre, elle a perdu ses dernières valeurs par défaut : `BACKEND_MEMORY_LIMIT`, `MEDIA_OPTIMIZER_ENABLED`, `STORAGE_PURGE_RETENTION` et `STORAGE_PURGE_SCHEDULE`. Plus aucune variable n'en a.
+- Relevé dans la console d'`amame-database` : `POSTGRES_DB` = `amame_db`, `POSTGRES_USER` = `postgres`.
+- Nouvelle comparaison avec [amamestack.yml](../deploy/portainer/amamestack.yml) (`docker compose config`, mêmes variables qu'au 15 novembre) :
+  - base identique : elle ne serait pas recréée ;
+  - backend : `MAIL_DEBUG` et les trois `STORAGE_PURGE_*` passent de vide à leur valeur par défaut si elles ne sont pas définies dans Portainer. `v1.2` ne lit aucune `STORAGE_PURGE_*` (vérifié sur la branche `deploiement/v1.2`), et `spring.mail.debug` n'est pas une propriété de Spring Boot. Le backend serait recréé, sans changement de comportement ;
+  - frontend : `MEDIA_OPTIMIZER_ENABLED` passe de vide à `false` s'il n'est pas défini. `40-runtime-config.sh` lit déjà le vide comme `false` : recréé, sans changement de comportement ;
+  - limite mémoire identique : avec la version de l'équipe, une `BACKEND_MEMORY_LIMIT` vide fait refuser toute la stack (`invalid size: ''`). Elle est donc définie dans Portainer, et le fichier du dépôt donne la même valeur.
+- Aujourd'hui, les deux versions donnent le même résultat, parce que chaque variable lue est définie. Elles diffèrent quand une variable manque ou est vide. La version de l'équipe la transmet vide au conteneur : c'est la panne du 16 novembre. Celle du dépôt prend la valeur par défaut, ou refuse le déploiement avant tout changement (`${VAR:?…}`) pour les secrets, les tags et le chemin des uploads.
+- ~~Avec `backend-v1.3`, des `STORAGE_PURGE_*` vides restent sans effet tant que la purge est désactivée.~~ **Faux**, déduit du code sans essai. L'essai du même jour l'a démenti : `backend-v1.3` refuse de démarrer avec `STORAGE_PURGE_ENABLED` vide, après avoir appliqué V2 à V4 (écart E51, entrée suivante).
+
+#### 17 novembre 2026 — étape 2 : passage `v1.2` → `v1.3` essayé avec la stack de production, correctifs E51 et C13
+
+À la demande de l'équipe (« go ahead with the next step »), l'étape 2 commence. Les critères de l'étape 1 autres que la baseline n'ont pas été constatés en production : l'équipe a choisi de ne pas les vérifier (16 novembre). L'équipe garde sa version de la stack, sans valeurs par défaut (action K.4 abandonnée), et a déplacé ses secrets dans un fichier `.env` chargé dans Portainer.
+
+**Premier essai : `backend-v1.3` refuse de démarrer.**
+
+- Stack jetable `amame-e1-v13` : la stack de production transmise le même jour, telle quelle, et des variables à la forme relevée le 16 novembre. `STORAGE_PURGE_RETENTION`, `STORAGE_PURGE_SCHEDULE` et `MEDIA_OPTIMIZER_ENABLED` sont absentes, `STORAGE_PURGE_ENABLED` et `MAIL_DEBUG` vides.
+- `backend-v1.3` applique V2, V3 et V4, puis s'arrête : `Failed to bind properties under 'app.storage.purge.enabled' to boolean` (valeur vide). En production, le site serait resté arrêté jusqu'au retour en `v1.2`, sur une base déjà en V4. Même cause que l'échec du 16 novembre (E49).
+
+**Correctifs, dans `main`** :
+
+- E51 : [EmptyEnvironmentVariablesPostProcessor.java](../backend/src/main/java/com/example/siteamame/config/EmptyEnvironmentVariablesPostProcessor.java), enregistré dans `META-INF/spring.factories`. Une variable d'environnement vide est traitée comme absente. Le démarrage écrit les noms des variables ignorées. Test : [EmptyEnvironmentVariablesPostProcessorTest.java](../backend/src/test/java/com/example/siteamame/config/EmptyEnvironmentVariablesPostProcessorTest.java), 5 tests, dont un qui reproduit l'échec sans le correctif.
+- C13 : `ArticleMapper.convertToDTO` copie les tags. Test : [ArticleMapperTest.java](../backend/src/test/java/com/example/siteamame/mapper/ArticleMapperTest.java), 2 tests.
+- [CLAUDE.md](../CLAUDE.md) (règle des variables vides) et le commentaire d'en-tête d'[amamestack.yml](../deploy/portainer/amamestack.yml).
+
+**Vérifié en local** :
+
+- Suite complète, `./mvnw test` : **90 tests, 0 échec** (4 min 04).
+- Image `backend-v1.3` reconstruite, révision `ba50a0a+E44+E47+E50+E51+C13-non-commité`. **Ni commitée ni publiée.**
+- **Essai de bout en bout n° 3** : **74 vérifications, 0 échec**. Il a fallu trois passages : le deuxième a révélé C13 et trois erreurs du script lui-même (chemins réécrits par Git Bash, photo jamais écrite), corrigées.
+  - **Phase A** : base créée par V1 corrigée (empreintes de la production), puis `v1.2` : baseline et 1.1. Trois comptes, dont deux avec photo et CV, et un article avec image.
+  - **Phase B, action K.2** : `inventory.sh` (`ops-v1.1`) sous `v1.2` : `inventaire conforme`, et « colonne absente, migration V2 pas encore appliquée » pour les empreintes.
+  - **Phase C** : `v1.3`, avec les variables vides. Migrations 2, 3 et 4 (« Successfully applied 3 migrations … now at version v4 »), aucune erreur de validation, purge non activée. Le démarrage liste 8 variables vides traitées comme absentes, dont les trois `STORAGE_PURGE_*`. Historique Flyway : `1 BASELINE`, `1.1`, `2`, `3`, `4`, tous réussis.
+    - Comptes créés sous `v1.2` : connexion ; la photo est relue à l'identique ; un autre compte reçoit `403`.
+    - Session (E50) : cookies posés sans domaine ; un ancien `refresh_token` révoqué envoyé avant l'actuel donne `200`, seul il donne `401`.
+    - Accueil et 7 listes publiques `200` ; adresse inconnue `404` (C9).
+    - **Critères de l'étape 2** : remplacement de l'image d'un article (nouvelle clé, nouvelle ligne avec empreinte, ancienne ligne supprimée, ancienne clé dans la file, ancien fichier encore sur le disque) ; article au titre déjà pris refusé, sans fichier laissé ; modification de `file_path` refusée par la base ; compte avec photo et CV, connecté une fois, supprimé par l'administration (C7) : jetons supprimés, deux entrées dans la file, fichiers encore sur le disque ; filière créée avec et sans image, nom vide refusé par un `400` (C8).
+    - **Actions N.2 à N.4** : `backfill-sha256.sh` (simulation, puis `--apply`) : 0 ligne sans empreinte ; `delete-orphan-rows.sh` : rien à supprimer ; `inventory.sh` : `inventaire conforme`, 4 fichiers en attente de purge.
+    - Mémoire : 482 Mio pour une limite de 768 Mio.
+  - **Phase D, retour arrière en `v1.2` sur la base en V4** : démarre, « Schema "public" is up to date », aucune migration. Photo relue, listes `200`, inscription avec photo `201` (les contraintes de V2 acceptent les clés de `v1.2`). Remplacement de l'image d'un article par le formulaire `200` : comme prévu, `v1.2` efface l'ancien fichier et laisse sa ligne.
+  - **Phase E, retour en `v1.3`** : démarre sans migration. `inventory.sh` : `inventaire conforme`, une seule ligne orpheline, celle laissée par `v1.2`, au fichier absent. `delete-orphan-rows.sh` ne la propose pas encore : il ne retient que les lignes orphelines de plus de 2 jours.
+- La stack jetable est supprimée ensuite (`amame-e1-*` seulement).
+
+**Non vérifié** : rien n'a tourné sur le serveur. Le comportement dans un vrai navigateur n'est pas essayé : l'essai passe par `curl`. La mémoire sous la limite de 512M n'est pas mesurée pour `v1.3` (la production reste à 768M, E48).
 
 ---
 
@@ -1022,13 +1703,17 @@ Viennent ensuite 30 jours de stabilisation du socle (§9), puis les vagues de fo
 **Critères de sortie :**
 
 - [ ] Portainer n'est pas joignable depuis Internet sans tunnel ou VPN.
-- [ ] Secrets changés ; `git ls-files` ne liste plus ni les `.env` ni `backend/uploads/`.
-- [ ] Toute URL `/uploads/utilisateur/…` ou `/amame-uploads/utilisateur/…` renvoie 404 (écart E2).
-- [ ] Le couple dump + fichiers, lu dans `amame-backups`, a été restauré dans un environnement jetable (`restore-test.sh`).
-- [ ] Dans cette restauration, chaque ligne `file_entity` référencée retrouve son fichier.
-- [ ] Une inscription envoyée avec `role=SUPERADMIN` crée un compte `USER`, et tous les comptes `SUPERADMIN`, `ADMIN` et `EDITOR` existants sont connus de l'équipe (écart E10).
-- [ ] Un utilisateur connecté ne peut lire ni le profil ni les fichiers d'un autre (écarts E1 et E11).
-- [ ] Les images de l'accueil pèsent moins de 1,5 Mo.
+- [x] Secrets changés ; `git ls-files` ne liste plus ni les `.env` ni `backend/uploads/`. **Constaté le 15 novembre 2026** : mot de passe de la base, `JWT_SECRET` et mot de passe d'application Gmail neufs, l'ancien révoqué (déclaré par l'équipe) ; `git ls-files` ne suit que `.env.example`, rien sous `backend/uploads/`. Hors de ce critère : le mot de passe du rôle Neon, transmis dans une conversation, est à réinitialiser avant l'étape 4 (faits relevés, « Projet Neon »).
+- [x] Toute URL `/uploads/utilisateur/…` ou `/amame-uploads/utilisateur/…` renvoie 404 (écart E2). **Constaté le 15 novembre 2026** : avec un fichier réel de `/app/uploads/utilisateur/`, ouvert en fenêtre privée, 404 par les deux chemins.
+- [x] Le couple dump + fichiers, lu dans `amame-backups`, a été restauré dans un environnement jetable (`restore-test.sh`). **Constaté le 14 novembre 2026** : zone `amamestoragezone` (E40), dump `amame-20261114T114150Z`, 25 tables restaurées.
+- [x] Dans cette restauration, chaque ligne `file_entity` référencée retrouve son fichier. **Constaté le 14 novembre 2026** : 26 lignes référencées sur 31, 0 fichier manquant, 0 écart de taille (vérification `full`).
+- [x] Une inscription envoyée avec `role=SUPERADMIN` crée un compte `USER`, et tous les comptes `SUPERADMIN`, `ADMIN` et `EDITOR` existants sont connus de l'équipe (écart E10). **Constaté le 15 novembre 2026** (déclaré par l'équipe) : requête multipart sur `/api/visitor/register` avec `role: 'SUPERADMIN'`, réponse `201` et rôle `USER` ; comptes à privilèges relevés dans `users`, tous identifiés.
+- [x] Un utilisateur connecté ne peut lire ni le profil ni les fichiers d'un autre (écarts E1 et E11). **Constaté côté serveur le 16 novembre 2026** : connecté en `USER` (compte de test 39, sans fichier), `403` sur les 199 autres profils et sur tous les fichiers privés des autres comptes, y compris en forçant l'appel au serveur (`cache: 'no-store'`). Quatre photos ont d'abord semblé lisibles : elles venaient du cache du navigateur, utilisé plus tôt sous un compte Super Admin. Ce défaut côté navigateur est suivi à part (E44). L'essai du 15 novembre était sans valeur (`401`, pas connecté).
+- [x] Les images de l'accueil pèsent moins de 1,5 Mo. **Constaté le 16 novembre 2026** (sortie transmise par l'équipe, mesure par `performance.getEntriesByType`, `encodedBodySize`) :
+  - **mesure, fenêtre de 540 px, densité 1** : images 0,16 Mo (10 fichiers, la plus lourde `section-benevolat-640.webp`, 30 Ko) ; page entière 1,08 Mo, dont 0,72 Mo de JavaScript ;
+  - **pire cas, calculé et non mesuré** : 0,68 Mo environ. Calcul : la plus grande variante de chaque image de l'accueil publiée dans l'image `v1.1.1` (`-1920.webp`, 671 Ko pour les 8 images), plus les deux petits fichiers de taille fixe (environ 25 Ko).
+
+  Le critère tient donc pour toute largeur d'écran. Le poids de la page entière relève de l'étape 5 : il atteindrait environ 1,6 Mo sur un grand écran. Le plus gros poste est le JavaScript.
 
 **Retour arrière.** Sans objet : aucun changement d'architecture.
 
@@ -1447,18 +2132,20 @@ Pour garder ces portes ouvertes, quatre règles s'imposent à tout développemen
 
 ## 7. Configuration consolidée
 
-Le `.env.example` du dépôt documente toutes les variables, sans aucune valeur secrète. En production, les valeurs sont saisies dans les variables des stacks Portainer.
+Le `.env.example` du dépôt documente toutes les variables, sans aucune valeur secrète. En production, les valeurs sont saisies dans les variables des stacks Portainer, dont le contenu vient de [deploy/portainer/](../deploy/portainer/) (E39).
 
 ### 7.1 Stack `amame` (application)
 
 | Variable | Utilisée par | Secret | Introduite à l'étape | Remarque |
 | --- | --- | --- | --- | --- |
-| `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE_TAG` | stack | non | 0 | versionnés ; le retour arrière consiste à remettre le tag précédent |
+| `BACKEND_IMAGE_TAG`, `FRONTEND_IMAGE_TAG` | stack | non | 0 | versionnés ; le retour arrière consiste à remettre le tag précédent. Sans valeur par défaut dans le fichier de production (E39) |
+| `UPLOADS_HOST_PATH` | stack de production : backend et frontend | non | 0 | chemin absolu des uploads sur l'hôte, même valeur que dans `amame-ops` (E39). Inutile après l'étape 3 |
+| `BACKEND_MEMORY_LIMIT` | stack de production | non | 0 | 512M par défaut ; 768M pendant l'étape 0 seulement (E39) |
 | `POSTGRES_PASSWORD` | base locale, backend | oui | 0 | mot de passe de la base du VPS. PostgreSQL ne le lit qu'à la création du volume : le changer d'abord par `ALTER USER`. Disparaît avec la base locale (étape 6) |
 | `JWT_SECRET` | backend | oui | 0 | plus aucune valeur par défaut dans le compose |
 | `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | backend | mot de passe : oui | 0 | vides en temps normal ; créent le premier administrateur sur une table des utilisateurs vide |
 | `PGADMIN_PASSWORD` | pgAdmin | oui | 0 | outil accessible sur `127.0.0.1` seulement. `GRAFANA_ADMIN_PASSWORD` a disparu avec la supervision (écart E14) |
-| `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE` | backend | non | 0 | valeurs locales par défaut ; en production : `https://amame.ml` et `true` |
+| `FRONTEND`, `COOKIE_DOMAIN`, `COOKIE_SECURE` | backend | non | 0 | valeurs locales par défaut dans le compose de développement ; en production `https://amame.ml`, `.amame.ml` et `true`, valeurs par défaut du fichier de production |
 | `DATABASE_URL` | backend | non | 1 | URL JDBC ; `sslmode=verify-full` sur Neon. Par défaut, tant que la base est sur le VPS : `jdbc:postgresql://database:5432/amame_db` |
 | `DATABASE_USERNAME`, `DATABASE_PASSWORD` | backend | oui | 1 | `amame_app` sur Neon. Par défaut, tant que la base est sur le VPS : `postgres` et `POSTGRES_PASSWORD` |
 | `DATABASE_MIGRATION_USERNAME`, `DATABASE_MIGRATION_PASSWORD` | backend (Flyway) | oui | 1 | `amame_owner` sur Neon. Mêmes valeurs par défaut que ci-dessus |

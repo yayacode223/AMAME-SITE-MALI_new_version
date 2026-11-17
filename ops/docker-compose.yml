@@ -29,8 +29,14 @@ services:
     tmpfs:
       # Remplace le volume anonyme que l'image postgres déclare et qui ne sert pas ici
       - /var/lib/postgresql/data
+    # Serveurs DNS explicites, comme le backend. Les noms des conteneurs restent résolus
+    # par le DNS interne de Docker.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     networks:
-      - amame
+      - amame    # joindre la base
+      - sortie   # joindre Bunny
     restart: unless-stopped
 
   scraper:
@@ -45,8 +51,12 @@ services:
     command: ["sleep", "infinity"]
     environment:
       - DATABASE_URL=${SCRAPER_DATABASE_URL:?Définir SCRAPER_DATABASE_URL}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     networks:
       - amame
+      - sortie
     restart: unless-stopped
 
 networks:
@@ -55,3 +65,7 @@ networks:
     # pour joindre le service « database ». Nom à relever avec « docker network ls ».
     external: true
     name: ${AMAME_NETWORK:-amame_common_net}
+  # Réseau ordinaire propre à cette stack, pour sortir vers Internet. Inutile en local, mais
+  # indispensable en production, où le réseau partagé n'a pas de route vers l'extérieur
+  # (14 novembre 2026) ; gardé ici pour que les deux fichiers restent identiques.
+  sortie: {}
