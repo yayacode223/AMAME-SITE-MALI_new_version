@@ -37,8 +37,8 @@ public class File {
     private Long fileSize;
     private LocalDateTime uploadDate;
 
-    /** Empreinte SHA-256 du contenu, en hexadécimal minuscule ; vide pour les fichiers antérieurs à l'étape 2. */
-    @Column(name = "file_sha256", length = 64)
+    /** Empreinte SHA-256 du contenu, en hexadécimal minuscule ; obligatoire depuis la migration V5. */
+    @Column(name = "file_sha256", length = 64, nullable = false)
     private String fileSha256;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -44,7 +44,7 @@ class SiteAmameApplicationTests {
 
 	@Test
 	void flywayCreatesTheWholeSchemaOnAnEmptyDatabase() {
-		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("4");
+		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("5");
 		assertThat(flyway.info().pending()).isEmpty();
 
 		Integer tables = jdbcTemplate.queryForObject(
@@ -52,6 +52,16 @@ class SiteAmameApplicationTests {
 						+ "and table_name <> 'flyway_schema_history'", Integer.class);
 		// 25 tables de V1, plus storage_purge_queue (V3)
 		assertThat(tables).isEqualTo(26);
+
+		// V5 : plus aucune contrainte de file_entity en attente de validation, empreinte obligatoire
+		Integer notValidated = jdbcTemplate.queryForObject(
+				"select count(*) from pg_catalog.pg_constraint "
+						+ "where conrelid = 'public.file_entity'::regclass and not convalidated", Integer.class);
+		assertThat(notValidated).isZero();
+		assertThat(jdbcTemplate.queryForObject(
+				"select is_nullable from information_schema.columns where table_schema = 'public' "
+						+ "and table_name = 'file_entity' and column_name = 'file_sha256'", String.class))
+				.isEqualTo("NO");
 	}
 
 	/**

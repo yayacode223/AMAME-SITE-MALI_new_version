@@ -1,5 +1,6 @@
 package com.example.siteamame.service.file;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -34,5 +35,21 @@ final class StorageIo {
             throw new IOException("Taille du fichier incohérente avec son contenu");
         }
         return bytes;
+    }
+
+    /** Lit le flux entier, de taille inconnue d'avance ; échoue au-delà de {@code max} octets. */
+    static byte[] readAtMost(InputStream in, long max) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] chunk = new byte[CHUNK];
+        long total = 0;
+        int read;
+        while ((read = in.read(chunk)) != -1) {
+            total += read;
+            if (total > max) {
+                throw new IOException("Fichier plus volumineux que " + max + " octets");
+            }
+            out.write(chunk, 0, read);
+        }
+        return out.toByteArray();
     }
 }
