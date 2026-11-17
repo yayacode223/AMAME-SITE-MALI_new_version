@@ -243,8 +243,8 @@ export function About() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Adresse</p>
-                  <p className="font-semibold text-amame-charcoal text-sm">Dialakorodji</p>
-                  <p className="text-xs text-amame-muted">Bamako, Mali</p>
+                  <p className="font-semibold text-amame-charcoal text-sm">Au Lycée Bouillagui FADIGA</p>
+                  <p className="text-xs text-amame-muted">Commune II du District de Bamako</p>
                 </div>
               </motion.div>
 
