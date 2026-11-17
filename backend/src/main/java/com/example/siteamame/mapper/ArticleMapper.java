@@ -7,6 +7,7 @@ import com.example.siteamame.service.file.MediaUrlResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -46,8 +47,11 @@ public class ArticleMapper {
         String filePath = article.getFile()!= null
                 ? article.getFile().getFilePath()
                 : null;
+        // Copie, lue ici, dans la transaction de l'appelant : la collection de l'entité peut être un
+        // proxy non chargé, que Jackson lirait après la fermeture de la session (open-in-view est
+        // désactivé). Cas d'une modification d'article envoyée sans « tags » : 500 après l'enregistrement.
         Set<String> tags = article.getTags()!= null
-                ? article.getTags()
+                ? new HashSet<>(article.getTags())
                 : null;
 
         return new ArticleDto(
