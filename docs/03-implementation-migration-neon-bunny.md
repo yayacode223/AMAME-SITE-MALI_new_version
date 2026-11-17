@@ -40,7 +40,7 @@
 | **0** | Sécurisation, Portainer, premier point de restauration | 🟡 écrit et vérifié en local ; sur `main` (`b14e7dd`), poussé sur GitHub le 8 novembre | 🟡 images publiées le 13 novembre ; stack `amame-ops` en service depuis le 14 novembre (sauvegarde et test de restauration réussis) ; application mise à jour le 15 novembre (`v1.1`), secrets changés, e-mails envoyés, limite de débit active et propre à chaque visiteur, accès aux données d'autrui refusé par le serveur, images de l'accueil à 0,16 Mo (16 novembre) ; correctif `v1.1.1` déployé et vérifié le 16 novembre (E44 corrigé) ; reste la sécurisation de Portainer (E43) ; à éclaircir : la session administrateur qui semble expirer au bout de 15 minutes | 7 / 8 |
 | **1** | Socle de code commun | 🟡 écrit et vérifié en local ; sur `main` (`5c62c07`), poussé sur GitHub le 8 novembre ; images `v1.2` construites le 16 novembre avec le correctif E44 (E45), V1 corrigée et migration `V1_1` (E47), passage `v1.1.1` → `v1.2` essayé en local sur une base à la structure de la production (47 vérifications) ; commitées sur la branche locale `deploiement/v1.2` (`3baba45`) et **publiées le 16 novembre** ; `main` porte les mêmes corrections, non commitées | 🟡 **`v1.2` déployé le 16 novembre à 20:05 UTC** : baseline, migration 1.1 appliquée, validation du schéma sans erreur. Une première tentative, à 17:25, avait échoué sur deux variables vides de la stack (E49) : retour à `v1.1.1`, base inchangée, variables corrigées. L'équipe n'a pas fait les autres vérifications. Reste la mémoire (J.4) avant de passer à 512M (E48). Cookies sans domaine (E50) | 1 / 7 |
 | **2** | Contrat de métadonnées et garde-fous en base | 🟡 écrit et vérifié en local ; commité sur `main` (`7466a23`) et poussé sur GitHub le 8 novembre ; suite de tests complète passée le 8 novembre (70 tests) ; migrations et scripts d'exploitation essayés sur une base jetable ; **17 novembre** : correctifs E51 (variables vides) et C13, 90 tests ; passage `v1.2` → `v1.3` et retour arrière essayés en local avec la stack de production (74 vérifications) ; commités sur la branche locale `deploiement/v1.3` (`e9e5437`) et **image `backend-v1.3` publiée le 17 novembre** | 🟡 **`backend-v1.3` déployé le 17 novembre à 11:26 UTC** : migrations 2, 3 et 4 appliquées, démarrage sans erreur ; inventaire conforme et sauvegarde juste avant. Actions N.2 à N.4 faites (26 lignes, toutes avec empreinte, 0 orpheline) ; les autres critères reposent sur l'essai local (décision de l'équipe du 17 novembre). ✅ Étape close | 2 / 6 en production |
-| **3** | Bascule du stockage vers Bunny | 🟡 écrit le 17 novembre (3.2 à 3.5, migration V5) ; `./mvnw test` 115 tests, 0 échec ; essai local de bout en bout avec la stack de production et un faux Bunny : 61 vérifications, 0 échec ; **non commité, images non publiées** | ⬜ pas avant le 24 novembre (actions O à T) ; zones Bunny à créer (action Q) | 0 / 4 |
+| **3** | Bascule du stockage vers Bunny | 🟡 écrit le 17 novembre (3.2 à 3.5, migration V5) ; `./mvnw test` 115 tests, 0 échec ; essai local de bout en bout avec la stack de production et un faux Bunny : 61 vérifications, 0 échec ; commité sur la branche locale `deploiement/v1.3` (`6552a6d`) et **images `backend-v1.4`, `frontend-v1.3`, `ops-v1.2` publiées le 17 novembre** | ⬜ pas avant le 24 novembre (actions O à T) ; zones Bunny à créer (action Q) | 0 / 4 |
 | **4** | Bascule de la base vers Neon | ⬜ | ⬜ | 0 / 6 |
 | **5** | Diffusion des images par le CDN | ⬜ (conversion et `srcset` déjà livrés) | ⬜ | 0 / 6 |
 | **6** | Exploitation et nettoyage | ⬜ | ⬜ | §9 |
@@ -106,7 +106,7 @@ Code écrit le 17 novembre 2026, à la demande de l'équipe, le jour même du d�
 **État au 17 novembre 2026** : étapes 0, 1 et 2 en production (`backend-v1.3`, `frontend-v1.2`, `ops-v1.1`). Pour les étapes 1 et 2, l'équipe a choisi de s'appuyer sur les essais locaux pour les critères non constatés en production. Code déployé : branche locale `deploiement/v1.3`, non poussée ; `main` n'a pas bougé depuis `ba50a0a`. Ensuite :
 
 1. **Mémoire d'`amame-backend`** (E48), 24 heures puis une semaine après le 17 novembre : `grep -E '^(anon|file) ' /sys/fs/cgroup/memory.stat` dans la console. Passage à 512M seulement si `anon` reste sous 420 Mio.
-2. **Étape 3 (Bunny)** : code écrit et essayé en local le 17 novembre (journal du même jour). Reste : commit et publication des images `backend-v1.4`, `frontend-v1.3` et `ops-v1.2`, avec l'autorisation de l'équipe ; création des zones et de la Pull Zone (action Q), possible dès maintenant ; déploiement à partir du 24 novembre, actions O à T dans l'ordre. Le fichier orphelin `actualite/fd838654-….pdf` n'est pas copié (action O.6).
+2. **Étape 3 (Bunny)** : code écrit, essayé en local, commité (`6552a6d`, branche locale `deploiement/v1.3`) ; images `backend-v1.4`, `frontend-v1.3` et `ops-v1.2` **publiées le 17 novembre**. Reste : création des zones et de la Pull Zone (action Q), possible dès maintenant ; déploiement à partir du 24 novembre, actions O à T dans l'ordre. Le fichier orphelin `actualite/fd838654-….pdf` n'est pas copié (action O.6).
 3. En attente, sans lien avec l'ordre des étapes : sécurisation de Portainer (E43), constats C11 et C12, nouveau mot de passe Neon avant l'étape 4, réconciliation de `main` avec `deploiement/v1.3`.
 
 La liste ci-dessous date d'avant les déploiements ; elle reste comme historique.
@@ -208,6 +208,9 @@ La liste ci-dessous date d'avant les déploiements ; elle reste comme historique
 | `backend-v1.2` | `3baba45` (étape 1 + E44 + E47, branche locale `deploiement/v1.2`) | `sha256:9addf348903e848d204bd29bfdf963bcfe6f78e3e4dd73320bc80cad0cf30dd1` |
 | `frontend-v1.2` | `3baba45` (étape 1 + E44, branche locale `deploiement/v1.2`) | `sha256:de99015c5ae88ee35bc6f9cc0de3b7ed5e0a57112f99486648537167ef7dd7da` |
 | `backend-v1.3` | `e9e5437` (étape 2 + E44 + E47 + E50 + E51 + C13, branche locale `deploiement/v1.3`), publiée le 17 novembre 2026. Couches identiques à l'image essayée | `sha256:95a1e65adb3f4652bb8d80ea6e6919bc6ad6e47ed69d9495b9292ade5098829a` |
+| `backend-v1.4` | `6552a6d` (étape 3, branche locale `deploiement/v1.3`), publiée le 17 novembre 2026. Code identique à l'image essayée | `sha256:c4e0602e6401885cbeb9ead808f9eaf63ff13930bd53cf0ceac9871823bdf7fd` |
+| `frontend-v1.3` | `6552a6d` (étape 3 + C14), publiée le 17 novembre 2026. C14 ajouté après l'essai : image revérifiée seule (disque, redirection, 404 du privé, service worker) | `sha256:3a08db5e23d9fd8cc8144d1a6f009257210fce8d0a715f99887d0d1ad3d60a5a` |
+| `ops-v1.2` | `6552a6d` (étape 3), publiée le 17 novembre 2026. Scripts identiques à l'image essayée | `sha256:106cd93b44363ac6156352150d725126c37841163f6d4fa57d3d7a1e59534a49` |
 
 Les deux images `v1.1.1` ont été publiées le 16 novembre 2026 (journal du jour). Elles remplacent `backend-v1.1` et `frontend-v1.1` dans la stack `amamestack`. Les images `ops-v1.1` et `scraper-v1.1` ne changent pas.
 
@@ -455,12 +458,12 @@ Ce retour arrière, d'abord déduit du code et des migrations (écart E27), a é
 
 #### P. Images de l'étape 3, déploiement en stockage local (3.2)
 
-1. **Images** `backend-v1.4`, `frontend-v1.3` et `ops-v1.2`. Construites en local le 17 novembre pour l'essai, depuis le code non commité : à reconstruire depuis le commit, puis à publier, avec l'autorisation de l'équipe. `scraper-v1.1` ne change pas.
+1. ✅ **Images** `backend-v1.4`, `frontend-v1.3` et `ops-v1.2` : **publiées le 17 novembre 2026**, avec l'autorisation de l'équipe, depuis `6552a6d` (branche locale `deploiement/v1.3`). Empreintes à l'action D. `scraper-v1.1` ne change pas.
 
    ```bash
-   docker build --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:backend-v1.4 backend
-   docker build --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:frontend-v1.3 frontend
-   docker build --build-arg PG_MAJOR=15 --label org.opencontainers.image.revision=<commit> -t yayacode224/amame:ops-v1.2 ops/backup
+   docker build --label org.opencontainers.image.revision=6552a6d -t yayacode224/amame:backend-v1.4 backend
+   docker build --label org.opencontainers.image.revision=6552a6d -t yayacode224/amame:frontend-v1.3 frontend
+   docker build --build-arg PG_MAJOR=15 --label org.opencontainers.image.revision=6552a6d -t yayacode224/amame:ops-v1.2 ops/backup
    docker push yayacode224/amame:backend-v1.4
    docker push yayacode224/amame:frontend-v1.3
    docker push yayacode224/amame:ops-v1.2
@@ -1422,6 +1425,12 @@ L'action K.5 est faite. **Non vérifié** : rien n'a tourné sur le serveur ; `b
 - La stack jetable est supprimée ensuite (`amame-e1-*` seulement).
 
 **Non vérifié** : rien n'a touché le vrai Bunny. Le faux serveur suit la documentation de l'API de stockage ; l'essai réel est l'action Q.5, puis R (dont la présence de l'empreinte dans le listing, question de 3.1). Ni Pull Zone, ni DNS, ni certificat, ni navigateur : l'essai passe par `curl`. La mémoire sous 512M n'est pas mesurée (la production reste à 768M, E48). Le conteneur ponctuel du retour arrière a été lancé avec `docker run`, pas depuis le formulaire de Portainer : la procédure de [ops/README.md](../ops/README.md) a été reprise pour tenir compte de ce formulaire, qui n'accepte qu'un réseau.
+
+**Commit et publication, même jour, avec l'autorisation de l'équipe** (« Go ahead. All users are informed about application updating. ») :
+
+- Correctif C14 ajouté avant la construction : `navigateFallbackDenylist` dans `vite.config.ts`. Le service worker produit porte `denylist:[/^\/uploads\//,/^\/api\//]`.
+- Branche locale `deploiement/v1.3` : `e318831` (backend), `a25f306` (frontend et C14), `6552a6d` (exploitation, stacks, suivi). Non poussée sur GitHub.
+- Images construites depuis `6552a6d` et publiées : `backend-v1.4`, `frontend-v1.3`, `ops-v1.2` (empreintes à l'action D, identiques sur Docker Hub). Le code du backend et les scripts d'`ops` n'ont pas changé depuis l'essai. `frontend-v1.3` a été revérifiée seule après C14 : `/uploads/` servi depuis le disque (`200`), redirigé en `301` vers `https://media.amame.ml/uploads/…` avec la chaîne de requête quand `MEDIA_BASE_URL` est définie, `/uploads/utilisateur/` en `404` dans les deux cas, accueil `200`.
 
 ---
 
