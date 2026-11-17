@@ -35,3 +35,17 @@ window.__AMAME_CONFIG__ = { mediaBaseUrl: "$MEDIA_BASE_URL", mediaOptimizerEnabl
 EOF
 
 echo "40-runtime-config.sh : mediaBaseUrl=\"$MEDIA_BASE_URL\", mediaOptimizerEnabled=$OPTIMIZER"
+
+# /uploads/ : servi depuis le disque tant que MEDIA_BASE_URL est vide. Sinon, les fichiers sont dans
+# Bunny (étape 3.5) : redirection permanente vers le CDN, pour les liens et pages encore en cache.
+# MEDIA_BASE_URL doit désigner le CDN, jamais le site lui-même : la redirection tournerait en boucle.
+# Sa valeur a été contrôlée plus haut : aucun caractère qui puisse sortir de la directive Nginx.
+UPLOADS_CONF="${UPLOADS_CONF_FILE:-/etc/nginx/amame/uploads.conf}"
+if [ -n "$MEDIA_BASE_URL" ]; then
+  printf '# Généré au démarrage par 40-runtime-config.sh : MEDIA_BASE_URL est défini.\nreturn 301 %s$request_uri;\n' \
+    "$MEDIA_BASE_URL" > "$UPLOADS_CONF"
+  echo "40-runtime-config.sh : /uploads/ redirigé vers $MEDIA_BASE_URL"
+else
+  cp "${UPLOADS_DISK_CONF_FILE:-/etc/nginx/amame/uploads-disk.conf}" "$UPLOADS_CONF"
+  echo "40-runtime-config.sh : /uploads/ servi depuis le disque"
+fi

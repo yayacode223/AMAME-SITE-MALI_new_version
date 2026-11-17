@@ -141,6 +141,10 @@ export default defineConfig(({ mode }) => {
           // config.js est réécrit à chaque démarrage du conteneur : s'il était précaché, le
           // service worker servirait les valeurs figées au moment du build.
           globIgnores: ['**/amame-uploads/**', 'images/**', 'config.js'],
+          // Une navigation vers un fichier (média, fichier privé servi par l'API) va au serveur, pas
+          // à l'application : sinon index.html s'afficherait à la place, et la redirection de
+          // /uploads/ vers le CDN ne serait pas suivie (constat C14).
+          navigateFallbackDenylist: [/^\/uploads\//, /^\/api\//],
           runtimeCaching: [
             {
               // Configuration d'exécution : le réseau d'abord, la dernière copie connue hors
