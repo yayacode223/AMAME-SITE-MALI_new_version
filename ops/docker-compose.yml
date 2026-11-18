@@ -6,7 +6,7 @@
 
 services:
   backup:
-    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.2}
+    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.2.1}
     build:
       context: ./backup
       dockerfile: Dockerfile

@@ -199,7 +199,7 @@ Il lit les zones avec leurs mots de passe en **lecture seule** (`BUNNY_PUBLIC_ZO
 **`copy-from-bunny.sh <destination> [--apply]`** sert au retour arrière de la bascule. Il rapatrie sur le disque les fichiers des lignes qui n'y sont pas, après contrôle de leur taille et de leur empreinte, sans jamais remplacer un fichier présent. Le service `backup` monte le dossier des uploads en lecture seule : la simulation y fonctionne, l'écriture non. L'écriture se fait dans un conteneur ponctuel, créé depuis Portainer :
 
 1. **Containers → Add container**, nom `amame-ops-rapatriement` :
-   - image `yayacode224/amame:ops-v1.2` ;
+   - image `yayacode224/amame:ops-v1.2.1` (ou plus récente) ;
    - **Advanced container settings → Command & logging** : commande `sleep 3600` (le conteneur attend, la copie se lance à la main), utilisateur `root` ;
    - **Volumes** : bind de `UPLOADS_HOST_PATH` (le chemin réel des uploads) sur `/data/uploads`, en écriture ;
    - **Network** : `common_net` (celui de `amame-database`). Le formulaire n'accepte qu'un réseau : le second se joint à l'étape 2 ;
