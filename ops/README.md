@@ -227,6 +227,38 @@ UPLOADS_DIR=/tmp/restore/uploads copy-to-bunny.sh --apply
 reconcile-bunny.sh
 ```
 
+### Transfert de la base vers Neon (étape 4, image `ops-v1.3`)
+
+`ops-v1.3` est bâtie sur PostgreSQL **18**, la version du projet Neon (relevée le 18 novembre 2026) : `pg_dump` refuse une base plus récente que lui. Elle sert aux conteneurs ponctuels du transfert, puis à cette stack après la bascule. **Avant la bascule, la stack garde `ops-v1.2.1` (PostgreSQL 15)** : un dump fait par `pg_dump` 18 contient `SET transaction_timeout`, qu'une base 15 refuse, et `restore-db.sh` ne pourrait plus restaurer la base locale. Si Neon passe à une version mineure plus récente que celle de l'image, reconstruire l'image avant le prochain transfert ou la prochaine restauration (constat C16 du suivi).
+
+| Outil | Rôle |
+| --- | --- |
+| `db-transfer.sh` | simulation par défaut : vérifie la source, la cible (vide, rôle propriétaire, rôles applicatifs présents). Avec `--apply` : dump de la source, restauration dans la cible en une seule transaction (en cas d'erreur, la cible reste vide), droits des rôles (`db-grants.sql`), puis `db-compare.sh`. Refuse toute cible qui contient déjà une table |
+| `db-compare.sh` | compare les deux bases en lecture seule : lignes par table, clés de fichiers avec empreinte, historique Flyway, colonnes, contraintes, déclencheurs, fonctions, index, séquences. Se termine par `bases identiques` ou échoue |
+| `/usr/local/share/amame/db-grants.sql` | droits de `amame_app`, `amame_scraper` et `amame_backup`, et droits par défaut des futures migrations. Idempotent, exécuté par le rôle propriétaire |
+
+Variables : `SOURCE_DATABASE_URL` (par défaut `BACKUP_DATABASE_URL`) et `TARGET_DATABASE_URL`, l'URL du rôle **propriétaire** de la base Neon, sur le point d'accès **direct** (sans `-pooler`), avec `?sslmode=verify-full&sslrootcert=/etc/ssl/certs/ca-certificates.crt` : le certificat de Neon et son nom d'hôte sont vérifiés. Même suffixe pour `BACKUP_DATABASE_URL` et `SCRAPER_DATABASE_URL` après la bascule. Ne pas le remplacer par `sslrootcert=system` : la bibliothèque PostgreSQL embarquée par l'image des scrapers ne trouve pas les certificats du système et refuse alors la connexion (constat C18 du suivi).
+
+**Rôles et base, dans l'éditeur SQL de la console Neon** (une seule fois, sur la branche `production`). Chaque mot de passe est long, aléatoire, différent des autres, saisi seulement dans la console Neon et dans les variables des stacks, jamais ailleurs. Pour en tirer un, dans la console d'`amame-ops-backup` : `tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40; echo` (40 lettres et chiffres : rien à échapper dans une URL de connexion). Première requête :
+
+```sql
+CREATE ROLE amame_owner   LOGIN PASSWORD '<mot de passe 1>';
+CREATE ROLE amame_app     LOGIN PASSWORD '<mot de passe 2>';
+CREATE ROLE amame_scraper LOGIN PASSWORD '<mot de passe 3>';
+CREATE ROLE amame_backup  LOGIN PASSWORD '<mot de passe 4>';
+GRANT amame_owner TO CURRENT_USER;
+```
+
+Seconde requête, seule (`CREATE DATABASE` ne s'exécute pas avec d'autres instructions) :
+
+```sql
+CREATE DATABASE amame_db OWNER amame_owner;
+```
+
+Les rôles créés en SQL n'héritent pas de `neon_superuser`, contrairement à ceux de la console : c'est voulu. Les droits sur les tables se posent après le transfert, par `db-transfer.sh`.
+
+**Conteneur ponctuel du transfert**, depuis Portainer, comme pour le rapatriement : image `yayacode224/amame:ops-v1.3`, commande `sleep 3600`, réseau `common_net` (pour joindre `amame-database`) puis *Join network* `amame-ops_sortie` (pour joindre Neon), variables `SOURCE_DATABASE_URL` (celle de `BACKUP_DATABASE_URL`) et `TARGET_DATABASE_URL`. Dans sa console : `db-transfer.sh`, puis `db-transfer.sh --apply`. Le supprimer ensuite.
+
 ### Lancer un scraper
 
 Le conteneur `amame-scraper` reste en veille. Dans sa console Portainer (`/bin/bash`) :
@@ -243,5 +275,5 @@ python scraper_opportunity.py
 | Étape 2 (image `ops-v1.1`) | `inventory.sh`, `backfill-sha256.sh` et `delete-orphan-rows.sh` ; aucune variable nouvelle |
 | Étape 3 (image `ops-v1.2`) | `copy-to-bunny.sh`, `reconcile-bunny.sh`, `copy-from-bunny.sh` ; `backup.sh` lit les zones Bunny avec `BACKUP_FILES_SOURCE=bunny`. Variables : `BUNNY_PUBLIC_ZONE`, `BUNNY_PRIVATE_ZONE`, leurs mots de passe d'écriture (migration seulement) et en lecture seule, `BACKUP_FILES_SOURCE` |
 | Étape 6 (nettoyage) | retrait des mots de passe d'écriture des zones de l'application de cette stack ; réconciliation hebdomadaire planifiée |
-| Étape 4 (base dans Neon) | `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup` ; `OPS_PG_MAJOR=17` et image reconstruite ; `AMAME_NETWORK` devient inutile |
+| Étape 4 (base dans Neon) | à la bascule : `OPS_IMAGE_TAG=ops-v1.3` (PostgreSQL 18, `db-transfer.sh`, `db-compare.sh`) ; `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup`, `SCRAPER_DATABASE_URL` avec le rôle `amame_scraper`, toutes deux sur le point d'accès direct avec le suffixe TLS ci-dessus ; `AMAME_NETWORK` devient inutile |
 | Étape 6 | alerte par e-mail en cas d'échec ; archive mensuelle hors de Bunny ; retrait des objets privés 30 jours après leur purge |

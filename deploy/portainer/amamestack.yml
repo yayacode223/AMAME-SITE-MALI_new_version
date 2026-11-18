@@ -70,9 +70,9 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
       - DATABASE_MIGRATION_USERNAME=${DATABASE_MIGRATION_USERNAME:-postgres}
       - DATABASE_MIGRATION_PASSWORD=${DATABASE_MIGRATION_PASSWORD:-${POSTGRES_PASSWORD}}
-      # Seul nom que lit backend-v1.1 (étape 0). Toujours égal à DATABASE_PASSWORD :
-      # sans effet sur les versions suivantes. À retirer quand le retour à v1.1 n'aura plus lieu d'être.
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD:-${POSTGRES_PASSWORD}}
+      # Ne jamais ajouter SPRING_DATASOURCE_PASSWORD : Spring la ferait passer avant DATABASE_PASSWORD.
+      # Elle a servi à backend-v1.1 jusqu'à l'étape 3 ; retirée le 18 novembre 2026 (constat C17) :
+      # avec la valeur de l'ancienne base, le backend serait refusé par Neon.
       - DB_POOL_MAX_SIZE=${DB_POOL_MAX_SIZE:-10}
       - DB_POOL_MIN_IDLE=${DB_POOL_MIN_IDLE:-0}
       - DB_POOL_IDLE_TIMEOUT=${DB_POOL_IDLE_TIMEOUT:-60000}

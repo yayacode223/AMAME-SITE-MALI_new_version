@@ -11,7 +11,7 @@ services:
       context: ./backup
       dockerfile: Dockerfile
       args:
-        # Version majeure de la base sauvegardée : 15 sur le VPS, 17 une fois sur Neon
+        # Version majeure de la base sauvegardée : 15 sur le VPS, 18 une fois sur Neon
         PG_MAJOR: ${OPS_PG_MAJOR:-15}
     container_name: amame-ops-backup
     environment:
