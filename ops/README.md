@@ -217,6 +217,16 @@ Il lit les zones avec leurs mots de passe en **lecture seule** (`BUNNY_PUBLIC_ZO
 
 **Sauvegarde depuis Bunny.** Après la bascule, les nouveaux fichiers ne sont plus sur le disque. Passer alors `BACKUP_FILES_SOURCE=bunny` dans les variables de cette stack, puis la mettre à jour. `backup.sh` copie dès lors les objets des deux zones, lus en lecture seule, au lieu du dossier des uploads. La copie reste en ajout seul.
 
+**Après la bascule, contrôler avec `reconcile-bunny.sh`, plus avec `inventory.sh`.** `inventory.sh` compare la base au dossier des uploads : chaque fichier envoyé depuis la bascule y apparaît en « référence cassée », ce qui est normal puisqu'il n'est que dans Bunny. Il ne sert plus qu'en cas de retour en stockage local.
+
+**Objet perdu dans Bunny** (signalé « référence cassée » par `reconcile-bunny.sh`) : le récupérer depuis la sauvegarde, puis le renvoyer, avec son empreinte contrôlée par Bunny. Procédure déduite des scripts, non essayée :
+
+```bash
+restore-files.sh /tmp/restore uploads/<dossier>/<uuid>.<ext>
+UPLOADS_DIR=/tmp/restore/uploads copy-to-bunny.sh --apply
+reconcile-bunny.sh
+```
+
 ### Lancer un scraper
 
 Le conteneur `amame-scraper` reste en veille. Dans sa console Portainer (`/bin/bash`) :
