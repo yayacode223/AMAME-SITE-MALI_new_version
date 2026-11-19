@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itération 1 en production (`frontend-v1.4`) ; itération 2 publiée (`frontend-v1.5`), en attente de la bascule dans Portainer (section 7).
+> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 en cours (section 7).
 
 ---
 
@@ -563,7 +563,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | Itération | État | Étiquette | Date | Remarques |
 |---|---|---|---|---|
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
-| 2. Navbar centrée | **commitée (`efb76f8`), image construite, vérifiée et publiée** ; non déployée | `frontend-v1.5` | 2026-11-19 | voir le détail ci-dessous |
+| 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | prête à démarrer | — | — | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) |
 | 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
@@ -657,9 +657,13 @@ Ces deux points sont à prévoir si l'accessibilité devient un objectif à part
    - Vérifiée dans un conteneur de test (`amame-it2-front`, supprimé ensuite) : `40-runtime-config.sh` s'exécute ; `/`, `/bourses`, `/config.js` et une image statique répondent `200` ; aucun `hero-section` dans l'image ; bords du contenu à 16 et 112 px.
    - Le test de la navbar donne, sur l'image, exactement les mesures du développement : écarts au centre, clavier, souris.
 3. Fait : `docker push yayacode224/amame:frontend-v1.5`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:e7d4decbd81d64577e75d685604f0998ed5fcb22faa56684a048291c9d454191`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Reste à faire : `FRONTEND_IMAGE_TAG=frontend-v1.5` dans la stack Portainer `amamestack`.
-   Contrôle après la bascule : à 1440 px, le bloc de liens est centré sur la page ; au clavier, Tab depuis le logo ouvre le sous-menu « À Propos ».
-5. Après la bascule seulement : `deploy/portainer/amamestack.env.example` à `frontend-v1.5`.
+4. Fait le 2026-11-19 : `FRONTEND_IMAGE_TAG=frontend-v1.5` dans la stack Portainer `amamestack`.
+   Contrôle en production (lecture seule, appels `/api/` interceptés par le navigateur de test) :
+   - le CSS servi est `index-CNjqxaDG.css`, le même que celui du build de `efb76f8` ;
+   - écart du bloc de liens au centre de la page : 0 px à 1100, 1440 et 1920 px (grille active) ;
+   - au clavier, depuis le logo, deux Tab : le focus est sur « À Propos » (`:focus-visible`) et le sous-menu devient visible ; le Tab suivant entre dans le sous-menu.
+   - **Constat** : lu juste après le Tab, le sous-menu est encore `hidden` (9 essais sur 10), parce que sa transition de 150 ms porte aussi sur `visibility` et vient de démarrer. Deux images plus tard (environ 33 ms), il est `visible` dans 10 essais sur 10. C'est un artefact de mesure, pas un défaut : un humain qui tape Tab de nouveau trouve toujours le sous-menu ouvert. Les tests suivants attendent deux images avant de lire l'état.
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.5`.
 
 Retour arrière : `frontend-v1.4`. Ce modèle reflète l'état de la production (commit d76b23b).
 
