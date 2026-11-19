@@ -111,10 +111,13 @@ const Navbar = () => {
         }`}
       >
         <div className="page-container">
-          <div className="flex items-center justify-between h-16">
+          {/* Desktop : grille 1fr | auto | 1fr. Les liens restent centrés sur la page quelle que soit
+              la largeur du logo et des actions (visiteur, connecté, chargement). Une colonne 1fr ne
+              descend jamais sous la largeur de son contenu : pas de chevauchement sur les petits écrans. */}
+          <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group lg:justify-self-start">
               <img
                 src="/logo-192.webp"
                 alt="AMAME"
@@ -135,7 +138,7 @@ const Navbar = () => {
                     <Link
                       key={item.path}
                       to={item.path!}
-                      className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                      className={`relative px-2.5 xl:px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
                         active
                           ? "text-amame-green bg-amame-green-subtle"
                           : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
@@ -146,23 +149,24 @@ const Navbar = () => {
                   );
                 }
 
-                /* Dropdown avec group-hover */
+                /* Sous-menu : ouvert au survol, ou au clavier quand le bouton ou l'un de ses liens
+                   a le focus clavier (:focus-visible). Un clic souris ne le garde pas ouvert. */
                 return (
                   <div key={item.label} className="relative group">
                     <button
                       type="button"
-                      className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                      className={`flex items-center gap-1 px-2.5 xl:px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
                         active
                           ? "text-amame-green bg-amame-green-subtle"
                           : "text-gray-600 hover:text-amame-green hover:bg-gray-50"
                       }`}
                     >
                       {item.label}
-                      <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180" />
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-180 group-has-[:focus-visible]:rotate-180" />
                     </button>
 
                     {/* Dropdown panel */}
-                    <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-lg border border-amame-border py-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                    <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-lg border border-amame-border py-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-has-[:focus-visible]:opacity-100 group-has-[:focus-visible]:visible transition-all duration-150 z-50">
                       {item.children.map((sub) => (
                         <Link
                           key={sub.path}
@@ -183,7 +187,7 @@ const Navbar = () => {
             </div>
 
             {/* Actions Desktop */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3 lg:justify-self-end">
               {isUserLoading ? (
                 <Skeleton className="h-9 w-9 rounded-full" />
               ) : isAuthenticated && user ? (

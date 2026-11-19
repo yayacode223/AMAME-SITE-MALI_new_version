@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itération 1 implémentée et vérifiée en local le 2026-11-19, ni commitée ni déployée (section 7).
+> **Avancement** : itération 1 en production (`frontend-v1.4`) ; itération 2 implémentée et vérifiée en local, ni commitée ni déployée (section 7).
 
 ---
 
@@ -206,8 +206,9 @@ Les largeurs plus étroites placées **à l'intérieur** du conteneur, pour le c
 
 - Le conteneur de la navbar passe à `.page-container` (itération 1) : logo, hero et footer s'alignent sur le même bord.
 - La ligne passe en grille sur desktop : `lg:grid lg:grid-cols-[1fr_auto_1fr]`, avec le logo calé à gauche (`justify-self-start`) et les actions calées à droite (`justify-self-end`). Le bloc central est alors centré **indépendamment** de la largeur des blocs latéraux. Le centrage reste stable entre visiteur et utilisateur connecté, et pendant le chargement.
-- **Centrage exact** dès que chaque colonne latérale contient son bloc, soit à partir d'environ 1050 px de large. Calcul : (largeur − 64 − 623) / 2 ≥ 182.
-- **Entre 1024 et 1050 px**, la grille se dégrade proprement : une colonne `1fr` ne descend jamais sous la largeur de son contenu, donc les blocs ne se chevauchent pas, et l'écart résiduel reste de 14 px au plus, contre 31 aujourd'hui.
+- **Centrage exact** dès que chaque colonne latérale contient son bloc. Mesuré après l'itération 2 : à partir de 1060 px pour un visiteur, de 1100 px pour un utilisateur connecté au prénom long (détail en section 7).
+- **Entre 1024 et 1060 px**, la grille se dégrade proprement : une colonne `1fr` ne descend jamais sous la largeur de son contenu, donc les blocs ne se chevauchent pas. L'espace entre groupes reste d'au moins 16 px (`gap-x-4`).
+- Pour atteindre ce seuil, l'espacement interne des liens passe de 12 à 10 px entre 1024 et 1279 px (`px-2.5 xl:px-3`). Cet ajustement n'était pas prévu au départ ; il est inchangé à partir de 1280 px.
 - **Complément d'accessibilité**, une ligne : `group-focus-within:opacity-100 group-focus-within:visible` sur les sous-menus, pour les ouvrir au clavier.
 
 ### 3.3 Hero cinématique
@@ -562,7 +563,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | Itération | État | Étiquette | Date | Remarques |
 |---|---|---|---|---|
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
-| 2. Navbar centrée | prête à démarrer | — | — | — |
+| 2. Navbar centrée | **implémentée, vérifiée en local, commitée** ; image en construction, non publiée, non déployée | `frontend-v1.5` | 2026-11-19 | voir le détail ci-dessous |
 | 3. Hero vidéo | prête à démarrer | — | — | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) |
 | 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
@@ -606,6 +607,48 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
    Contrôle en production (lecture seule, appels `/api/` bloqués pour ne pas réveiller la base) :
    - le CSS servi est `index-D4EtrIhM.css`, le même que celui du build de `fcff420`, avec les 3 règles `.page-container` ;
    - sur `/`, `/bourses` et `/a-propos`, un seul bord de contenu par largeur : 16 / 32 / 112 / 352 px à 390 / 1024 / 1440 / 1920 px.
-5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.4`. Ce modèle reflète l'état de la production (commit d76b23b).
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.4`.
+
+### Itération 2 : détail (2026-11-19)
+
+**Modifications** (`Navbar.tsx` uniquement, 1 fichier) :
+- **disposition desktop** : la ligne passe en grille `lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4`. Le logo est calé à gauche (`lg:justify-self-start`), ce qui garde sa zone cliquable à 120 px au lieu de toute la colonne ; les actions sont calées à droite (`lg:justify-self-end`) ;
+- **espacement des liens** : `px-2.5 xl:px-3` au lieu de `px-3`, soit 10 px entre 1024 et 1279 px, puis 12 px comme avant ;
+- **clavier** : les sous-menus s'ouvrent quand le bouton ou l'un de leurs liens a le focus clavier (`group-has-[:focus-visible]:visible`, `opacity-100`, et la flèche pivote). Un clic de souris ne les garde pas ouverts : seul `:focus-visible` compte. Dans les navigateurs sans `:has()` (Firefox < 121, Safari < 15.4), le comportement reste celui d'avant ;
+- **mobile et tablette** (< 1024 px) : inchangés, toujours en `flex`.
+
+**Écart du bloc de liens au centre de la page** (en px ; mesuré après chargement des polices ; prénom de test « Mohamed-Lamine », tronqué à 100 px) :
+
+| Largeur | Visiteur, avant → après | Connecté, avant → après | Chargement, avant → après |
+|---|---|---|---|
+| 1024 | −31,2 → −17,8 | −33 → −21,4 | +42 → 0 |
+| 1060 | −31,2 → **0** | −33 → −3,4 | +42 → **0** |
+| 1100 | −31,2 → **0** | −33 → **0** | +42 → **0** |
+| 1280, 1440, 1920 | −31,2 → **0** | −33 → **0** | +42 → **0** |
+
+**Conséquences :**
+- **Déplacement des liens** quand l'état de l'utilisateur se résout (fin du chargement) : il était de 73 px à toutes les largeurs. Il est maintenant de 0 px à partir de 1100 px, et de 18 à 21 px au plus à 1024 px.
+- **Critère « ≤ 1 px à partir de 1060 px »** : atteint pour un visiteur et pendant le chargement. Pour un utilisateur connecté au prénom long, il n'est atteint qu'à partir de 1100 px (−3,4 px à 1060).
+
+**Vérifications :**
+
+| Contrôle | Résultat |
+|---|---|
+| Chevauchement, de 1024 à 1920 px, dans les 3 états | aucun : au moins 16 px entre le logo, les liens et les actions |
+| Zone cliquable du logo | 120 px, comme avant |
+| Clavier, à 1440 px (2 passages) | **avant** : Tab atteint « À Propos », mais le sous-menu reste fermé et le Tab suivant saute à « Actualités ». **Après** : le sous-menu s'ouvre, et le Tab suivant entre dans le sous-menu (lien « À Propos ») |
+| Souris | survol : ouvre ; clic puis sortie du pointeur : referme ; jamais deux sous-menus ouverts à la fois. Comme avant |
+| Mobile et tablette (320, 390, 768, 1023 px), visiteur et connecté | ligne en `flex`, logo au bord gauche (16 ou 24 px), avatar au bord droit, hauteur 64 px, aucun débordement |
+| Captures avant/après à 1024 et 1440 px | liens centrés sur l'axe de la page, aucun chevauchement |
+| `npx tsc --noEmit -p tsconfig.app.json` | les 4 erreurs connues, aucune dans `Navbar.tsx` |
+| `vite build` (production) | réussi ; règles `.group:has(:focus-visible)` et grille `1fr auto 1fr` présentes dans le CSS ; précache de 113 entrées |
+
+**Constat en cours de test** : un passage du test clavier a échoué une fois, juste après une modification du fichier. Le rechargement à chaud de Vite était en cours. Deux passages complets ensuite, sans modification entre les deux, ont réussi.
+
+**Pas traité** :
+- la touche Échap ne referme pas un sous-menu ouvert au clavier (Tab hors du sous-menu le referme) ;
+- les boutons n'ont pas d'attribut `aria-expanded`, qui demanderait un état React.
+
+Ces deux points sont à prévoir si l'accessibilité devient un objectif à part entière. Ce modèle reflète l'état de la production (commit d76b23b).
 
 Retour arrière : `frontend-v1.3`.
