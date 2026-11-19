@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 commitée, image `frontend-v1.7` en construction (section 7).
+> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 publiée (`frontend-v1.7` sur Docker Hub), en attente de déploiement (section 7).
 
 ---
 
@@ -567,7 +567,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
-| 4. Message du hero | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.7` | 2026-11-19 | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
+| 4. Message du hero | **image publiée** ; en attente de déploiement | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
@@ -839,9 +839,14 @@ Toutes restent sous 0,1 (seuil « bon »). Elles viennent de l'arrivée des poli
 - **bouton vert** : texte blanc de 16 px sur `#16a34a`, soit un contraste de 3,3:1, sous les 4,5:1 demandés pour ce texte. C'est le cas de tous les boutons verts du site : le corriger relève de la charte graphique, pas de cette itération.
 
 **Livraison** :
-1. Fait : étiquette par défaut passée à `frontend-v1.7` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
-2. En cours : image `frontend-v1.7` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
-3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+1. Fait : étiquette par défaut passée à `frontend-v1.7` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code (`232df3e`).
+2. Fait : image `frontend-v1.7` construite depuis `232df3e` dans un `git worktree` propre, supprimé ensuite. Image `9921d6684500`, 112 Mo ; mêmes vidéos qu'en `frontend-v1.6` ; précache de 113 entrées.
+   Vérifiée dans un conteneur de test (`amame-it4-front`, supprimé ensuite) :
+   - **HTTP** : `/`, `/bourses`, `/config.js`, `sw.js`, le poster et les vidéos répondent `200` avec le bon type, et `206` aux requêtes `Range` ; le CSS livré contient les deux règles `.home-hero-height`, avec leur repli `vh` ;
+   - **itération 4** : `hero4.py` donne sur l'image exactement les mesures du développement : mise en page aux 12 tailles, bouton dans les 5 états, contrastes minimaux identiques (phrase 5,97 ; titre vert 4,28 ; titre blanc 5,91 ; accroche 7,49) ;
+   - **itération 3** : `hero.py`, mêmes résultats (A2 et A7, les deux faux échecs connus) ; jonction de boucle conforme ;
+   - **itérations 1 et 2** : bords du contenu à 16 / 32 / 112 / 352 px ; liens de la navbar à 0 px du centre. Au clavier, un essai sur 10 montrait encore le sous-menu masqué deux images après le Tab, pendant que les autres tests chargeaient le poste ; deux passages seuls ensuite, 0 sur 10. `Navbar.tsx` n'a pas changé depuis l'itération 2.
+3. Fait : `docker push yayacode224/amame:frontend-v1.7`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:9921d668450002748125cfa3e8f8aeb99ac17317baed854b4f4e91f9ffba63b3`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
 4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.7`.
 
 Retour arrière : `frontend-v1.6`.
