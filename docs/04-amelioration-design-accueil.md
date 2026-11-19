@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 publiée (`frontend-v1.7` sur Docker Hub), en attente de déploiement (section 7).
+> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 en cours (section 7).
 
 ---
 
@@ -567,8 +567,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
-| 4. Message du hero | **image publiée** ; en attente de déploiement | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
-| 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
+| 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
+| 5. Cartes, partie 1 | **en cours** | `frontend-v1.8` (prévue) | 2026-11-19 | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
@@ -847,6 +847,11 @@ Toutes restent sous 0,1 (seuil « bon »). Elles viennent de l'arrivée des poli
    - **itération 3** : `hero.py`, mêmes résultats (A2 et A7, les deux faux échecs connus) ; jonction de boucle conforme ;
    - **itérations 1 et 2** : bords du contenu à 16 / 32 / 112 / 352 px ; liens de la navbar à 0 px du centre. Au clavier, un essai sur 10 montrait encore le sous-menu masqué deux images après le Tab, pendant que les autres tests chargeaient le poste ; deux passages seuls ensuite, 0 sur 10. `Navbar.tsx` n'a pas changé depuis l'itération 2.
 3. Fait : `docker push yayacode224/amame:frontend-v1.7`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:9921d668450002748125cfa3e8f8aeb99ac17317baed854b4f4e91f9ffba63b3`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.7`.
+4. Fait le 2026-11-19 : `FRONTEND_IMAGE_TAG=frontend-v1.7` dans la stack Portainer `amamestack`.
+   Contrôle en production (lecture seule ; service worker bloqué, appels `/api/` interceptés par le navigateur de test) :
+   - le JavaScript et le CSS servis sont ceux du build de `232df3e` (`index-tRi1RW6q.js`, `index-C5Z9rQoU.css`) ;
+   - `hero4.py` donne en production exactement les mesures de l'image : mise en page aux 12 tailles (360×560 : marge de 23 px), bouton dans les 5 états, contrastes minimaux identiques ;
+   - jonction de boucle conforme (luminance de 128 à 141).
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.7`.
 
 Retour arrière : `frontend-v1.6`.
