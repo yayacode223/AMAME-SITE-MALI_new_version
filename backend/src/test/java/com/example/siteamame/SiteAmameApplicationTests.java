@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Hibernate (« validate ») vérifie que le schéma obtenu correspond aux entités. Si une entité
  * change sans migration, ou l'inverse, ce test échoue au démarrage du contexte.
  *
- * L'image suit la version de la base de production : PostgreSQL 15 tant qu'elle est sur le VPS,
- * 17 une fois sur Neon. Pour essayer une autre version sans modifier ce fichier :
- * {@code ./mvnw test -Dtest.postgres.image=postgres:17-alpine}. Docker est requis.
+ * L'image suit la version de la base de production : PostgreSQL 18 depuis la bascule vers Neon
+ * (19 novembre 2026). Pour essayer une autre version sans modifier ce fichier :
+ * {@code ./mvnw test -Dtest.postgres.image=postgres:15-alpine}. Docker est requis.
  */
 @SpringBootTest
 @Testcontainers
@@ -30,7 +30,7 @@ class SiteAmameApplicationTests {
 	@Container
 	@ServiceConnection
 	static PostgreSQLContainer<?> postgres =
-			new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:15-alpine"));
+			new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:18-alpine"));
 
 	@Autowired
 	private Flyway flyway;

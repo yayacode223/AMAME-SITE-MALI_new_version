@@ -56,16 +56,16 @@ Ces commandes n'ont besoin d'aucun `.env`. `docker compose -f ops/docker-compose
 
 | Variable | Valeur | Secret |
 | --- | --- | --- |
-| `BACKUP_DATABASE_URL` | `postgresql://postgres:<mot de passe>@amame-database:5432/amame_db` tant que la base est sur le VPS. Le nom du conteneur, unique sur l'hôte, plutôt que `database` : le réseau de production est partagé avec d'autres conteneurs | oui |
+| `BACKUP_DATABASE_URL` | depuis le 19 novembre 2026 : Neon, rôle `amame_backup`, point d'accès direct et suffixe TLS (« Transfert de la base vers Neon » ci-dessous). Auparavant, et en local : `postgresql://postgres:<mot de passe>@amame-database:5432/amame_db`. Le nom du conteneur, unique sur l'hôte, plutôt que `database` : le réseau de production est partagé avec d'autres conteneurs | oui |
 | `BACKUP_PASSPHRASE` | phrase longue, générée (`openssl rand -base64 48`) | oui |
 | `BUNNY_BACKUP_ZONE` | nom de la zone de sauvegarde : `amamestoragezone` en production (la zone a été créée sous ce nom, écart E40 du suivi) | non |
 | `BUNNY_BACKUP_ZONE_KEY` | mot de passe de la zone | oui |
 | `UPLOADS_HOST_PATH` | chemin **réel** du dossier des uploads sur l'hôte | non |
 | `AMAME_NETWORK` | réseau Docker de la stack applicative : `common_net` en production, valeur par défaut du fichier de production (`amame_common_net` par défaut dans `ops/docker-compose.yml`) | non |
-| `SCRAPER_DATABASE_URL` | même forme que `BACKUP_DATABASE_URL` | oui |
+| `SCRAPER_DATABASE_URL` | même forme que `BACKUP_DATABASE_URL`, avec le rôle `amame_scraper` | oui |
 | `BACKUP_DB_SCHEDULE` | `02:30 14:30` par défaut (heures UTC, soit l'heure de Bamako) | non |
 | `BACKUP_DB_RETENTION_DAYS` | `30` par défaut | non |
-| `OPS_PG_MAJOR` | `15` par défaut : la version majeure de la base sauvegardée (utilisée à la construction de l'image) | non |
+| `OPS_PG_MAJOR` | `18` par défaut : la version majeure de la base sauvegardée, celle de Neon (utilisée à la construction de l'image ; 15 avant le 19 novembre 2026, et en local pour `restore-db.sh` vers la base 15) | non |
 
 Trois points demandent de l'attention.
 
@@ -166,7 +166,7 @@ Les listes complètes sont écrites dans `/tmp/inventaire-<date>/`, dont le chem
 
 **`delete-orphan-rows.sh`** supprime les lignes qu'aucune entité ne référence, datant de plus de 2 jours. La migration V3 doit être appliquée : le script refuse sinon. Chaque suppression est inscrite dans la file de purge : le fichier n'est effacé qu'après la rétention (10 jours) et seulement si la purge est activée. Pendant ce délai, la suppression s'annule. Sans `--apply`, la liste s'affiche sans rien supprimer.
 
-Ces deux derniers scripts écrivent dans la base : le compte de `BACKUP_DATABASE_URL` doit en avoir le droit, ce qui est le cas tant que la base est sur le VPS (`postgres`).
+Ces deux derniers scripts écrivent dans la base : le compte de `BACKUP_DATABASE_URL` doit en avoir le droit, ce qui était le cas sur le VPS (`postgres`). Sur Neon, `amame_backup` ne fait que lire : s'il fallait encore les lancer, ce serait depuis un conteneur ponctuel avec l'URL de `amame_owner`.
 
 ### Copie vers Bunny, réconciliation, rapatriement (étape 3, image `ops-v1.2`)
 
@@ -199,7 +199,7 @@ Il lit les zones avec leurs mots de passe en **lecture seule** (`BUNNY_PUBLIC_ZO
 **`copy-from-bunny.sh <destination> [--apply]`** sert au retour arrière de la bascule. Il rapatrie sur le disque les fichiers des lignes qui n'y sont pas, après contrôle de leur taille et de leur empreinte, sans jamais remplacer un fichier présent. Le service `backup` monte le dossier des uploads en lecture seule : la simulation y fonctionne, l'écriture non. L'écriture se fait dans un conteneur ponctuel, créé depuis Portainer :
 
 1. **Containers → Add container**, nom `amame-ops-rapatriement` :
-   - image `yayacode224/amame:ops-v1.2.1` (ou plus récente) ;
+   - image `yayacode224/amame:ops-v1.3` (PostgreSQL 18, comme Neon) ;
    - **Advanced container settings → Command & logging** : commande `sleep 3600` (le conteneur attend, la copie se lance à la main), utilisateur `root` ;
    - **Volumes** : bind de `UPLOADS_HOST_PATH` (le chemin réel des uploads) sur `/data/uploads`, en écriture ;
    - **Network** : `common_net` (celui de `amame-database`). Le formulaire n'accepte qu'un réseau : le second se joint à l'étape 2 ;
@@ -229,7 +229,7 @@ reconcile-bunny.sh
 
 ### Transfert de la base vers Neon (étape 4, image `ops-v1.3`)
 
-`ops-v1.3` est bâtie sur PostgreSQL **18**, la version du projet Neon (relevée le 18 novembre 2026) : `pg_dump` refuse une base plus récente que lui. Elle sert aux conteneurs ponctuels du transfert, puis à cette stack après la bascule. **Avant la bascule, la stack garde `ops-v1.2.1` (PostgreSQL 15)** : un dump fait par `pg_dump` 18 contient `SET transaction_timeout`, qu'une base 15 refuse, et `restore-db.sh` ne pourrait plus restaurer la base locale. Si Neon passe à une version mineure plus récente que celle de l'image, reconstruire l'image avant le prochain transfert ou la prochaine restauration (constat C16 du suivi).
+**Bascule faite le 19 novembre 2026** : la stack tourne depuis en `ops-v1.3` et sauvegarde Neon. Cette section reste utile pour un retour arrière ou une nouvelle bascule. `ops-v1.3` est bâtie sur PostgreSQL **18**, la version du projet Neon (relevée le 18 novembre 2026) : `pg_dump` refuse une base plus récente que lui. Elle sert aux conteneurs ponctuels du transfert, puis à cette stack après la bascule. **Avant la bascule, la stack garde `ops-v1.2.1` (PostgreSQL 15)** : un dump fait par `pg_dump` 18 contient `SET transaction_timeout`, qu'une base 15 refuse, et `restore-db.sh` ne pourrait plus restaurer la base locale. Si Neon passe à une version mineure plus récente que celle de l'image, reconstruire l'image avant le prochain transfert ou la prochaine restauration (constat C16 du suivi).
 
 | Outil | Rôle |
 | --- | --- |
@@ -275,5 +275,5 @@ python scraper_opportunity.py
 | Étape 2 (image `ops-v1.1`) | `inventory.sh`, `backfill-sha256.sh` et `delete-orphan-rows.sh` ; aucune variable nouvelle |
 | Étape 3 (image `ops-v1.2`) | `copy-to-bunny.sh`, `reconcile-bunny.sh`, `copy-from-bunny.sh` ; `backup.sh` lit les zones Bunny avec `BACKUP_FILES_SOURCE=bunny`. Variables : `BUNNY_PUBLIC_ZONE`, `BUNNY_PRIVATE_ZONE`, leurs mots de passe d'écriture (migration seulement) et en lecture seule, `BACKUP_FILES_SOURCE` |
 | Étape 6 (nettoyage) | retrait des mots de passe d'écriture des zones de l'application de cette stack ; réconciliation hebdomadaire planifiée |
-| Étape 4 (base dans Neon) | à la bascule : `OPS_IMAGE_TAG=ops-v1.3` (PostgreSQL 18, `db-transfer.sh`, `db-compare.sh`) ; `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup`, `SCRAPER_DATABASE_URL` avec le rôle `amame_scraper`, toutes deux sur le point d'accès direct avec le suffixe TLS ci-dessus ; `AMAME_NETWORK` devient inutile |
+| Étape 4 (base dans Neon) | **fait le 19 novembre 2026** : `OPS_IMAGE_TAG=ops-v1.3` (PostgreSQL 18, `db-transfer.sh`, `db-compare.sh`) ; `BACKUP_DATABASE_URL` désigne Neon avec le rôle `amame_backup`, `SCRAPER_DATABASE_URL` avec le rôle `amame_scraper`, toutes deux sur le point d'accès direct avec le suffixe TLS ci-dessus ; `AMAME_NETWORK` devient inutile |
 | Étape 6 | alerte par e-mail en cas d'échec ; archive mensuelle hors de Bunny ; retrait des objets privés 30 jours après leur purge |

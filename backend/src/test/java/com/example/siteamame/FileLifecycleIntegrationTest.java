@@ -56,7 +56,7 @@ class FileLifecycleIntegrationTest {
     @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:15-alpine"));
+            new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:18-alpine"));
 
     @DynamicPropertySource
     static void storage(DynamicPropertyRegistry registry) {

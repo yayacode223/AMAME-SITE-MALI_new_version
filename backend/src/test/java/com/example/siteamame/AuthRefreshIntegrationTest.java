@@ -37,7 +37,7 @@ class AuthRefreshIntegrationTest {
     @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:15-alpine"));
+            new PostgreSQLContainer<>(System.getProperty("test.postgres.image", "postgres:18-alpine"));
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserService userService;

@@ -6,12 +6,13 @@
 # Réseau : common_net, celui de la stack amamestack (relevé le 9 novembre 2026).
 #
 # Variables et mode d'emploi : ops/README.md. Aucun secret dans ce fichier.
-# BACKUP_DATABASE_URL et SCRAPER_DATABASE_URL désignent la base par le nom de son conteneur,
-# « amame-database », unique sur l'hôte : common_net est partagé avec d'autres conteneurs.
+# BACKUP_DATABASE_URL et SCRAPER_DATABASE_URL désignent Neon depuis le 19 novembre 2026 (rôles
+# amame_backup et amame_scraper, point d'accès direct, suffixe TLS : ops/README.md). common_net ne sert
+# plus qu'à joindre l'ancienne base, « amame-database », gardée pour le retour arrière de l'étape 4.
 
 services:
   backup:
-    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.2.1}
+    image: yayacode224/amame:${OPS_IMAGE_TAG:-ops-v1.3}
     container_name: amame-ops-backup
     environment:
       - BACKUP_DATABASE_URL=${BACKUP_DATABASE_URL:?Définir BACKUP_DATABASE_URL}

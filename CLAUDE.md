@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 AMAME is a platform for Malian students (scholarships, competitions, academic orientation). It is a full-stack project with three independent services:
 
 - `frontend/` — React 18 + Vite + TypeScript + Tailwind CSS (deployed via Nginx + Docker)
-- `backend/` — Java 21 + Spring Boot 3 + Spring Security (JWT) + PostgreSQL 15, schema versioned with Flyway
+- `backend/` — Java 21 + Spring Boot 3 + Spring Security (JWT) + PostgreSQL (18 on Neon in production since 2026-11-19, 15 in the local compose), schema versioned with Flyway
 - `scraper/` — Python scripts for data import
 - `ops/` — operations stack `amame-ops`: scheduled backups, restore tests, on-demand scrapers (see `ops/README.md`)
 
@@ -110,7 +110,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Empty environment variables**: an environment variable that is set but empty (or only spaces) is treated as absent, so the default of its `${VAR:default}` placeholder applies (`EmptyEnvironmentVariablesPostProcessor`, deviation E51). The production stack passes every undefined variable as an empty string. Never give "empty" a meaning different from "absent" for a new variable.
 
-**Sparing the database** (it will be billed by awake time on Neon): the HikariCP pool keeps no idle connection by default (`DB_POOL_*`), auto-commit is off so a transaction borrows a connection only at its first SQL statement, no health probe queries the database, and every scheduled task that touches it runs in the same nightly window (02:30 UTC). Do not add polling, a keep-alive, or a frequent `@Scheduled` job that hits the database.
+**Sparing the database** (it is billed by awake time on Neon): the HikariCP pool keeps no idle connection by default (`DB_POOL_*`), auto-commit is off so a transaction borrows a connection only at its first SQL statement, no health probe queries the database, and every scheduled task that touches it runs in the same nightly window (02:30 UTC). Do not add polling, a keep-alive, or a frequent `@Scheduled` job that hits the database.
 
 **Caches** (`CacheConfig`, in-memory Caffeine):
 - `requestUser`: the user loaded by `JwtFilter` on each authenticated request, kept 60 s (`RequestUserLoader`). Any method that changes a role, permissions or a password, or deletes a user, must carry `@CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)`. Login never uses this cache. The cached `User` is detached and shared: never modify it.
@@ -157,7 +157,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
 
-Stack `amame-ops` (`ops/docker-compose.yml`): `backup` (`yayacode224/amame:${OPS_IMAGE_TAG}`, default `ops-v1.2.1`) and `scraper` (`yayacode224/amame:${SCRAPER_IMAGE_TAG}`, default `scraper-v1.1`), no exposed port.
+Stack `amame-ops` (`ops/docker-compose.yml`): `backup` (`yayacode224/amame:${OPS_IMAGE_TAG}`, default `ops-v1.3`, PostgreSQL 18; for `restore-db.sh` into the local PostgreSQL 15, use `ops-v1.2.1` and `OPS_PG_MAJOR=15`) and `scraper` (`yayacode224/amame:${SCRAPER_IMAGE_TAG}`, default `scraper-v1.1`), no exposed port.
 
 Bump the default tags (or set the `*_IMAGE_TAG` variables) before `docker compose up --build` when pushing a new version. Tags are versioned, never `latest`: rolling back means putting the previous tag back.
 
