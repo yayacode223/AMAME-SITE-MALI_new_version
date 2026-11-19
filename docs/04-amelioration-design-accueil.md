@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 publiée (`frontend-v1.6` sur Docker Hub), en attente de déploiement (section 7).
+> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 en cours (section 7).
 
 ---
 
@@ -564,8 +564,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 |---|---|---|---|---|
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
-| 3. Hero vidéo | **image publiée** ; en attente de déploiement | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
-| 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
+| 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
+| 4. Message du hero | **en cours** | `frontend-v1.7` (prévue) | 2026-11-19 | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
@@ -743,6 +743,12 @@ Retour arrière : `frontend-v1.4`.
    - **comportement** : le script de l'itération (`hero.py`) donne sur l'image les mêmes résultats qu'en local, scénarios A à I. Il affiche deux échecs, connus et sans défaut derrière : A2, une erreur d'affichage du script, alors que l'élément LCP est bien le poster ; A7, le plan sombre du tableau noir (63), déjà expliqué plus haut. Le test de jonction donne, sur 6 passages, une luminance de 133 à 146 à ±1 s de la jonction ;
    - **itérations 1 et 2** : bords du contenu à 16 / 32 / 112 / 352 px sur `/`, `/bourses` et `/a-propos` ; liens de la navbar à 0 px du centre à 1100, 1440 et 1920 px ; sous-menu visible au clavier après deux images, 10 essais sur 10.
 3. Fait : `docker push yayacode224/amame:frontend-v1.6`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:b2197610997ea4c28b80f536f2c45a81f04dc89d77cbe504dd9a4c7e288c4013`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.6`.
+4. Fait le 2026-11-19 : `FRONTEND_IMAGE_TAG=frontend-v1.6` dans la stack Portainer `amamestack`.
+   Contrôle en production (lecture seule, appels `/api/` interceptés par le navigateur de test) :
+   - le JavaScript et le CSS servis sont ceux du build de `d803a7d` (`index-Du8uoofG.js`, `index-BQOpDXPl.css`) ;
+   - à travers Nginx Proxy Manager, les deux vidéos répondent comme sur l'image : `video/mp4`, cache d'un an `immutable`, `206` aux requêtes `Range` (début et fin de fichier), pas de compression ; octets identiques aux fichiers commités ;
+   - `hero.py` sans le scénario I : mêmes résultats que sur l'image (A2 et A7, les deux faux échecs connus). Le scénario I est retiré en production : le service worker pourrait appeler `/api/` hors de l'interception du navigateur de test, et réveiller la base ;
+   - jonction de boucle : luminance de 133 à 146 à ±1 s de la jonction, aucune chute.
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.6`.
 
 Retour arrière : `frontend-v1.5`.
