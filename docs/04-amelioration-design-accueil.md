@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 commitée, image `frontend-v1.6` en construction (section 7).
+> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 publiée (`frontend-v1.6` sur Docker Hub), en attente de déploiement (section 7).
 
 ---
 
@@ -564,7 +564,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 |---|---|---|---|---|
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
-| 3. Hero vidéo | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.6` | 2026-11-19 | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
+| 3. Hero vidéo | **image publiée** ; en attente de déploiement | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
@@ -735,9 +735,14 @@ Retour arrière : `frontend-v1.4`.
 **Non vérifié** : appareils réels (iPhone avec Safari, Android avec Chrome) et mode économie d'énergie d'iOS. Le chemin « lecture refusée » est couvert par le scénario Chromium sans H.264, mais pas sur iOS lui-même. À contrôler sur un téléphone après le déploiement.
 
 **Livraison** :
-1. Fait : étiquette par défaut passée à `frontend-v1.6` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
-2. En cours : image `frontend-v1.6` construite depuis ce commit dans un `git worktree` propre. Contrôles prévus sur l'image : en plus de ceux des itérations précédentes, absence de `video-sources/` et de `.mp4` hors de `/assets/` ; les vidéos répondent avec `Content-Type: video/mp4`, `Cache-Control` d'un an et `206` aux requêtes `Range` (lecture dans Safari).
-3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+1. Fait : étiquette par défaut passée à `frontend-v1.6` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code (`d803a7d`).
+2. Fait : image `frontend-v1.6` construite depuis `d803a7d` dans un `git worktree` propre, supprimé ensuite. Image `b2197610997e`, 112 Mo (109 pour `frontend-v1.5`, même base nginx 1.31.9) ; fichiers servis : 9,5 Mo contre 8,0. Build Vite : mêmes noms de vidéos qu'en local (`hero-16x9-Byha7RNK.mp4`, `hero-4x5-B3l9Ikdx.mp4`) ; précache de 113 entrées.
+   Vérifiée dans un conteneur de test (`amame-it3-front`, supprimé ensuite) :
+   - **contenu** : ni `video-sources/`, ni `hero-section/`, ni `.mp4` hors de `/assets/` ; `sw.js` ne mentionne aucun `.mp4` ; les vidéos servies sont identiques, à l'octet près, aux fichiers commités ;
+   - **HTTP** : `/`, `/bourses`, `/config.js`, `sw.js` et le poster répondent `200` avec le bon type ; chaque vidéo répond `Content-Type: video/mp4`, `Cache-Control: public, max-age=31536000, immutable`, `Accept-Ranges: bytes`, et `206` aux requêtes `Range` (début de fichier et fin de fichier, comme Safari) ; pas de compression gzip ;
+   - **comportement** : le script de l'itération (`hero.py`) donne sur l'image les mêmes résultats qu'en local, scénarios A à I. Il affiche deux échecs, connus et sans défaut derrière : A2, une erreur d'affichage du script, alors que l'élément LCP est bien le poster ; A7, le plan sombre du tableau noir (63), déjà expliqué plus haut. Le test de jonction donne, sur 6 passages, une luminance de 133 à 146 à ±1 s de la jonction ;
+   - **itérations 1 et 2** : bords du contenu à 16 / 32 / 112 / 352 px sur `/`, `/bourses` et `/a-propos` ; liens de la navbar à 0 px du centre à 1100, 1440 et 1920 px ; sous-menu visible au clavier après deux images, 10 essais sur 10.
+3. Fait : `docker push yayacode224/amame:frontend-v1.6`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:b2197610997ea4c28b80f536f2c45a81f04dc89d77cbe504dd9a4c7e288c4013`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
 4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.6`.
 
 Retour arrière : `frontend-v1.5`.
