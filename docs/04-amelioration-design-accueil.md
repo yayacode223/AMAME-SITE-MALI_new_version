@@ -561,7 +561,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 
 | Itération | État | Étiquette | Date | Remarques |
 |---|---|---|---|---|
-| 1. Conteneur 1280 px | **commitée (`fcff420`), image construite et vérifiée** ; non publiée, non déployée | `frontend-v1.4` | 2026-11-19 | voir le détail ci-dessous |
+| 1. Conteneur 1280 px | **commitée (`fcff420`), image construite, vérifiée et publiée** ; non déployée | `frontend-v1.4` | 2026-11-19 | voir le détail ci-dessous |
 | 2. Navbar centrée | prête à démarrer | — | — | — |
 | 3. Hero vidéo | prête à démarrer | — | — | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) |
 | 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
@@ -601,7 +601,10 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 2. Fait : image `frontend-v1.4` construite depuis `fcff420`, dans un `git worktree` propre (`docker build -t yayacode224/amame:frontend-v1.4 <worktree>/frontend`), worktree supprimé ensuite. Seuls les fichiers commités entrent dans l'image, pas le dossier non suivi `public/static/home/hero-section/`.
    - Image `1f358b9f9263`, 109 Mo (comme `frontend-v1.3`) ; build Vite réussi, précache de 113 entrées.
    - Vérifiée dans un conteneur de test (`amame-it1-front`, supprimé ensuite) : `40-runtime-config.sh` s'exécute (`/uploads/` servi depuis le disque) ; `/`, `/bourses`, `/config.js` et une image statique répondent `200` avec le bon type ; aucun `hero-section` dans `static/home/` ; 3 règles `.page-container` dans le CSS livré ; bords du contenu à 16 px (390 px) et 112 px (1440 px) sur `/`, `/bourses`, `/a-propos` et `/orientation/1`.
-3. Reste à faire : `docker push yayacode224/amame:frontend-v1.4`, puis passer `FRONTEND_IMAGE_TAG` à `frontend-v1.4` dans la stack Portainer `amamestack`.
-4. Après la bascule seulement : mettre `deploy/portainer/amamestack.env.example` à `frontend-v1.4`. Ce modèle reflète l'état de la production (commit d76b23b).
+3. Fait : `docker push yayacode224/amame:frontend-v1.4`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:1f358b9f9263f72afa2a7321ba8afca80b6003b9594fcfca86dc7f16f61239ed`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
+4. Reste à faire : passer `FRONTEND_IMAGE_TAG` à `frontend-v1.4` dans la stack Portainer `amamestack`.
+   - Contrôle après la bascule : l'accueil répond, et le contenu commence au même bord que le logo de la navbar et que le footer (112 px sur un écran de 1440 px).
+   - La PWA se met à jour seule à la visite suivante.
+5. Après la bascule seulement : mettre `deploy/portainer/amamestack.env.example` à `frontend-v1.4`. Ce modèle reflète l'état de la production (commit d76b23b).
 
 Retour arrière : `frontend-v1.3`.
