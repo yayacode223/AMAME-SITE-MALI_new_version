@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 en cours (section 7).
+> **Avancement** : itérations 1 et 2 en production (`frontend-v1.5`) ; itération 3 commitée, image `frontend-v1.6` en construction (section 7).
 
 ---
 
@@ -564,7 +564,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 |---|---|---|---|---|
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
-| 3. Hero vidéo | prête à démarrer | — | — | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) |
+| 3. Hero vidéo | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.6` | 2026-11-19 | boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | prête à démarrer | — | — | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
@@ -608,6 +608,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
    - le CSS servi est `index-D4EtrIhM.css`, le même que celui du build de `fcff420`, avec les 3 règles `.page-container` ;
    - sur `/`, `/bourses` et `/a-propos`, un seul bord de contenu par largeur : 16 / 32 / 112 / 352 px à 390 / 1024 / 1440 / 1920 px.
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.4`.
+
+Retour arrière : `frontend-v1.3`.
 
 ### Itération 2 : détail (2026-11-19)
 
@@ -665,6 +667,77 @@ Ces deux points sont à prévoir si l'accessibilité devient un objectif à part
    - **Constat** : lu juste après le Tab, le sous-menu est encore `hidden` (9 essais sur 10), parce que sa transition de 150 ms porte aussi sur `visibility` et vient de démarrer. Deux images plus tard (environ 33 ms), il est `visible` dans 10 essais sur 10. C'est un artefact de mesure, pas un défaut : un humain qui tape Tab de nouveau trouve toujours le sous-menu ouvert. Les tests suivants attendent deux images avant de lire l'état.
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.5`.
 
-Retour arrière : `frontend-v1.4`. Ce modèle reflète l'état de la production (commit d76b23b).
+Retour arrière : `frontend-v1.4`.
 
-Retour arrière : `frontend-v1.3`.
+### Itération 3 : détail (2026-11-19)
+
+**Modifications :**
+- `video-sources/home/amame-hero.mp4` : l'original de 1,68 Mo, déplacé depuis `public/static/home/hero-section/`. Le poster fourni l'accompagne sous le nom `amame-hero-poster-fourni.webp`, conservé pour référence mais pas servi. `video-sources/` est ajouté à `.dockerignore`.
+- `scripts/encode_hero_video.py` (nouveau) : réglages de l'annexe A, contrôle de la définition de l'original, échec si une vidéo atteint 1 Mo.
+- `src/assets/video/hero-16x9.mp4` (838 543 octets) et `hero-4x5.mp4` (474 804 octets).
+- `image-sources/home/hero-poster.png`, que `optimize_images.py` transforme en `public/static/home/hero-poster-{640,1280,1920}.webp` (33 956, 80 096 et 128 092 octets), plus une entrée dans le manifeste. Le script a laissé identiques, à l'octet près, les 70 autres WebP et le logo.
+- `src/components/HeroVideo.tsx` (nouveau) : poster, vidéo et bouton Pause/Lecture.
+- `src/components/Hero.tsx` :
+  - l'image et l'effet Ken Burns sont remplacés par `<HeroVideo />` ;
+  - la colonne droite est retirée (logo, badges flottants, points animés) ;
+  - les badges mobiles restent jusqu'à l'itération 4.
+- `CLAUDE.md` : paragraphe « Home hero video ».
+
+**Ajouts par rapport au plan (section 3.3) :**
+- la vidéo attend aussi le chargement du poster, pour ne pas lui disputer la bande passante lors d'une navigation interne vers l'accueil ;
+- pas de vidéo hors ligne (`navigator.onLine`) ;
+- `disableRemotePlayback` masque le bouton « Caster » que Chrome Android superpose aux vidéos ;
+- `disablePictureInPicture` est posé par propriété, car les types React installés ne connaissent pas cet attribut.
+
+**Vérifications des fichiers :**
+
+| Contrôle | Résultat |
+|---|---|
+| Poids des vidéos | 838 543 et 474 804 octets, sous 1 Mo |
+| Poster et première image de la vidéo | écart moyen de 3,0 sur 255 (bruit de compression seulement) |
+| Jonction de boucle (dernière image vers première) | écart de 6,9, contre 2,5 entre deux images consécutives et 66,7 en coupe franche |
+| Build de production | vidéos servies sous `/assets/` avec empreinte (`hero-16x9-Byha7RNK.mp4`, `hero-4x5-B3l9Ikdx.mp4`) ; `sw.js` ne mentionne aucun `.mp4` ; précache de 113 entrées, inchangé ; plus de `hero-section/` |
+| `npx tsc --noEmit -p tsconfig.app.json` | les 4 erreurs connues, aucune dans `Hero.tsx` ni `HeroVideo.tsx` |
+
+**Comportement** (script Playwright, build de production servi par `vite preview`, API simulée ; lecture H.264 dans Chrome) :
+
+| Scénario | Résultat |
+|---|---|
+| Desktop 1440 px | version 16:9, demandée à 4 084 ms, après la fin de `load` (2 199 ms) ; muette, en boucle, sans PiP ni Cast, opacité 1 ; élément LCP : `hero-poster-1920.webp` |
+| Bouton à la souris | pause, puis lecture ; le libellé passe de « Mettre la vidéo en pause » à « Lire la vidéo » |
+| Bouton au clavier | Entrée met en pause, Espace relance |
+| Hero hors écran ou onglet masqué | pause ; reprise au retour |
+| Jonction de boucle, dans Chrome | sur 5 passages par 0 s, les 12 échantillons pris à ±1 s de la jonction ont une luminance de 135 à 146 : aucune chute. Une première version du test signalait une baisse à 63 : c'est le plan du tableau noir (75,6 dans le fichier lui-même à 3,24 s), pas un flash |
+| Mobile 390 px, écran 3x | version 4:5, poster 1280 ; bouton en haut à droite, aligné à 16 px du bord ; le toucher met en pause |
+| Réduction des animations, Save-Data, `slow-2g`, `2g`, `3g`, hors ligne | aucune requête vidéo, poster affiché, aucune erreur |
+| Connexion `4g` | vidéo demandée et lue |
+| Chromium de Playwright, sans H.264 | erreur média 4 : poster gardé, pas de bouton, aucune erreur JavaScript (chemin d'échec, comme une lecture refusée) |
+| WebKit et Firefox (versions Playwright pour Windows) | vidéo lue, bouton présent, aucune erreur |
+| PWA hors ligne (deux visites en ligne, puis rechargement hors ligne) | page et poster affichés depuis le cache, aucune requête vidéo, aucune erreur JavaScript |
+| Erreurs JavaScript (tous scénarios) | aucune |
+
+**Performance** (profil identique à la base : Chromium de Playwright, premier passage) :
+
+| Mesure | Mobile (1,6 Mbit/s, 150 ms, processeur x4) | Desktop (20 Mbit/s) |
+|---|---|---|
+| Base, 5 passages (build de `efb76f8`) | LCP 5,81 s ; FCP 5,65 s | LCP 2,17 s ; FCP 2,06 s |
+| Après, 5 passages, 30 min plus tard | LCP 7,24 s ; FCP 6,55 s | LCP 1,48 s ; FCP 1,44 s |
+| **A/B alterné** (avant et après servis côte à côte, mesurés tour à tour) | 8 paires : FCP −11,8 %, LCP −13,2 % | 6 paires : FCP +3,8 %, LCP +5,1 % |
+| CLS | 0 | 0 |
+
+- **Lecture des chiffres** : les passages séparés varient trop (mobile de 5,4 à 8,6 s) pour conclure. L'A/B alterné donne des écarts dans la marge de ±10 %, ou en faveur de la nouvelle version : aucune dégradation mesurable. Le changement n'ajoute que 9 Ko au poster mobile (34 Ko contre 25) et 29 Ko sur desktop (129 contre 100).
+- **Octets de la vidéo**, mesurés dans Chrome, après `load` :
+  - mobile : 475 146 octets (page : 904 Ko au lieu d'environ 410) ;
+  - desktop : 838 885 octets (page : 1,44 Mo au lieu de 0,58).
+  Les visites suivantes ne la retéléchargent pas : `/assets/` est en cache un an.
+- **Constat** : sous le bridage réseau simulé, Chrome annonce toujours `4g`. `effectiveType` vient de mesures du réseau réel, pas de l'émulation. La règle 2G/3G a donc été testée en forçant la valeur.
+
+**Non vérifié** : appareils réels (iPhone avec Safari, Android avec Chrome) et mode économie d'énergie d'iOS. Le chemin « lecture refusée » est couvert par le scénario Chromium sans H.264, mais pas sur iOS lui-même. À contrôler sur un téléphone après le déploiement.
+
+**Livraison** :
+1. Fait : étiquette par défaut passée à `frontend-v1.6` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
+2. En cours : image `frontend-v1.6` construite depuis ce commit dans un `git worktree` propre. Contrôles prévus sur l'image : en plus de ceux des itérations précédentes, absence de `video-sources/` et de `.mp4` hors de `/assets/` ; les vidéos répondent avec `Content-Type: video/mp4`, `Cache-Control` d'un an et `206` aux requêtes `Range` (lecture dans Safari).
+3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.6`.
+
+Retour arrière : `frontend-v1.5`.

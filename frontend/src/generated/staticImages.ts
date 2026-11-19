@@ -30,6 +30,7 @@ export const STATIC_IMAGES = {
   "heroes/hero-universites": { width: 735, height: 490, widths: [640, 735] },
   "home/bourses-etudes": { width: 2816, height: 1536, widths: [640, 1280, 1920] },
   "home/concours-opportunites": { width: 2816, height: 1536, widths: [640, 1280, 1920] },
+  "home/hero-poster": { width: 1920, height: 1080, widths: [640, 1280, 1920] },
   "home/orientation-filieres": { width: 2816, height: 1536, widths: [640, 1280, 1920] },
   "home/section-benevolat": { width: 2752, height: 1536, widths: [640, 1280, 1920] },
   "home/temoignage-aicha": { width: 2048, height: 2048, widths: [640, 1280, 1920] },

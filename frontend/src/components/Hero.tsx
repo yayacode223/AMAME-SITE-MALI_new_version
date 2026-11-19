@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import StaticImage from "@/components/StaticImage";
+import HeroVideo from "@/components/HeroVideo";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, GraduationCap, Trophy, Users, Award } from "lucide-react";
@@ -12,9 +12,9 @@ const stats = [
 ];
 
 const floatingBadges = [
-  { icon: Trophy,        label: "Concours",    color: "bg-amame-gold-subtle border-amame-gold/30 text-amame-gold",    delay: 0   },
-  { icon: BookOpen,      label: "Orientation", color: "bg-blue-50 border-blue-200 text-blue-600",                     delay: 0.8 },
-  { icon: GraduationCap, label: "Bourses",     color: "bg-amame-green-subtle border-amame-green/30 text-amame-green", delay: 1.6 },
+  { icon: Trophy,        label: "Concours",    color: "bg-amame-gold-subtle border-amame-gold/30 text-amame-gold"    },
+  { icon: BookOpen,      label: "Orientation", color: "bg-blue-50 border-blue-200 text-blue-600"                     },
+  { icon: GraduationCap, label: "Bourses",     color: "bg-amame-green-subtle border-amame-green/30 text-amame-green" },
 ];
 
 const itemVariants = {
@@ -32,21 +32,8 @@ const Hero = () => {
   return (
     <section className="relative overflow-hidden min-h-[600px] sm:min-h-[680px] lg:min-h-[720px] flex items-end lg:items-center">
 
-      {/* Layer 1 — Image pleine largeur avec Ken Burns */}
-      <motion.div
-        className="absolute inset-0"
-        initial={{ scale: 1.05 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 8, ease: "easeOut" }}
-        aria-hidden="true"
-      >
-        <StaticImage
-          name="heroes/hero-homepage"
-          sizes="100vw"
-          priority
-          className="w-full h-full object-cover object-center"
-        />
-      </motion.div>
+      {/* Layer 1 — Poster puis vidéo en boucle, et son bouton Pause (HeroVideo.tsx) */}
+      <HeroVideo />
 
       {/* Layer 2 — Scrim de lisibilité */}
       {/* Desktop : dégradé gauche→droite, image dégagée à droite */}
@@ -163,49 +150,8 @@ const Hero = () => {
               ))}
             </motion.div>
           </div>
-
-          {/* Colonne droite — badges flottants sur l'image, desktop uniquement */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="hidden lg:flex lg:w-[48%] items-center justify-center relative h-72"
-          >
-            <div className="relative z-10 w-20 h-20 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white/30 bg-white">
-              <img
-                src="/logo-192.webp"
-                alt="Logo AMAME"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {floatingBadges.map(({ icon: Icon, label, color, delay }, i) => {
-              const positions = [
-                "absolute top-0 left-8",
-                "absolute top-4 right-0",
-                "absolute bottom-0 left-1/2 -translate-x-1/2",
-              ];
-              return (
-                <motion.div
-                  key={label}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + delay, duration: 0.5 }}
-                  className={`${positions[i]} animate-float z-10`}
-                >
-                  <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border ${color}
-                                   shadow-md backdrop-blur-sm text-xs font-semibold whitespace-nowrap bg-white/90`}>
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </div>
-                </motion.div>
-              );
-            })}
-
-            <div className="absolute top-6 right-12 w-3 h-3 bg-amame-green rounded-full shadow-green animate-pulse opacity-70" />
-            <div className="absolute bottom-10 left-4 w-2 h-2 bg-amame-gold rounded-full animate-pulse opacity-70" />
-          </motion.div>
-
+          {/* La colonne droite (logo et badges flottants) a été retirée : la vidéo montre déjà la
+              bannière et le logo AMAME, et les badges auraient masqué les personnages. */}
         </div>
       </div>
     </section>

@@ -150,11 +150,13 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Static images** (heroes, illustrations): never put a large image in `public/` and never write an image path by hand. Originals live in `frontend/image-sources/<group>/<name>.png` (not served, excluded from the Docker build). `python scripts/optimize_images.py` (requires Pillow) generates WebP variants in `public/static/` and the typed manifest `src/generated/staticImages.ts`. Display them with `<StaticImage name="<group>/<name>" sizes="…" />` (srcset, intrinsic dimensions, lazy loading; `priority` for the page's main image), or `staticImageUrl(name)` for a CSS background. The logo used by the UI is `/logo-192.webp`; `public/amame-uploads/amame-logo.webp` stays only because Open Graph and JSON-LD tags point to it.
 
+**Home hero video**: the original is `frontend/video-sources/home/amame-hero.mp4` (not served, excluded from the Docker build). `python scripts/encode_hero_video.py` (requires ffmpeg) writes the seamless 7.3 s loop in two renditions, `src/assets/video/hero-16x9.mp4` and `hero-4x5.mp4` (portrait, for phones), each under 1 MB (the script fails otherwise), and the poster original `image-sources/home/hero-poster.png`; run `optimize_images.py` afterwards. Videos are imported from `src/assets/`, never put in `public/`: Vite hashes their names, Nginx caches `/assets/` for a year, and no service-worker route or precache entry touches them (a video under `/static/` would hit the `CacheFirst` image rule). `HeroVideo.tsx` shows the poster first (the page's LCP) and requests the video only after the poster and the page have loaded, never with reduced motion, Save-Data, offline or a 2G/3G connection; it pauses off screen and has a Pause button (WCAG 2.2.2).
+
 ### Docker compose services summary
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.5`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.6`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

@@ -4,8 +4,10 @@ dist/
 uploads/
 *.log
 .DS_Store
-# Originaux des images statiques et outillage : hors de l'image Docker
+# Originaux des images statiques et de la vidéo du hero, outillage : hors de l'image Docker
+# (seuls les fichiers produits, dans public/static/ et src/assets/video/, sont servis)
 image-sources/
+video-sources/
 scripts/
 # Fichiers d'environnement locaux : jamais dans le contexte de construction
 .env
