@@ -101,12 +101,12 @@ export function Orientation() {
         <Navbar />
         <div className="min-h-screen bg-amame-surface">
           <div className="page-hero">
-            <div className="container mx-auto px-4 py-12 text-center space-y-3">
+            <div className="page-container py-12 text-center space-y-3">
               <Skeleton className="h-12 w-3/4 max-w-lg mx-auto rounded-xl" />
               <Skeleton className="h-5 w-1/2 max-w-md mx-auto rounded-md" />
             </div>
           </div>
-          <div className="container mx-auto px-4 py-10">
+          <div className="page-container py-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
             </div>
@@ -139,7 +139,7 @@ export function Orientation() {
 
         {/* Search & Domain filter */}
         <section className="bg-white border-b border-amame-border py-5">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
@@ -180,7 +180,7 @@ export function Orientation() {
 
         {/* Grid */}
         <section className="flex-grow py-8 lg:py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="font-nunito font-bold text-lg text-amame-charcoal">Filières disponibles</h2>

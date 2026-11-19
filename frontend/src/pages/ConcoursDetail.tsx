@@ -64,7 +64,7 @@ const ConcoursDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-amame-surface"><Navbar />
-        <div className="container mx-auto px-4 py-24 text-center">
+        <div className="page-container py-24 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5"><Trophy className="h-8 w-8 text-red-500" /></div>
           <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Concours non trouvé</h1>
           <p className="text-amame-muted mb-8">Le concours que vous recherchez n'existe pas ou a été supprimé.</p>
@@ -93,7 +93,7 @@ const ConcoursDetail = () => {
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-amame-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="page-container py-3">
           <Button variant="ghost" onClick={() => navigate(-1)} className="text-amame-muted hover:text-amame-charcoal hover:bg-gray-100 rounded-lg gap-2 h-9 text-sm">
             <ArrowLeft className="h-4 w-4" /> Retour aux concours
           </Button>
@@ -101,7 +101,7 @@ const ConcoursDetail = () => {
       </div>
 
       <section className="flex-grow py-8 lg:py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           {isLoading ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-1 space-y-5">

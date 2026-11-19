@@ -63,7 +63,7 @@ export default function ForgotPassword() {
       <div className="min-h-screen flex items-center py-8 relative overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
         <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/90 via-amame-green-dark/82 to-amame-green/65 pointer-events-none" />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-6 relative z-10">
+        <div className="page-container relative z-10">
 
           {/* En-tête */}
           <div className="flex justify-between items-center mb-8 max-w-md mx-auto">

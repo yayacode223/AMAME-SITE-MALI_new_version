@@ -78,7 +78,7 @@ export function About() {
           <div className="absolute inset-0 lg:hidden" aria-hidden="true"
             style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.22) 100%)" }} />
 
-          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 page-container">
             <motion.div {...fadeUp()} className="max-w-2xl">
               <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-2 mb-6 shadow-sm">
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 shrink-0">
@@ -98,7 +98,7 @@ export function About() {
 
         {/* ── Présentation ─────────────────────────────────────── */}
         <section className="section-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
               <motion.div {...fadeUp()}>
                 <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal mb-5 leading-tight">
@@ -131,7 +131,7 @@ export function About() {
 
         {/* ── Services ─────────────────────────────────────────── */}
         <section className="section-subtle">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <motion.div {...fadeUp()} className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal">
                 Nos <span className="text-amame-green">Services</span>
@@ -181,7 +181,7 @@ export function About() {
 
         {/* ── Contact ──────────────────────────────────────────── */}
         <section className="section-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <motion.div {...fadeUp()} className="text-center mb-10">
               <span className="section-label">Nous contacter</span>
               <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal">

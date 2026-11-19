@@ -80,6 +80,14 @@
     @apply card-base hover:shadow-card-hover hover:-translate-y-1;
   }
 
+  /* Colonne d'une page : centrée, 1280 px au plus (padding compris), marges latérales de
+     16 px (mobile), 24 px (dès 640 px) et 32 px (dès 1024 px). Navbar, sections et footer
+     l'utilisent tous, leurs bords restent alignés. Pour la colonne d'une page, ne pas utiliser
+     `container` de Tailwind (configuré à 1400 px) ni recomposer max-w-7xl + padding à la main. */
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
   /* Section patterns */
   .section-white {
     @apply py-16 lg:py-24 bg-white;

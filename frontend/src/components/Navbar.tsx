@@ -110,7 +110,7 @@ const Navbar = () => {
           isScrolled ? "shadow-[0_1px_20px_rgb(0_0_0/0.08)] border-b border-gray-100" : "border-b border-gray-100"
         }`}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}

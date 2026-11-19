@@ -26,8 +26,8 @@ export function OrientationDetail() {
       <>
         <Navbar />
         <div className="min-h-screen bg-amame-surface">
-          <div className="bg-white border-b border-amame-border"><div className="container mx-auto px-4 py-4"><Skeleton className="h-9 w-36 rounded-lg" /></div></div>
-          <div className="container mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="bg-white border-b border-amame-border"><div className="page-container py-4"><Skeleton className="h-9 w-36 rounded-lg" /></div></div>
+          <div className="page-container py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-xl" />)}</div>
             <div className="lg:col-span-2 space-y-5">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}</div>
           </div>
@@ -73,7 +73,7 @@ export function OrientationDetail() {
       <div className="min-h-screen bg-amame-surface flex flex-col">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-amame-border">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="page-container py-3">
             <Button variant="ghost" asChild className="text-amame-muted hover:text-amame-charcoal hover:bg-gray-100 rounded-lg gap-2 h-9 text-sm">
               <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
             </Button>
@@ -82,7 +82,7 @@ export function OrientationDetail() {
 
         {/* Page header */}
         <div className="page-hero">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="w-14 h-14 bg-white rounded-xl shadow-card border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
                 {(filiere.fileUrl ?? filiere.filePath) ? (
@@ -103,7 +103,7 @@ export function OrientationDetail() {
         </div>
 
         <section className="flex-grow py-8 lg:py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
               {/* Sidebar */}

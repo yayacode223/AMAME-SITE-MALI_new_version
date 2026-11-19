@@ -128,7 +128,7 @@ const Index = () => {
 
         {/* Features Section */}
         <section className="section-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <AnimatedSection className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-nunito font-black text-amame-charcoal mb-4">
                 Tout pour votre{" "}
@@ -180,7 +180,7 @@ const Index = () => {
 
         {/* Why AMAME Section */}
         <section className="section-subtle">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
               <AnimatedSection>
                 <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal mb-6 leading-tight">
@@ -221,7 +221,7 @@ const Index = () => {
 
         {/* Testimonials */}
         <section className="section-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <AnimatedSection className="text-center mb-14">
               <span className="section-label">Témoignages</span>
               <h2 className="text-3xl sm:text-4xl font-nunito font-black text-amame-charcoal">

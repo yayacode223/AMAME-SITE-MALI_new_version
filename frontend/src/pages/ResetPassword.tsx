@@ -105,7 +105,7 @@ export default function ResetPassword() {
       </Helmet>
 
       <div className="min-h-screen bg-amame-surface flex items-center py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-6">
+        <div className="page-container">
 
           {/* En-tête */}
           <div className="flex justify-between items-center mb-8 max-w-md mx-auto">

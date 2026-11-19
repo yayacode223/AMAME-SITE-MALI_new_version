@@ -69,7 +69,7 @@ export function ArticleDetail() {
         <Navbar />
         <div className="min-h-screen bg-amame-surface">
           <div className="bg-white border-b border-amame-border py-3">
-            <div className="container mx-auto px-4"><Skeleton className="h-9 w-36 rounded-lg" /></div>
+            <div className="page-container"><Skeleton className="h-9 w-36 rounded-lg" /></div>
           </div>
           <div className="bg-white border-b border-amame-border py-10 text-center space-y-4">
             <Skeleton className="h-6 w-24 mx-auto rounded-full" />
@@ -79,7 +79,7 @@ export function ArticleDetail() {
               <Skeleton className="h-4 w-28 rounded-full" />
             </div>
           </div>
-          <div className="container mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="page-container py-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-3 space-y-5">
               <Skeleton className="w-full rounded-2xl" style={{ aspectRatio: "16/7" }} />
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-5 w-full rounded-md" />)}
@@ -128,7 +128,7 @@ export function ArticleDetail() {
 
         {/* Breadcrumb */}
         <div className="bg-white border-b border-amame-border">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-1.5 text-xs text-amame-muted">
+          <div className="page-container py-3 flex items-center gap-1.5 text-xs text-amame-muted">
             <Button variant="ghost" asChild className="text-amame-muted hover:text-amame-charcoal hover:bg-gray-100 rounded-lg gap-2 h-8 text-xs px-3">
               <Link to="/articles"><ArrowLeft className="h-3.5 w-3.5" />Actualités</Link>
             </Button>
@@ -144,7 +144,7 @@ export function ArticleDetail() {
           transition={{ duration: 0.45 }}
           className="bg-white border-b border-amame-border py-10"
         >
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
+          <div className="page-container max-w-3xl text-center">
             <span className={`inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full border mb-4 ${getCatStyle(article.categorie)}`}>
               {article.categorie}
             </span>
@@ -178,7 +178,7 @@ export function ArticleDetail() {
 
         {/* Contenu principal + sidebar */}
         <section className="flex-grow py-8 lg:py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
               {/* Article */}

@@ -63,7 +63,7 @@ const Hero = () => {
       />
 
       {/* Layer 3 — Contenu */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-16 lg:py-28 w-full">
+      <div className="relative z-10 page-container pb-10 pt-16 lg:py-28 w-full">
         <div className="flex flex-col lg:flex-row lg:items-center">
 
           {/* Colonne texte */}

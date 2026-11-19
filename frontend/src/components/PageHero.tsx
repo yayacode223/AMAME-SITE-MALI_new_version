@@ -55,7 +55,7 @@ const PageHero = ({
           aria-hidden="true"
         />
 
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 page-container">
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ const PageHero = ({
   /* ── Without image — layout centré original (inchangé) ── */
   return (
     <section className="page-hero">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="page-container text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

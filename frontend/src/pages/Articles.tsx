@@ -189,7 +189,7 @@ export function Articles() {
 
         {/* Barre de recherche + filtres */}
         <section className="bg-white border-b border-amame-border py-4">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="relative mb-4 max-w-xl">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-amame-muted pointer-events-none" />
               <Input
@@ -221,7 +221,7 @@ export function Articles() {
 
         {/* Contenu principal */}
         <section className="flex-grow py-8 lg:py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
               {/* Liste articles */}

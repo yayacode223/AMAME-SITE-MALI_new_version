@@ -70,7 +70,7 @@ const Universites = () => {
 
       {/* Filtres */}
       <section className="bg-white border-b border-amame-border py-5">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -112,7 +112,7 @@ const Universites = () => {
 
       {/* Contenu */}
       <section className="flex-grow py-8 lg:py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(9)].map((_, i) => <CardSkeleton key={i} />)}

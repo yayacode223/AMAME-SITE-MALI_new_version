@@ -42,7 +42,7 @@ const GuideConseils = () => {
       />
 
       <section className="flex-grow py-8 lg:py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           {isLoading ? (
             <div className="space-y-5">
               {[...Array(4)].map((_, i) => (

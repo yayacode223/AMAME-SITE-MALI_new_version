@@ -136,6 +136,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Breakpoints**: Mobile/desktop split is at `lg` (1024px) matching Tailwind's default — consistent across Navbar, BottomNav, Footer padding (`pb-16 lg:pb-0`).
 
+**Page container**: the main column of every public page, the navbar and the footer use `.page-container` (`src/index.css`): centered, 1280 px max including padding, side padding 16 px, 24 px from `sm`, 32 px from `lg`, so their edges stay aligned. Never use Tailwind's `container` (configured at 1400 px, still used by the member area) or rebuild `max-w-7xl mx-auto px-…` by hand for a page column; a narrower reading width is an extra `max-w-*` class or an inner wrapper. The design plan and its tracking live in `docs/04-amelioration-design-accueil.md`.
+
 **Tailwind brand tokens**: `amame-green` (#16a34a), `amame-green-dark` (#15803d), `amame-green-subtle` (#f0fdf4), `amame-gold` (#ca8a04), defined in `tailwind.config.ts`.
 
 **Icons**: `lucide-react` v0.446.0 — use named imports.
@@ -152,7 +154,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.3`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.4`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

@@ -41,7 +41,7 @@ export function Footer() {
           <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-amame-gold/10" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="relative page-container py-8 sm:py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
 
             {/* Texte + icône */}
@@ -74,7 +74,7 @@ export function Footer() {
       )}
 
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="page-container py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
 
           {/* Brand */}
@@ -164,7 +164,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="page-container py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-green-100/50">
             <p>© {new Date().getFullYear()} AMAME. Tous droits réservés.</p>
             {/* <p>Association Malienne d'Appui aux Meilleurs Élèves</p> */}
