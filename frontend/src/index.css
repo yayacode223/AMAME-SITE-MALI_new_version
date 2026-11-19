@@ -88,6 +88,24 @@
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
+  /* Hero de l'accueil : la hauteur visible de l'écran, moins la navbar (4rem et sa bordure de
+     1 px) et, sous 1024 px, la barre de navigation du bas (4rem, sa bordure, et la zone de sécurité
+     de l'iPhone). Plancher de 26rem (mobile) et 37,5rem (desktop), plafond de 53,75rem (desktop).
+     Les déclarations en vh servent aux navigateurs sans svh (Safari < 15.4, Chrome < 108), qui
+     ignorent la suivante. */
+  .home-hero-height {
+    min-height: 26rem;
+    min-height: max(26rem, calc(100vh - 8rem - 2px - env(safe-area-inset-bottom, 0px)));
+    min-height: max(26rem, calc(100svh - 8rem - 2px - env(safe-area-inset-bottom, 0px)));
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero-height {
+      min-height: min(53.75rem, max(37.5rem, calc(100vh - 4rem - 1px)));
+      min-height: min(53.75rem, max(37.5rem, calc(100svh - 4rem - 1px)));
+    }
+  }
+
   /* Section patterns */
   .section-white {
     @apply py-16 lg:py-24 bg-white;

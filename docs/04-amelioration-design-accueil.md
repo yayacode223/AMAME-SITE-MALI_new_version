@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 en cours (section 7).
+> **Avancement** : itérations 1 à 3 en production (`frontend-v1.6`) ; itération 4 commitée, image `frontend-v1.7` en construction (section 7).
 
 ---
 
@@ -135,8 +135,10 @@ Build de production, premier passage, service worker bloqué. Deux passages par 
 
 | Profil | FCP | LCP | Élément LCP | CLS | Octets transférés |
 |---|---|---|---|---|---|
-| Mobile (1,6 Mbit/s, 150 ms, processeur ×4) | 5,4 s / 7,9 s | 5,5 s / 8,1 s | `hero-homepage-640.webp` (24,9 Ko) | 0 | 400 Ko |
-| Desktop (20 Mbit/s) | 2,0 s / 2,5 s | 2,1 s / 2,6 s | `hero-homepage-1920.webp` (100 Ko) | 0 | 553 Ko |
+| Mobile (1,6 Mbit/s, 150 ms, processeur ×4) | 5,4 s / 7,9 s | 5,5 s / 8,1 s | `hero-homepage-640.webp` (24,9 Ko) | 0,003 à 0,05 \* | 400 Ko |
+| Desktop (20 Mbit/s) | 2,0 s / 2,5 s | 2,1 s / 2,6 s | `hero-homepage-1920.webp` (100 Ko) | jusqu'à 0,06 \* | 553 Ko |
+
+\* CLS corrigé le 2026-11-19 (itération 4, section 7). La première mesure, qui donnait 0, lisait `performance.getEntriesByType('layout-shift')`, qui renvoie toujours une liste vide. Valeurs remesurées sur le même build (`efb76f8`), 3 passages par profil : elles viennent de l'arrivée des polices Google.
 
 **Chronologie mobile** :
 - JavaScript (environ 236 Ko compressés) reçu à 1,9 s ;
@@ -565,7 +567,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 1. Conteneur 1280 px | **en production** | `frontend-v1.4` | 2026-11-19 | commit `fcff420` ; voir le détail ci-dessous |
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
-| 4. Message du hero | **en cours** | `frontend-v1.7` (prévue) | 2026-11-19 | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
+| 4. Message du hero | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.7` | 2026-11-19 | texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | prête à démarrer | — | — | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
@@ -723,7 +725,7 @@ Retour arrière : `frontend-v1.4`.
 | Base, 5 passages (build de `efb76f8`) | LCP 5,81 s ; FCP 5,65 s | LCP 2,17 s ; FCP 2,06 s |
 | Après, 5 passages, 30 min plus tard | LCP 7,24 s ; FCP 6,55 s | LCP 1,48 s ; FCP 1,44 s |
 | **A/B alterné** (avant et après servis côte à côte, mesurés tour à tour) | 8 paires : FCP −11,8 %, LCP −13,2 % | 6 paires : FCP +3,8 %, LCP +5,1 % |
-| CLS | 0 | 0 |
+| CLS | 0,003 (mesure corrigée, voir l'itération 4) | 0,029 à 0,064 (mesure corrigée, voir l'itération 4) |
 
 - **Lecture des chiffres** : les passages séparés varient trop (mobile de 5,4 à 8,6 s) pour conclure. L'A/B alterné donne des écarts dans la marge de ±10 %, ou en faveur de la nouvelle version : aucune dégradation mesurable. Le changement n'ajoute que 9 Ko au poster mobile (34 Ko contre 25) et 29 Ko sur desktop (129 contre 100).
 - **Octets de la vidéo**, mesurés dans Chrome, après `load` :
@@ -752,3 +754,94 @@ Retour arrière : `frontend-v1.4`.
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.6`.
 
 Retour arrière : `frontend-v1.5`.
+
+### Itération 4 : détail (2026-11-19)
+
+**Modifications** (2 fichiers) :
+- `src/components/Hero.tsx` :
+  - accroche « Soutenir aujourd'hui… Bâtir demain », précédée d'un trait or décoratif ;
+  - titre « Bourses, concours et orientation », puis « pour les élèves maliens » ; phrase « Les opportunités pour réussir vos études, réunies au même endroit. Gratuit et bénévole. » (texte A, D3) ;
+  - un bouton d'action selon l'utilisateur (D4 bis), avec les mêmes rôles que le menu de la navbar :
+    - visiteur : « Rejoindre l'AMAME » (`/adhesion`) ;
+    - rôle `USER` : « Adhérer à l'AMAME » (`/adhesion`) ;
+    - `MEMBER`, `EDITOR`, `ADMIN`, `SUPERADMIN` : « Mon espace membre » (`/membre/dashboard`) ;
+    - pendant le chargement de l'utilisateur : le bouton des visiteurs, pour que le message reste complet si l'API tarde. Pour un membre, le libellé change une fois l'utilisateur connu ;
+  - retirés : les chiffres et leur ligne de séparation (D5), les badges mobiles, et le bouton « Explorer les bourses » qui était en commentaire (D4 ; un commentaire rappelle la décision) ;
+  - texte aligné à gauche à toutes les tailles, dans une colonne de 36rem (mobile et tablette), 40rem (dès 1024 px) et 44rem (dès 1280 px) ;
+  - voiles de lisibilité placés d'après la position du texte (voir « Contraste ») ;
+  - titre en 32 px sous 390 px de large, puis 36 px ; tailles inchangées au-delà.
+- `src/index.css` : nouvelle classe `.home-hero-height`. La hauteur du hero est la hauteur visible de l'écran, moins la navbar et, sous 1024 px, la barre du bas (avec la zone de sécurité de l'iPhone). Plancher de 26rem (mobile) et 37,5rem (desktop), plafond de 53,75rem (860 px, desktop). Les déclarations en `vh` précèdent celles en `svh`, pour les navigateurs qui ne connaissent pas `svh` ; la minification les conserve (vérifié dans le CSS du build).
+
+**Écarts au plan :**
+- **Fichiers** : le plan ne prévoyait que `Hero.tsx`. Le repli `vh` puis `svh` demande deux déclarations de la même propriété, ce qu'une classe Tailwind ou un `style` React ne permet pas : d'où la classe dans `index.css`.
+- **Plancher mobile** : 26rem au lieu de 520 px. Avec 520 px, à 360×560, le hero dépassait la hauteur disponible (430 px) et le bouton passait sous la barre du bas.
+- **Couleur** : la deuxième ligne du titre passe du vert de la marque (`#16a34a`) au vert clair `green-400` (`#4ade80`). Sur la vidéo, le vert de la marque descend à 1,19:1 (mesure ci-dessous), sous le minimum de 3:1 des grands textes. Le bouton garde le vert de la marque.
+
+**Mise en page** (Playwright, Chrome, visiteur, après chargement des polices). La « marge » est l'espace entre le bas du bouton et le haut de la barre du bas, ou le bas de l'écran sur desktop.
+
+| Écran | Hauteur du hero (px) | Message visible sans défiler | Marge (px) |
+|---|---|---|---|
+| 320×568 | 439 | oui | 31 |
+| **360×560** (critère) | 439 | **oui** | 23 |
+| 360×640, 375×667 | 510, 537 | oui | 32 |
+| 390×844, 412×915 | 714, 785 | oui | 32 |
+| 768×1024 | 894 | oui | 32 |
+| 1024×768, 1280×800, 1440×900 | 703, 735, 835 (jusqu'au bas de l'écran) | oui | 131, 123, 173 |
+| 1920×1080 | 860 (plafond) | oui | 341 |
+| 844×390 (téléphone à l'horizontale) | 424 | **non** | −132 |
+
+- **Aux 12 tailles** : un seul bord gauche par écran (16, 24, 32, 112 ou 352 px, celui des itérations 1 et 2) ; aucun chiffre dans le hero ; aucun débordement horizontal ; le bouton Pause ne recouvre aucune ligne de texte.
+- **Téléphone à l'horizontale** : il reste 260 px entre la navbar et la barre du bas ; il faut défiler de 132 px pour voir le bouton.
+- **Polices Google injoignables** (polices de repli) : 360×560 et 360×640 restent conformes (marge de 32 px). À 320×568, le bas du bouton passe 4 px sous la barre du bas. L'itération 7 (polices servies par le site) supprime ce cas.
+- **Constat en cours de test** : un passage a mesuré le hero avant l'arrivée des polices Google ; le titre, en police de repli, prenait une ligne de plus à 768 et 844 px. Le script attend désormais `document.fonts.ready`.
+
+**Bouton selon l'état** (1440×900 et 390×844) : visiteur et chargement, « Rejoindre l'AMAME » vers `/adhesion` ; `USER`, « Adhérer à l'AMAME » vers `/adhesion` ; `MEMBER` et `ADMIN`, « Mon espace membre » vers `/membre/dashboard`. Le bouton mesure 48 px de haut.
+
+**Contraste.** Méthode : la vidéo est arrêtée à 1, 4 et 7 s (un instant par plan) ; le texte est masqué pour lire les pixels du fond sous chaque ligne ; le rapport WCAG est calculé pour chaque pixel. Le tableau donne la valeur la plus basse sur 6 tailles d'écran, de 360×560 à 1920×1080.
+
+| Texte | Seuil | Première version | Version finale |
+|---|---|---|---|
+| Phrase (blanc à 90 %) | 4,5 | 3,41 (1024×768, 4 s) | **5,97** |
+| Accroche | 4,5 | 2,53 (360×560 ; blanc à 90 %) | **7,49** (blanc) |
+| Titre, ligne blanche | 3 (grand texte) | 2,44 (360×560) | **5,91** |
+| Titre, ligne verte | 3 (grand texte) | 1,19 (`#16a34a`) | **4,28** (`#4ade80`) |
+
+Réglages des voiles :
+- **Mobile** : le voile s'assombrit par paliers fixes depuis le bas (0,92 ; 0,78 à 12rem ; 0,6 à 26rem ; 0,2 en haut). Un dégradé en pourcentage laissait le texte des petits écrans, qui occupe presque tout le hero, sous sa partie claire ; sur un grand écran, le haut de l'image reste lumineux.
+- **Desktop** : le dégradé est placé par rapport au centre de la page, là où se termine la colonne de texte (0,8 ; 0,7 à 50 % − 10rem ; 0,5 à 50 % + 6rem ; 0,15 à 50 % + 22rem ; transparent à 50 % + 34rem). En pourcentage de la largeur, la fin des lignes tombait sur la partie claire à 1024 px.
+
+**Vidéo** : `hero.py` (itération 3) repassé sur le nouveau hero, mêmes résultats (A2 et A7 restent les deux faux échecs connus) ; jonction de boucle conforme (luminance de 128 à 141).
+
+**Performance** (A/B alterné ; avant = build de `d803a7d`, celui de la production) :
+
+| Mesure | Mobile, 6 paires | Desktop, 4 paires |
+|---|---|---|
+| FCP | −11,1 % | +5,4 % |
+| LCP | −8,9 % | +6,3 % |
+| CLS, pire passage | 0,064 → 0 | 0,059 → 0,019 |
+
+L'élément LCP reste le poster.
+
+**Correction d'une mesure antérieure (CLS).** Les mesures de la section 2.5 et de l'itération 3 lisaient `performance.getEntriesByType('layout-shift')`, qui renvoie toujours une liste vide : le navigateur ne communique les décalages qu'à un `PerformanceObserver`. Le « CLS 0 » annoncé n'était donc pas mesuré. Valeurs remesurées (3 passages par build, sources des décalages relevées) :
+- base (`efb76f8`) : desktop jusqu'à 0,06 ; mobile de 0,003 à 0,05 ;
+- itération 3 (`d803a7d`, en production) : desktop de 0,029 à 0,064 ; mobile 0,003 ;
+- itération 4 : desktop de 0,018 à 0,019 ; mobile 0.
+
+Toutes restent sous 0,1 (seuil « bon »). Elles viennent de l'arrivée des polices Google : le texte change de largeur, et le bloc du hero et le nom « AMAME » de la navbar se déplacent. L'itération 7 traite cette cause.
+
+**Vérifications de base** : `npx tsc --noEmit -p tsconfig.app.json`, les 4 erreurs connues et aucune nouvelle ; `vite build` réussi ; précache de 113 entrées, inchangé.
+
+**À faire hors outils** : le test des 5 secondes avec 5 élèves ou étudiants (critère d'acceptation), et un essai sur un vrai téléphone.
+
+**Pas traité :**
+- **téléphone à l'horizontale** : il faut défiler pour voir le bouton ;
+- **réduction des animations** : l'apparition du texte (fondu et glissement de 20 px, 0,8 s en tout) n'en tient pas compte, comme le reste du site (section 2.3) ;
+- **bouton vert** : texte blanc de 16 px sur `#16a34a`, soit un contraste de 3,3:1, sous les 4,5:1 demandés pour ce texte. C'est le cas de tous les boutons verts du site : le corriger relève de la charte graphique, pas de cette itération.
+
+**Livraison** :
+1. Fait : étiquette par défaut passée à `frontend-v1.7` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
+2. En cours : image `frontend-v1.7` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
+3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.7`.
+
+Retour arrière : `frontend-v1.6`.
