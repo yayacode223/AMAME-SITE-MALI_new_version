@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.bourse.BourseCreationRequest;
 import com.example.siteamame.dto.bourse.BourseDetailDto;
 import com.example.siteamame.dto.bourse.BoursePageResponse;
@@ -75,7 +76,7 @@ public class BourseService {
 
     public BourseDetailDto getBourseById(Long id){
         Bourse bourse = bourseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bourse non trouvée avec Id:" + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette bourse est introuvable : elle a peut-être été supprimée."));
         return bourseMapper.BourseToDetailDto(bourse);
     }
 
@@ -123,7 +124,7 @@ public class BourseService {
     @Transactional
     public BourseDetailDto updateBourse(Long id, BourseCreationRequest request, MultipartFile file) {
         Bourse bourse = bourseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bourse non trouvée avec Id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette bourse est introuvable : elle a peut-être été supprimée."));
 
         // Gestion du fichier
         if (file != null && !file.isEmpty()) {
@@ -193,7 +194,7 @@ public class BourseService {
     @Transactional
     public void deleteBourse(Long id) {
         Bourse bourse = bourseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bourse non trouvée avec Id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette bourse est introuvable : elle a peut-être été supprimée."));
 
         // Le fichier associé est supprimé en cascade, donc inscrit dans la file de purge.
         bourseRepository.delete(bourse);

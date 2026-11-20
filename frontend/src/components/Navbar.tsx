@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { userMessage } from "@/utils/apiError";
 import { UserRole } from "@/types/userType";
 import { loginPath } from "@/utils/authRedirect";
 import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
@@ -82,8 +83,8 @@ const Navbar = () => {
       await logout();
       toast({ title: "Déconnexion réussie", description: "À bientôt !" });
       navigate("/");
-    } catch {
-      toast({ title: "Erreur", description: "La déconnexion a échoué.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "La déconnexion a échoué", description: userMessage(err), variant: "destructive" });
     }
   };
 

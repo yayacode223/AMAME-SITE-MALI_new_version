@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { toUserError, type UserError } from "@/utils/apiError";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import {
-  useGetRessourcesAdmin,
+  useGetRessourceById,
   useCreateRessource,
   useUpdateRessource,
 } from "@/service/ressourceAcademiqueService";
@@ -24,11 +25,10 @@ const RessourceForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: ressources } = useGetRessourcesAdmin();
+  const { data: existing, isLoading: isLoadingExisting, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } =
+    useGetRessourceById(Number(id), { enabled: isEditing });
   const createMutation = useCreateRessource();
   const updateMutation = useUpdateRessource();
-
-  const existing = isEditing ? ressources?.content?.find(r => r.id === Number(id)) : undefined;
 
   const [formData, setFormData] = useState<RessourceAcademiqueRequest>({
     titre: "",
@@ -62,8 +62,11 @@ const RessourceForm: React.FC = () => {
       setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: Number(id), request: formData, file: selectedFile ?? undefined });
@@ -73,8 +76,8 @@ const RessourceForm: React.FC = () => {
         toast({ title: "Ressource créée avec succès" });
       }
       navigate("/admin/ressources");
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive" });
+    } catch (err) {
+      setFormError(toUserError(err));
     }
   };
 
@@ -85,6 +88,11 @@ const RessourceForm: React.FC = () => {
       title={isEditing ? "Modifier la ressource" : "Nouvelle ressource académique"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
+      error={formError}
+      isLoading={isLoadingExisting}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
       backPath="/admin/ressources"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

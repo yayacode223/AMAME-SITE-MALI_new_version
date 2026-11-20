@@ -1,5 +1,6 @@
 package com.example.siteamame.service.user;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.user.UserRequestDto;
@@ -67,7 +68,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserReponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ce User n'existe pas"));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet utilisateur est introuvable : il a peut-être été supprimé."));
         return userMapper.UserToDto(user);
     }
 
@@ -110,7 +111,7 @@ public class UserService {
     public UserReponseDto update(Long id, UserRequestDto userRequestDto, MultipartFile cv, MultipartFile image) throws IOException {
 
         User userToUpdate = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cet User n'existe pas avec Id : " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet utilisateur est introuvable : il a peut-être été supprimé."));
 
         User user = userMapper.updateUser(userToUpdate, userRequestDto);
 
@@ -145,7 +146,7 @@ public class UserService {
             // disparaissent avec lui ; adhésions, cotisations et dons restent, détachés (migration V4).
             userRepository.deleteById(id);
         }else{
-            throw new RuntimeException("Cet Utilisateur avec Id : "+ id + " n'existe pas");
+            throw new RessourceNotFoundException("Cet utilisateur est introuvable : il a peut-être été supprimé.");
         }
     }
 

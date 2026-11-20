@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.filiere.FiliereDto;
@@ -82,7 +83,7 @@ public class FiliereService {
     @Transactional(readOnly = true)
     public FiliereDto getFiliereById(Long id) {
         Filiere filiere = filiereRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Filière non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette filière est introuvable : elle a peut-être été supprimée."));
         return filiereMapper.convertToDTO(filiere);
     }
 
@@ -134,7 +135,7 @@ public class FiliereService {
     @Transactional(rollbackFor = Exception.class)
     public FiliereDto modifierFiliere(Long id, FiliereRequestDto filiereRequestDto, MultipartFile file) throws IOException {
         Filiere filiere = filiereRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Ce filiere avec Id"+ id + "n'existe pas"));
+                .orElseThrow(()-> new RessourceNotFoundException("Cette filière est introuvable : elle a peut-être été supprimée."));
 
         if(file != null){
             // L'ancien fichier perd sa ligne (orphanRemoval) : la base l'inscrit dans la file de purge.
@@ -168,7 +169,7 @@ public class FiliereService {
         if(filiereRepository.existsById(id)){
             filiereRepository.deleteById(id);
         }else{
-            throw new RuntimeException("Impossible de supprimer cette filiere avec Id:"+id);
+            throw new RessourceNotFoundException("Cette filière est introuvable : elle a peut-être été supprimée.");
         }
     }
 }

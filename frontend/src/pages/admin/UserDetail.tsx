@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeftIcon,
   UserIcon,
@@ -15,6 +15,8 @@ import { Sexe, ROLE_LABELS } from "@/types/userType";
 import { useAuth } from "@/context/AuthContext";
 import UserPermissionsPanel from "@/components/admin/UserPermissionsPanel";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import QueryError from "@/components/QueryError";
+import { userMessage } from "@/utils/apiError";
 
 const ROLE_COLORS: Record<string, string> = {
   SUPERADMIN: "bg-red-100 text-red-800",
@@ -43,12 +45,14 @@ const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const userId = parseInt(id ?? "0");
 
-  const { data: user, isLoading } = useGetUserById(userId);
+  const { data: user, isLoading, error: loadError, refetch, isFetching } = useGetUserById(userId);
+  const navigate = useNavigate();
   const { user: authUser, hasPermission } = useAuth();
   const deleteUserMutation = useDeleteUserMutation();
 
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const canSeePermissions = hasPermission("USER_READ_ALL");
   const canDelete = hasPermission("USER_DELETE");
@@ -60,6 +64,17 @@ const UserDetail: React.FC = () => {
           <div className="h-8 bg-gray-200 rounded w-1/4" />
           <div className="h-64 bg-gray-200 rounded" />
         </div>
+      </div>
+    );
+  }
+
+  if (loadError && !user) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-4">
+        <QueryError error={loadError} onRetry={refetch} isRetrying={isFetching} title="La fiche de l'utilisateur n'a pas pu être chargée." />
+        <Link to="/admin/users" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">
+          <ArrowLeftIcon className="h-4 w-4 mr-1" /> Retour à la liste
+        </Link>
       </div>
     );
   }
@@ -78,6 +93,17 @@ const UserDetail: React.FC = () => {
   const roleColor = ROLE_COLORS[user.role ?? ""] ?? "bg-gray-100 text-gray-700";
   const roleLabel = ROLE_LABELS[user.role!] ?? user.role ?? "—";
   const isSelf = authUser?.id === user.id;
+
+  // La fenêtre reste ouverte pendant la suppression ; en cas d'échec elle affiche pourquoi.
+  const handleDelete = async () => {
+    setDeleteError(null);
+    try {
+      await deleteUserMutation.mutateAsync(user.id!);
+      navigate("/admin/users", { replace: true });
+    } catch (err) {
+      setDeleteError(userMessage(err));
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -215,9 +241,10 @@ const UserDetail: React.FC = () => {
                   open={deleteOpen}
                   title="Supprimer l'utilisateur"
                   description={`L'utilisateur "${user.prenom} ${user.nom}" sera définitivement supprimé(e). Cette action est irréversible.`}
-                  onConfirm={() => { deleteUserMutation.mutate(user.id!); setDeleteOpen(false); }}
-                  onClose={() => setDeleteOpen(false)}
+                  onConfirm={handleDelete}
+                  onClose={() => { if (!deleteUserMutation.isPending) { setDeleteOpen(false); setDeleteError(null); } }}
                   isLoading={deleteUserMutation.isPending}
+                  error={deleteError}
                 />
               </>
             )}

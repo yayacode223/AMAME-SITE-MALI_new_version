@@ -63,7 +63,7 @@ public class PartenaireService {
     @Transactional(readOnly = true)
     public PartenaireDto getPartenaireById(Long id) {
         Partenaire partenaire = partenaireRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Partenaire non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce partenaire est introuvable : il a peut-être été supprimé."));
         return toDto(partenaire);
     }
 
@@ -82,7 +82,7 @@ public class PartenaireService {
     @Transactional(rollbackFor = Exception.class)
     public PartenaireDto updatePartenaire(Long id, PartenaireRequestDto request, MultipartFile file) throws IOException {
         Partenaire partenaire = partenaireRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Partenaire non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce partenaire est introuvable : il a peut-être été supprimé."));
         if (file != null && !file.isEmpty()) {
             FileDto fileDto = fileStorageService.storeFile(file, "partenaire", FileType.IMAGE);
             File savedFile = fileRepository.save(fileMapper.convertDtoToFile(fileDto));
@@ -95,7 +95,7 @@ public class PartenaireService {
     @Transactional
     public void deletePartenaire(Long id) {
         if (!partenaireRepository.existsById(id)) {
-            throw new RessourceNotFoundException("Partenaire non trouvé avec l'id: " + id);
+            throw new RessourceNotFoundException("Ce partenaire est introuvable : il a peut-être été supprimé.");
         }
         partenaireRepository.deleteById(id);
     }

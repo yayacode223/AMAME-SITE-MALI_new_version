@@ -46,6 +46,7 @@ public class GlobalHandlerException {
 
     static final String UNEXPECTED_MESSAGE = "Une erreur inattendue est survenue. Réessayez dans quelques instants.";
     static final String INVALID_REQUEST_MESSAGE = "La demande n'a pas pu être lue. Rechargez la page, puis réessayez.";
+    static final String VALIDATION_MESSAGE = "Certains champs sont invalides. Corrigez-les, puis réessayez.";
 
     // ── Comptes ─────────────────────────────────────────────────────────────
 
@@ -112,11 +113,21 @@ public class GlobalHandlerException {
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
+        return fieldErrors(fieldErrors, req);
+    }
+
+    /** Champ refusé par une règle du service (mot de passe actuel incorrect…) : même forme que @Valid. */
+    @ExceptionHandler(InvalidFieldException.class)
+    public ResponseEntity<ApiError> handleInvalidFieldException(InvalidFieldException ex, HttpServletRequest req) {
+        return fieldErrors(Map.of(ex.getField(), ex.getMessage()), req);
+    }
+
+    private static ResponseEntity<ApiError> fieldErrors(Map<String, String> fieldErrors, HttpServletRequest req) {
         List<String> errors = fieldErrors.entrySet().stream()
                 .map(e -> e.getKey() + " : " + e.getValue())
                 .toList();
         ApiError error = new ApiError(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED,
-                "Certains champs sont invalides. Corrigez-les, puis réessayez.", req.getRequestURI(), errors);
+                VALIDATION_MESSAGE, req.getRequestURI(), errors);
         error.setFieldErrors(fieldErrors);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

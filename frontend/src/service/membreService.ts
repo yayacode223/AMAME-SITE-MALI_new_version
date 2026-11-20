@@ -82,3 +82,11 @@ export const useDeleteMembre = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
   });
 };
+
+/** Un élément par son identifiant, pour le formulaire de modification : la liste n'en contient qu'une page. */
+export const useGetMembreById = (id: number, options?: { enabled?: boolean }) =>
+  useQuery({
+    queryKey: [...keys.all, "detail", id] as const,
+    queryFn: async () => (await Api.get<Membre>(`/admin/membres/${id}`)).data,
+    enabled: options?.enabled ?? true,
+  });

@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
 import { useUpdateProfile, UpdateProfilePayload } from "@/service/monEspaceService";
 import { toast } from "@/hooks/use-toast";
+import FormAlert from "@/components/FormAlert";
+import { applyFieldErrors, toUserError } from "@/utils/apiError";
 import { UserIcon, Loader2, CheckCircle } from "lucide-react";
 
 const schema = z.object({
@@ -21,6 +23,8 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+const PROFILE_FIELDS = ["nom", "prenom", "phone", "ville", "adresse", "pays", "birthDate", "sexe", "niveauEtude", "codePostal"] as const;
 
 const NIVEAUX = [
   { value: "PRIMAIRE",      label: "Primaire" },
@@ -47,8 +51,9 @@ const inputCls = "w-full border border-amame-border rounded-xl px-4 py-2.5 text-
 export default function Profil() {
   const { user } = useAuth();
   const mutation = useUpdateProfile();
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, setError, formState: { errors, isDirty } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       nom:         user?.nom        ?? "",
@@ -82,6 +87,7 @@ export default function Profil() {
   }, [user, reset]);
 
   const onSubmit = async (data: FormValues) => {
+    setFormError(null);
     try {
       const payload: UpdateProfilePayload = {
         nom:    data.nom,
@@ -97,8 +103,10 @@ export default function Profil() {
       };
       await mutation.mutateAsync(payload);
       toast({ title: "Profil mis à jour", description: "Vos informations ont été enregistrées." });
-    } catch {
-      toast({ title: "Erreur", description: "Impossible de mettre à jour le profil.", variant: "destructive" });
+    } catch (err) {
+      const error = toUserError(err);
+      applyFieldErrors(setError, error.fieldErrors, PROFILE_FIELDS);
+      setFormError(error.message);
     }
   };
 
@@ -122,12 +130,12 @@ export default function Profil() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Prénom *">
               <input {...register("prenom")} className={inputCls} placeholder="Votre prénom" />
-              {errors.prenom && <p className="text-xs text-red-500 mt-1">{errors.prenom.message}</p>}
+              {errors.prenom && <p className="text-xs text-red-700 mt-1">{errors.prenom.message}</p>}
             </Field>
 
             <Field label="Nom *">
               <input {...register("nom")} className={inputCls} placeholder="Votre nom" />
-              {errors.nom && <p className="text-xs text-red-500 mt-1">{errors.nom.message}</p>}
+              {errors.nom && <p className="text-xs text-red-700 mt-1">{errors.nom.message}</p>}
             </Field>
 
             <Field label="Email" hint="L'email ne peut pas être modifié ici.">
@@ -187,6 +195,8 @@ export default function Profil() {
             </Field>
           </div>
         </div>
+
+        <FormAlert message={formError} />
 
         {/* ── Actions ── */}
         <div className="flex items-center justify-end gap-3">

@@ -18,7 +18,7 @@ const ROLE_COLORS: Record<string, string> = {
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
-  const { data: usersPage, isLoading } = useGetAllUsers({ page, size: 10 });
+  const { data: usersPage, isLoading, error: listError, refetch, isFetching } = useGetAllUsers({ page, size: 10 });
   const deleteUserMutation = useDeleteUserMutation();
 
   const filteredUsers = (usersPage?.content ?? []).filter(
@@ -85,7 +85,7 @@ const UsersManagement: React.FC = () => {
   ];
 
   const handleDelete = (user: RegisterResponse) => {
-    deleteUserMutation.mutate(user.id!);
+    return deleteUserMutation.mutateAsync(user.id!);
   };
 
   return (
@@ -131,6 +131,9 @@ const UsersManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `L'utilisateur "${row.prenom} ${row.nom}" sera définitivement supprimé(e).`}
         onView={(u) => (window.location.href = `/admin/users/${u.id}`)}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
         protectSelf
       />
 

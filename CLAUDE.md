@@ -116,7 +116,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 - `requestUser`: the user loaded by `JwtFilter` on each authenticated request, kept 60 s (`RequestUserLoader`). Any method that changes a role, permissions or a password, or deletes a user, must carry `@CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)`. Login never uses this cache. The cached `User` is detached and shared: never modify it.
 - `publicLists`: public list endpoints annotated with `@PublicListCache`. Disabled unless `PUBLIC_LISTS_CACHE_TTL` is a positive duration; emptied after any non-GET request on `/api/admin/**`. Do not annotate an endpoint that writes (view counters) or depends on the caller.
 
-**Error responses** (report 05, P3a): every error body is an `ApiError` with a stable `code` (`ApiErrorCode`: `EMAIL_ALREADY_USED`, `VALIDATION_FAILED` with `fieldErrors`, `INTERNAL_ERROR`…) and a `message` that is always a sentence for the user, never an exception's text. `GlobalHandlerException` logs every unexpected error with an 8-character reference that the message repeats. Throw a dedicated exception or a `ResponseStatusException` with a French reason; never a bare `RuntimeException` for an expected case (it becomes a 500).
+**Error responses** (report 05, P3a): every error body is an `ApiError` with a stable `code` (`ApiErrorCode`: `EMAIL_ALREADY_USED`, `VALIDATION_FAILED` with `fieldErrors`, `INTERNAL_ERROR`…) and a `message` that is always a sentence for the user, never an exception's text. `GlobalHandlerException` logs every unexpected error with an 8-character reference that the message repeats. Throw a dedicated exception or a `ResponseStatusException` with a French reason; never a bare `RuntimeException` for an expected case (it becomes a 500). A missing item is a `RessourceNotFoundException` (404) whose message is a sentence without any id ("Cet article est introuvable : il a peut-être été supprimé."); a value refused by a service rule is an `InvalidFieldException(field, message)` (400 `VALIDATION_FAILED`, shown under that field). A controller method that only delegates to a transactional service carries no `@Transactional` of its own (deviation C15: without `rollbackFor` it turned an upload failure into "Transaction silently rolled back"); a service method that writes, even a view counter, is never `readOnly`.
 
 **Domain entities**: `User`, `Adhesion`, `Article`, `Bourse`, `Concours`, `Filiere`, `Etablissement`, `Galerie`, `LienUtile`, `Membre` (bureau), `Partenaire`, `RessourceAcademique`, `Opportunites`, `Cotisation`, `Don`, `RefreshToken`, `PasswordResetToken`, `UserPermission`.
 
@@ -128,7 +128,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Service layer**: `src/service/*.ts` files contain React Query hooks (`useQuery`, `useMutation`) that call `Api`. Components consume these hooks directly — no manual fetch/useEffect.
 
-**Error messages** (report 05, P3a): turn any API error into a message with `toUserError` / `userMessage` (`src/utils/apiError.ts`), never `err.message` or a raw `response.data.message`. It handles network loss, Nginx HTML replies (429, 413, 502, 504) and hides old technical 500 texts. A form shows its error inside the form (`<FormAlert>` above the submit button, `applyFieldErrors` under the fields); toasts are for confirmations. Field error text uses `red-700` (contrast), not `text-destructive`.
+**Error messages** (report 05, P3a): turn any API error into a message with `toUserError` / `userMessage` (`src/utils/apiError.ts`), never `err.message` or a raw `response.data.message`. It handles network loss, Nginx HTML replies (429, 413, 502, 504) and hides old technical 500 texts. A form shows its error inside the form (`<FormAlert>` above the submit button, `applyFieldErrors` under the fields); toasts are for confirmations. Field error text uses `red-700` (contrast), not `text-destructive`. A failed load shows `<QueryError error onRetry>` (P3b), never an empty list or an empty form; in the admin, `DataTable` takes `error`/`onRetry` and an `onDelete` that returns the `mutateAsync` promise (the confirm dialog stays open and shows the failure), and `FormWrapper` takes `error` (save) and `loadError` (item to edit). An edit form loads its item by id (`useGet…ById`), never by searching a paginated list. Queries are not retried after a 4xx (`src/lib/queryClient.ts`). `<ErrorBoundary>` wraps the whole app (`App.tsx`) and the content of the admin and member layouts (`variant="section"`, the menu stays usable): a rendering error shows "Un problème est survenu", never a blank page.
 
 **Auth context**: `src/context/AuthContext.tsx` wraps the app and exposes `{ user, isAuthenticated, isUserLoading, login, logout, register, hasPermission }`. It calls `useGetCurrentUser()` (React Query) on mount to rehydrate session from cookie.
 
@@ -166,8 +166,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.13`) | 80 |
-| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.6`) | internal only |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.14`) | 80 |
+| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
 

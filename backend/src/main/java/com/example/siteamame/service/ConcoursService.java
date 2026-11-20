@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.concours.ConcoursPageResponse;
 import com.example.siteamame.dto.concours.ConcoursReponseDto;
 import com.example.siteamame.dto.concours.ConcoursRequestDto;
@@ -91,7 +92,7 @@ public class ConcoursService {
     //Recuperer un concours
     public ConcoursReponseDto recupererConcours(Long id) {
         Concours concours = concoursRepository.findById(id).
-                orElseThrow(()-> new RuntimeException("Ce concours avec Id :"+ id + "n'existe pas"));
+                orElseThrow(()-> new RessourceNotFoundException("Ce concours est introuvable : il a peut-être été supprimé."));
         return concoursMapper.convertToDTO(concours);
     }
 
@@ -133,7 +134,7 @@ public class ConcoursService {
     public ConcoursReponseDto modifierConcours(Long id, ConcoursRequestDto concoursRequestDto, MultipartFile file) {
         Concours concours = concoursRepository.findById(id)
                 .orElseThrow(
-                        ()-> new RuntimeException("Ce concours avec cet id" +id + "n'existe pas")
+                        ()-> new RessourceNotFoundException("Ce concours est introuvable : il a peut-être été supprimé.")
                 );
 
         if (!concoursRequestDto.getNom().isEmpty()) concours.setNom(concoursRequestDto.getNom());
@@ -169,7 +170,7 @@ public class ConcoursService {
         if(concoursRepository.existsById(id)){
             concoursRepository.deleteById(id);
         }else {
-            throw new RuntimeException("Impossible de supprimer ce concours avec Id" +id);
+            throw new RessourceNotFoundException("Ce concours est introuvable : il a peut-être été supprimé.");
         }
     }
 }

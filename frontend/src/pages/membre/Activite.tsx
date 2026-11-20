@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import QueryError from "@/components/QueryError";
 import { useGetAdhesionStatus } from "@/service/adhesionService";
 import { useMyCotisations, useMyDons, COTISATION_STATUS_STYLES, COTISATION_STATUS_LABELS } from "@/service/monEspaceService";
 import {
@@ -24,9 +25,13 @@ function formatDate(dateStr: string) {
 
 export default function Activite() {
   const { isAuthenticated } = useAuth();
-  const { data: adhesion }    = useGetAdhesionStatus({ enabled: isAuthenticated });
-  const { data: cotisations = [] } = useMyCotisations();
-  const { data: dons = [] }        = useMyDons();
+  const adhesionQuery    = useGetAdhesionStatus({ enabled: isAuthenticated });
+  const cotisationsQuery = useMyCotisations();
+  const donsQuery        = useMyDons();
+  const adhesion    = adhesionQuery.data;
+  const cotisations = cotisationsQuery.data ?? [];
+  const dons        = donsQuery.data ?? [];
+  const failed = [adhesionQuery, cotisationsQuery, donsQuery].filter((q) => q.isError && q.data === undefined);
 
   // Construction de la timeline par date décroissante
   const events: TimelineEvent[] = [];
@@ -70,6 +75,16 @@ export default function Activite() {
         <p className="text-sm text-amame-muted mt-1">Historique de toutes vos actions dans l'espace membre.</p>
       </div>
 
+      {failed.length > 0 && (
+        <QueryError
+          error={failed[0].error}
+          onRetry={() => failed.forEach((q) => q.refetch())}
+          isRetrying={failed.some((q) => q.isFetching)}
+          title="Une partie de votre activité n'a pas pu être chargée."
+        />
+      )}
+
+      {(events.length > 0 || failed.length === 0) && (
       <div className="bg-white rounded-2xl border border-amame-border shadow-card p-6">
         {events.length === 0 ? (
           <div className="text-center py-12">
@@ -101,6 +116,7 @@ export default function Activite() {
           </ol>
         )}
       </div>
+      )}
     </div>
   );
 }

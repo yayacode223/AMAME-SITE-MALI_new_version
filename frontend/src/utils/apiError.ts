@@ -69,8 +69,24 @@ export function toUserError(error: unknown): UserError {
   return { status, code, message, fieldErrors };
 }
 
+/** Erreur constatée dans la page avant tout envoi (ex. mots de passe différents), même forme qu'une erreur de l'API. */
+export const clientError = (message: string): UserError => ({ status: 0, message, fieldErrors: {} });
+
 /** Message seul, pour un toast ou un encadré. */
 export const userMessage = (error: unknown) => toUserError(error).message;
+
+/**
+ * Messages par champ, sans doublon : pour un formulaire qui ne les place pas sous ses champs
+ * (formulaires de l'administration). Un formulaire react-hook-form utilise `applyFieldErrors`.
+ */
+export const fieldErrorMessages = (e: UserError): string[] => [...new Set(Object.values(e.fieldErrors))];
+
+/** Morceau de page chargé à la demande introuvable : l'ancienne version du site après un déploiement. */
+export const isChunkLoadError = (error: unknown): boolean =>
+  error instanceof Error &&
+  /dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk .* failed/i.test(
+    `${error.name} ${error.message}`,
+  );
 
 /** Un compte existe déjà avec cet e-mail (code du backend, ou ancien message 409 avant backend-v1.6). */
 export const isEmailAlreadyUsed = (e: UserError) =>

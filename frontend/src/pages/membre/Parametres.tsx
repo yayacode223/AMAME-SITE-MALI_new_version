@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useChangePassword } from "@/service/monEspaceService";
+import FormAlert from "@/components/FormAlert";
+import { applyFieldErrors, toUserError } from "@/utils/apiError";
 import { toast } from "@/hooks/use-toast";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { KeyRound, Eye, EyeOff, Loader2, CheckCircle, ShieldCheck } from "lucide-react";
@@ -54,7 +56,7 @@ function PasswordField({
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-xs text-red-700 mt-1">{error}</p>}
     </div>
   );
 }
@@ -64,10 +66,11 @@ export default function Parametres() {
   const [showNew,     setShowNew]       = useState(false);
   const [showConfirm, setShowConfirm]   = useState(false);
   const [done,        setDone]          = useState(false);
+  const [formError,   setFormError]     = useState<string | null>(null);
 
   const mutation = useChangePassword();
 
-  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setError, watch, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
   });
@@ -82,14 +85,17 @@ export default function Parametres() {
   ];
 
   const onSubmit = async (data: FormValues) => {
+    setFormError(null);
     try {
       await mutation.mutateAsync({ currentPassword: data.currentPassword, newPassword: data.newPassword });
       setDone(true);
       reset();
       toast({ title: "Mot de passe mis à jour", description: "Votre nouveau mot de passe est actif." });
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? "Une erreur est survenue.";
-      toast({ title: "Erreur", description: msg, variant: "destructive" });
+    } catch (err) {
+      // Mot de passe actuel incorrect : sous ce champ (backend-v1.7), sinon dans l'encadré.
+      const error = toUserError(err);
+      applyFieldErrors(setError, error.fieldErrors, ["currentPassword", "newPassword"] as const);
+      setFormError(error.message);
     }
   };
 
@@ -164,6 +170,8 @@ export default function Parametres() {
               show={showConfirm}
               onToggle={() => setShowConfirm(v => !v)}
             />
+
+            <FormAlert message={formError} />
 
             <button
               type="submit"

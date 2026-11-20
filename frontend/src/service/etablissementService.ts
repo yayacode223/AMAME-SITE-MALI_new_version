@@ -103,3 +103,11 @@ export const useDeleteEtablissement = () => {
 };
 
 export const etablissementKeys = keys;
+
+/** Un élément par son identifiant, pour le formulaire de modification : la liste n'en contient qu'une page. */
+export const useGetEtablissementById = (id: number, options?: { enabled?: boolean }) =>
+  useQuery({
+    queryKey: [...keys.all, "detail", id] as const,
+    queryFn: async () => (await Api.get<EtablissementResponse>(`/visitor/etablissements/${id}`)).data,
+    enabled: options?.enabled ?? true,
+  });

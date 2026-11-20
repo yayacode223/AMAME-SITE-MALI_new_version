@@ -47,7 +47,7 @@ public class LienUtileService {
     @Transactional(readOnly = true)
     public LienUtileDto getLienById(Long id) {
         return toDto(lienUtileRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Lien utile non trouvé avec l'id: " + id)));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce lien est introuvable : il a peut-être été supprimé.")));
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class LienUtileService {
     @Transactional
     public LienUtileDto updateLien(Long id, LienUtileRequestDto request) {
         LienUtile lien = lienUtileRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Lien utile non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce lien est introuvable : il a peut-être été supprimé."));
         mapRequest(request, lien);
         return toDto(lienUtileRepository.save(lien));
     }
@@ -68,7 +68,7 @@ public class LienUtileService {
     @Transactional
     public void deleteLien(Long id) {
         if (!lienUtileRepository.existsById(id)) {
-            throw new RessourceNotFoundException("Lien utile non trouvé avec l'id: " + id);
+            throw new RessourceNotFoundException("Ce lien est introuvable : il a peut-être été supprimé.");
         }
         lienUtileRepository.deleteById(id);
     }

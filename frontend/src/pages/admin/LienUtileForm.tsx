@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { toUserError, type UserError } from "@/utils/apiError";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import {
-  useGetLiensUtilesAdmin,
+  useGetLienUtileById,
   useCreateLienUtile,
   useUpdateLienUtile,
 } from "@/service/lienUtileService";
@@ -16,11 +17,10 @@ const LienUtileForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: liens } = useGetLiensUtilesAdmin();
+  const { data: existing, isLoading: isLoadingExisting, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } =
+    useGetLienUtileById(Number(id), { enabled: isEditing });
   const createMutation = useCreateLienUtile();
   const updateMutation = useUpdateLienUtile();
-
-  const existing = isEditing ? liens?.find(l => l.id === Number(id)) : undefined;
 
   const [formData, setFormData] = useState<LienUtileRequest>({
     titre: "",
@@ -53,8 +53,11 @@ const LienUtileForm: React.FC = () => {
       setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: Number(id), request: formData });
@@ -64,8 +67,8 @@ const LienUtileForm: React.FC = () => {
         toast({ title: "Lien créé avec succès" });
       }
       navigate("/admin/liens-utiles");
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive" });
+    } catch (err) {
+      setFormError(toUserError(err));
     }
   };
 
@@ -76,6 +79,11 @@ const LienUtileForm: React.FC = () => {
       title={isEditing ? "Modifier le lien" : "Nouveau lien utile"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
+      error={formError}
+      isLoading={isLoadingExisting}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
       backPath="/admin/liens-utiles"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

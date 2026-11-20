@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Api } from "@/utils/axiosInstance";
 import { Permission, Role } from "@/types/userType";
 import { toast } from "@/hooks/use-toast";
+import { userMessage } from "@/utils/apiError";
 
 // ── Types de réponse ──────────────────────────────────────────────────────────
 
@@ -94,8 +95,8 @@ export const useGrantPermissionMutation = (userId: number) => {
       qc.invalidateQueries({ queryKey: permissionKeys.user(userId) });
       toast({ title: "Permission accordée" });
     },
-    onError: (err: Error) => {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    onError: (err) => {
+      toast({ title: "La permission n'a pas été accordée", description: userMessage(err), variant: "destructive" });
     },
   });
 };
@@ -108,8 +109,8 @@ export const useRevokePermissionMutation = (userId: number) => {
       qc.invalidateQueries({ queryKey: permissionKeys.user(userId) });
       toast({ title: "Permission révoquée" });
     },
-    onError: (err: Error) => {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    onError: (err) => {
+      toast({ title: "La permission n'a pas été révoquée", description: userMessage(err), variant: "destructive" });
     },
   });
 };
@@ -120,10 +121,10 @@ export const useRemoveOverrideMutation = (userId: number) => {
     mutationFn: (permission: Permission) => removeOverride({ userId, permission }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: permissionKeys.user(userId) });
-      toast({ title: "Override supprimé — retour aux défauts du rôle" });
+      toast({ title: "Retour aux droits du rôle" });
     },
-    onError: (err: Error) => {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    onError: (err) => {
+      toast({ title: "Le retour aux droits du rôle a échoué", description: userMessage(err), variant: "destructive" });
     },
   });
 };
@@ -152,8 +153,8 @@ export const useChangeRoleMutation = (userId: number) => {
       qc.invalidateQueries({ queryKey: ["auth"] });
       toast({ title: "Rôle mis à jour" });
     },
-    onError: (err: Error) => {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    onError: (err) => {
+      toast({ title: "Le rôle n'a pas été modifié", description: userMessage(err), variant: "destructive" });
     },
   });
 };

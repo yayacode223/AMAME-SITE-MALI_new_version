@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
@@ -16,7 +18,7 @@ const FiliereForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: existingFiliere, isLoading: isLoadingFiliere } = useGetFiliereById(
+  const { data: existingFiliere, isLoading: isLoadingFiliere, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useGetFiliereById(
     parseInt(id || "0"), { enabled: isEditing }
   );
   const createMutation = useCreateFiliere();
@@ -52,8 +54,11 @@ const FiliereForm: React.FC = () => {
     }
   }, [existingFiliere, isEditing]);
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
@@ -66,7 +71,7 @@ const FiliereForm: React.FC = () => {
       }
       navigate("/admin/filieres");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -120,7 +125,10 @@ const FiliereForm: React.FC = () => {
       title={isEditing ? "Modifier la filière" : "Créer une filière"}
       subtitle={isEditing ? "Modifiez les informations de la filière" : "Remplissez les informations pour créer une nouvelle filière"}
       backUrl="/admin/filieres"
-      isLoading={isLoading}
+      isLoading={isLoadingFiliere}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Description */}
@@ -259,6 +267,8 @@ const FiliereForm: React.FC = () => {
             {renderListInput("Prérequis", "prerequis", prerequisInput, setPrerequisInput, "ex: Bac S, Terminale Maths...")}
           </div>
         </div>
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">

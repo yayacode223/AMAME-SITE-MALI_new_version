@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import { useCreateConcours, useUpdateConcours, useConcoursDetail } from "@/service/concoursService";
@@ -12,7 +14,7 @@ const ConcoursForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: existingConcours, isLoading: isLoadingConcours } = useConcoursDetail(
+  const { data: existingConcours, isLoading: isLoadingConcours, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useConcoursDetail(
     parseInt(id || "0"), { enabled: isEditing }
   );
   const createMutation = useCreateConcours();
@@ -42,8 +44,11 @@ const ConcoursForm: React.FC = () => {
 
   const toDateTime = (date: string) => date ? `${date}T00:00:00` : date;
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const payload = {
       ...formData,
       dateOuverture: toDateTime(formData.dateOuverture),
@@ -61,7 +66,7 @@ const ConcoursForm: React.FC = () => {
       }
       navigate("/admin/concours");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -72,7 +77,10 @@ const ConcoursForm: React.FC = () => {
       title={isEditing ? "Modifier le concours" : "Créer un concours"}
       subtitle={isEditing ? "Modifiez les informations du concours" : "Remplissez les informations pour créer un nouveau concours"}
       backUrl="/admin/concours"
-      isLoading={isLoading}
+      isLoading={isLoadingConcours}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Informations */}
@@ -168,6 +176,8 @@ const ConcoursForm: React.FC = () => {
             </label>
           </div>
         )}
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">

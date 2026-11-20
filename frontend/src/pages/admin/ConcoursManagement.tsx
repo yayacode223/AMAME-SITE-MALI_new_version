@@ -12,7 +12,7 @@ const ConcoursManagement: React.FC = () => {
   const [filterNiveau, setFilterNiveau] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  const { data: concoursData, isLoading } = useConcoursLists({
+  const { data: concoursData, isLoading, error: listError, refetch, isFetching } = useConcoursLists({
     page,
     size: 10,
     sortBy: "dateLimite",
@@ -75,7 +75,7 @@ const ConcoursManagement: React.FC = () => {
   ];
 
   const handleDelete = (concours: ConcoursResponse) => {
-    deleteConcoursMutation.mutate(concours.id);
+    return deleteConcoursMutation.mutateAsync(concours.id);
   };
 
   return (
@@ -141,6 +141,9 @@ const ConcoursManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `Le concours "${row.nom}" sera définitivement supprimé.`}
         onView={(c) => window.open(`/concours/${c.id}`, "_blank")}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {concoursData && (

@@ -39,7 +39,7 @@ public class EtablissementService {
     @Transactional(readOnly = true)
     public EtablissementDto getEtablissementById(Long id) {
         Etablissement e = etablissementRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Établissement non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet établissement est introuvable : il a peut-être été supprimé."));
         return toDto(e);
     }
 
@@ -54,7 +54,7 @@ public class EtablissementService {
     @Transactional
     public EtablissementDto updateEtablissement(Long id, EtablissementRequestDto request) {
         Etablissement e = etablissementRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Établissement non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet établissement est introuvable : il a peut-être été supprimé."));
         mapRequest(request, e);
         return toDto(etablissementRepository.save(e));
     }
@@ -62,7 +62,7 @@ public class EtablissementService {
     @Transactional
     public void deleteEtablissement(Long id) {
         if (!etablissementRepository.existsById(id)) {
-            throw new RessourceNotFoundException("Établissement non trouvé avec l'id: " + id);
+            throw new RessourceNotFoundException("Cet établissement est introuvable : il a peut-être été supprimé.");
         }
         etablissementRepository.deleteById(id);
     }

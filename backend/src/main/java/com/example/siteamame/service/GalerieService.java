@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.dto.galerie.GalerieCreationRequest;
@@ -75,7 +76,7 @@ public class GalerieService {
     @Transactional(readOnly = true)
     public GalerieDto getGalerieById(Long id) {
         Galerie galerie = galerieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Galerie non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette galerie est introuvable : elle a peut-être été supprimée."));
         return galerieMapper.toDto(galerie);
     }
 
@@ -102,7 +103,7 @@ public class GalerieService {
     @Transactional(rollbackFor = Exception.class)
     public GalerieDto updateGalerie(Long id, GalerieDto galerieDto, MultipartFile file) throws IOException {
         Galerie galerie = galerieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Galerie non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette galerie est introuvable : elle a peut-être été supprimée."));
 
         if (galerieDto.getTitre() != null && !galerieDto.getTitre().isBlank()) {
             galerie.setTitre(galerieDto.getTitre());
@@ -135,7 +136,7 @@ public class GalerieService {
     @Transactional
     public void deleteGalerie(Long id) {
         if (!galerieRepository.existsById(id)) {
-            throw new RuntimeException("Galerie non trouvée avec l'id: " + id);
+            throw new RessourceNotFoundException("Cette galerie est introuvable : elle a peut-être été supprimée.");
         }
         galerieRepository.deleteById(id);
     }

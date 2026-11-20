@@ -10,7 +10,7 @@ import { mediaUrl } from "@/utils/media";
 const RessourcesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: ressourcesPage, isLoading } = useGetRessourcesAdmin({ page, size: 10 });
+  const { data: ressourcesPage, isLoading, error: listError, refetch, isFetching } = useGetRessourcesAdmin({ page, size: 10 });
   const deleteMutation = useDeleteRessource();
   const navigate = useNavigate();
 
@@ -58,7 +58,7 @@ const RessourcesManagement: React.FC = () => {
   ];
 
   const handleDelete = (r: RessourceAcademique) => {
-    deleteMutation.mutate(r.id);
+    return deleteMutation.mutateAsync(r.id);
   };
 
   return (
@@ -101,6 +101,9 @@ const RessourcesManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `La ressource "${row.titre}" sera définitivement supprimée.`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {ressourcesPage && (

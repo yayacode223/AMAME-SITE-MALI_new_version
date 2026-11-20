@@ -138,15 +138,7 @@ export const useUpdateMutation = () => {
     onSuccess: (user) => {
       queryClient.setQueryData(authKeys.currentUser(), user);
       queryClient.invalidateQueries({ queryKey: authKeys.all });
-      toast({
-        title: "Modifie avec succes !",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Impossible de modifier",
-        variant: "destructive",
-      });
+      toast({ title: "Modifications enregistrées" });
     },
   });
 };
@@ -201,15 +193,7 @@ export const useDeleteUserMutation = () => {
     mutationFn: deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.users() });
-      toast({
-        title: "Supprime avec succes !",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Impossible de supprimer",
-        variant: "destructive",
-      });
+      toast({ title: "Utilisateur supprimé" });
     },
   });
 };

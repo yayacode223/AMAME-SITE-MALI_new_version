@@ -10,6 +10,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { TrashIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import FormAlert from "@/components/FormAlert";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -21,6 +22,8 @@ export interface ConfirmDialogProps {
   cancelLabel?: string;
   variant?: "danger" | "warning";
   isLoading?: boolean;
+  /** Échec de l'action : affiché dans la fenêtre, qui reste ouverte pour réessayer ou annuler. */
+  error?: string | null;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -33,6 +36,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelLabel = "Annuler",
   variant = "danger",
   isLoading = false,
+  error,
 }) => {
   const isDanger = variant === "danger";
 
@@ -60,6 +64,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               </AlertDialogDescription>
             )}
           </AlertDialogHeader>
+          <FormAlert message={error} className="mt-4" />
         </div>
 
         {/* Footer */}

@@ -54,7 +54,7 @@ public class MembreBureauService {
     @Transactional(readOnly = true)
     public MembreDto getMembreById(Long id) {
         return toDto(membreRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Membre non trouvé avec l'id: " + id)));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce membre du bureau est introuvable : il a peut-être été supprimé.")));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -72,7 +72,7 @@ public class MembreBureauService {
     @Transactional(rollbackFor = Exception.class)
     public MembreDto updateMembre(Long id, MembreRequestDto request, MultipartFile file) throws IOException {
         Membre membre = membreRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Membre non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Ce membre du bureau est introuvable : il a peut-être été supprimé."));
         if (file != null && !file.isEmpty()) {
             FileDto fileDto = fileStorageService.storeFile(file, "membre", FileType.IMAGE);
             File savedFile = fileRepository.save(fileMapper.convertDtoToFile(fileDto));
@@ -85,7 +85,7 @@ public class MembreBureauService {
     @Transactional
     public void deleteMembre(Long id) {
         if (!membreRepository.existsById(id)) {
-            throw new RessourceNotFoundException("Membre non trouvé avec l'id: " + id);
+            throw new RessourceNotFoundException("Ce membre du bureau est introuvable : il a peut-être été supprimé.");
         }
         membreRepository.deleteById(id);
     }

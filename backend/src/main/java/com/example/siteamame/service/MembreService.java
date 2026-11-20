@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.InvalidFieldException;
 import com.example.siteamame.dto.cotisation.CotisationDto;
 import com.example.siteamame.dto.don.DonDto;
 import com.example.siteamame.dto.don.DonRequestDto;
@@ -67,7 +68,7 @@ public class MembreService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mot de passe actuel incorrect.");
+            throw new InvalidFieldException("currentPassword", "Mot de passe actuel incorrect.");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
@@ -21,7 +23,7 @@ const UserForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
-  const { data: existingUser } = useGetUserById(isEditing ? parseInt(id!) : 0, { enabled: isEditing });
+  const { data: existingUser, isLoading: isLoadingUser, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useGetUserById(isEditing ? parseInt(id!) : 0, { enabled: isEditing });
   const { user, hasPermission } = useAuth();
   const registerMutation = useRegisterMutation();
   const updateMutation = useUpdateMutation();
@@ -59,10 +61,13 @@ const UserForm: React.FC = () => {
     }
   }, [existingUser, isEditing]);
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEditing && !password) { alert("Le mot de passe est obligatoire"); return; }
-    if (password && password !== confirmPassword) { alert("Les mots de passe ne correspondent pas"); return; }
+    setFormError(null);
+    if (!isEditing && !password) { setFormError(clientError("Le mot de passe est obligatoire.")); return; }
+    if (password && password !== confirmPassword) { setFormError(clientError("Les deux mots de passe ne correspondent pas.")); return; }
     try {
       // Le rôle ne voyage plus avec le profil : le backend l'ignore à l'inscription
       // comme à la mise à jour. Il se change par l'endpoint dédié, qui vérifie la hiérarchie.
@@ -93,7 +98,7 @@ const UserForm: React.FC = () => {
       }
       navigate("/admin/users");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -104,7 +109,10 @@ const UserForm: React.FC = () => {
       title={isEditing ? "Modifier l'utilisateur" : "Créer un utilisateur"}
       subtitle={isEditing ? "Modifiez les informations de l'utilisateur" : "Remplissez les informations pour créer un utilisateur"}
       backUrl="/admin/users"
-      isLoading={isLoading}
+      isLoading={isLoadingUser}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Identité */}
@@ -271,6 +279,8 @@ const UserForm: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
@@ -13,7 +15,7 @@ const PosteForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: existingPoste, isLoading: isLoadingPoste } = useGetArticleById(
+  const { data: existingPoste, isLoading: isLoadingPoste, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useGetArticleById(
     parseInt(id || "0"), { enabled: isEditing }
   );
   const createMutation = useCreateArticle();
@@ -40,8 +42,11 @@ const PosteForm: React.FC = () => {
     }
   }, [existingPoste, isEditing]);
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
@@ -54,7 +59,7 @@ const PosteForm: React.FC = () => {
       }
       navigate("/admin/postes");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -72,7 +77,10 @@ const PosteForm: React.FC = () => {
       title={isEditing ? "Modifier le poste" : "Créer un poste"}
       subtitle={isEditing ? "Modifiez les informations du poste" : "Remplissez les informations pour créer un nouveau poste"}
       backUrl="/admin/postes"
-      isLoading={isLoading}
+      isLoading={isLoadingPoste}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Informations */}
@@ -176,6 +184,8 @@ const PosteForm: React.FC = () => {
             ℹ️ Le poste sera créé en <strong>brouillon</strong>. Vous pourrez le publier depuis la page d'édition.
           </p>
         )}
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">

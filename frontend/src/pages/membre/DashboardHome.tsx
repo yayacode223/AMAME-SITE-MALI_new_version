@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import QueryError from "@/components/QueryError";
 import { useAuth } from "@/context/AuthContext";
 import { useGetAdhesionStatus } from "@/service/adhesionService";
 import { useEspaceStats } from "@/service/monEspaceService";
@@ -26,7 +27,8 @@ const QUICK_LINKS = [
 export default function DashboardHome() {
   const { user, isAuthenticated } = useAuth();
   const { data: adhesion } = useGetAdhesionStatus({ enabled: isAuthenticated });
-  const { data: stats }    = useEspaceStats();
+  const { data: stats, error: statsError, refetch, isFetching } = useEspaceStats();
+  const statsUnavailable = !!statsError && !stats;
 
   const memberSince = adhesion?.adhesionDate
     ? new Date(adhesion.adhesionDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
@@ -61,6 +63,10 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {statsUnavailable && (
+        <QueryError error={statsError} onRetry={refetch} isRetrying={isFetching} title="Votre cotisation et vos dons n'ont pas pu être chargés." />
+      )}
+
       {/* ── Cartes stats ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Statut adhésion */}
@@ -89,7 +95,7 @@ export default function DashboardHome() {
             <span className="text-xs font-semibold text-amame-muted uppercase tracking-wide">Cotisation {anneeEnCours}</span>
           </div>
           <p className={`font-nunito font-bold text-sm ${stats?.cotisationAJourCetteAnnee ? "text-amame-green-dark" : "text-yellow-700"}`}>
-            {stats?.cotisationAJourCetteAnnee ? "À jour" : "Non enregistrée"}
+            {statsUnavailable ? "—" : stats?.cotisationAJourCetteAnnee ? "À jour" : "Non enregistrée"}
           </p>
           <p className="text-xs text-amame-muted mt-1">Voir le détail →</p>
         </Link>
@@ -103,7 +109,7 @@ export default function DashboardHome() {
             <span className="text-xs font-semibold text-amame-muted uppercase tracking-wide">Mes dons</span>
           </div>
           <p className="font-nunito font-bold text-sm text-amame-charcoal">
-            {stats?.totalDons ?? 0} don{(stats?.totalDons ?? 0) > 1 ? "s" : ""}
+            {statsUnavailable ? "—" : `${stats?.totalDons ?? 0} don${(stats?.totalDons ?? 0) > 1 ? "s" : ""}`}
           </p>
           {stats && stats.totalMontantDons > 0 && (
             <p className="text-xs text-amame-muted mt-1">

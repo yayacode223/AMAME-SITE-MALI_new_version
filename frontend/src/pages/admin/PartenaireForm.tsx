@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
-import { useGetAllPartenairesAdmin, useCreatePartenaire, useUpdatePartenaire } from "@/service/partenaireService";
+import { useGetPartenaireById, useCreatePartenaire, useUpdatePartenaire } from "@/service/partenaireService";
 import { PartenaireRequest } from "@/types/partenaireType";
 import { toast } from "@/hooks/use-toast";
 
@@ -13,11 +14,10 @@ const PartenaireForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: partenaires } = useGetAllPartenairesAdmin();
+  const { data: existing, isLoading: isLoadingExisting, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } =
+    useGetPartenaireById(Number(id), { enabled: isEditing });
   const createMutation = useCreatePartenaire();
   const updateMutation = useUpdatePartenaire();
-
-  const existing = isEditing ? partenaires?.find(p => p.id === Number(id)) : undefined;
 
   const [formData, setFormData] = useState<PartenaireRequest>({
     nom: "",
@@ -53,8 +53,11 @@ const PartenaireForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: Number(id), request: formData, file: selectedFile ?? undefined });
@@ -64,8 +67,8 @@ const PartenaireForm: React.FC = () => {
         toast({ title: "Partenaire créé avec succès" });
       }
       navigate("/admin/partenaires");
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive" });
+    } catch (err) {
+      setFormError(toUserError(err));
     }
   };
 
@@ -76,6 +79,11 @@ const PartenaireForm: React.FC = () => {
       title={isEditing ? "Modifier le partenaire" : "Nouveau partenaire"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
+      error={formError}
+      isLoading={isLoadingExisting}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
       backPath="/admin/partenaires"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

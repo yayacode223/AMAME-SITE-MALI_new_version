@@ -19,6 +19,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { toast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { userMessage } from "@/utils/apiError";
 
 /* ---------- Types ---------- */
 interface NavSubItem {
@@ -325,12 +327,8 @@ const AdminLayout: React.FC = () => {
       await logout();
       toast({ title: "Déconnexion réussie", description: "À bientôt !" });
       navigate("/");
-    } catch {
-      toast({
-        title: "Erreur",
-        description: "La déconnexion a échoué.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      toast({ title: "La déconnexion a échoué", description: userMessage(err), variant: "destructive" });
     }
   };
 
@@ -405,7 +403,9 @@ const AdminLayout: React.FC = () => {
         </div>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
-          <Outlet />
+          <ErrorBoundary variant="section" resetKey={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

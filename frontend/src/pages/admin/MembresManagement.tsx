@@ -9,7 +9,7 @@ import { Membre } from "@/types/membreType";
 const MembresManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: membresPage, isLoading } = useGetAllMembresAdmin({ page, size: 10 });
+  const { data: membresPage, isLoading, error: listError, refetch, isFetching } = useGetAllMembresAdmin({ page, size: 10 });
   const deleteMutation = useDeleteMembre();
   const navigate = useNavigate();
 
@@ -43,7 +43,7 @@ const MembresManagement: React.FC = () => {
   ];
 
   const handleDelete = (membre: Membre) => {
-    deleteMutation.mutate(membre.id);
+    return deleteMutation.mutateAsync(membre.id);
   };
 
   return (
@@ -86,6 +86,9 @@ const MembresManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `Le membre "${row.prenom} ${row.nom}" sera définitivement supprimé(e).`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {membresPage && (

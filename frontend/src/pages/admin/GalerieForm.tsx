@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
@@ -13,7 +15,7 @@ const GalerieForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: existingGalerie, isLoading: isLoadingGalerie } = useGetGalerieById(
+  const { data: existingGalerie, isLoading: isLoadingGalerie, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useGetGalerieById(
     parseInt(id || "0"), { enabled: isEditing }
   );
   const createMutation = useCreateGalerie();
@@ -37,8 +39,11 @@ const GalerieForm: React.FC = () => {
     }
   }, [existingGalerie, isEditing]);
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
@@ -51,7 +56,7 @@ const GalerieForm: React.FC = () => {
       }
       navigate("/admin/galeries");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -62,7 +67,10 @@ const GalerieForm: React.FC = () => {
       title={isEditing ? "Modifier la galerie" : "Créer une galerie"}
       subtitle={isEditing ? "Modifiez les informations de la galerie" : "Remplissez les informations pour créer une nouvelle galerie"}
       backUrl="/admin/galeries"
-      isLoading={isLoading}
+      isLoading={isLoadingGalerie}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -123,6 +131,8 @@ const GalerieForm: React.FC = () => {
             <span className="font-semibold">Galerie publiée</span> — visible par les visiteurs du site
           </label>
         </div>
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">

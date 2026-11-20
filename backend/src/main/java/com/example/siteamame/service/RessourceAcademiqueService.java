@@ -71,7 +71,7 @@ public class RessourceAcademiqueService {
     @Transactional(readOnly = true)
     public RessourceAcademiqueDto getRessourceById(Long id) {
         return toDto(ressourceRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Ressource non trouvée avec l'id: " + id)));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette ressource est introuvable : elle a peut-être été supprimée.")));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -91,7 +91,7 @@ public class RessourceAcademiqueService {
     public RessourceAcademiqueDto updateRessource(Long id, RessourceAcademiqueRequestDto request,
                                                    MultipartFile file) throws IOException {
         RessourceAcademique ressource = ressourceRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Ressource non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cette ressource est introuvable : elle a peut-être été supprimée."));
         if (file != null && !file.isEmpty()) {
             FileDto fileDto = fileStorageService.storeFile(file, "ressource", FileType.DOCUMENT);
             File saved = fileRepository.save(fileMapper.convertDtoToFile(fileDto));
@@ -104,7 +104,7 @@ public class RessourceAcademiqueService {
     @Transactional
     public void deleteRessource(Long id) {
         if (!ressourceRepository.existsById(id)) {
-            throw new RessourceNotFoundException("Ressource non trouvée avec l'id: " + id);
+            throw new RessourceNotFoundException("Cette ressource est introuvable : elle a peut-être été supprimée.");
         }
         ressourceRepository.deleteById(id);
     }

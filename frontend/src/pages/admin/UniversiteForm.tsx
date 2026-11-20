@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { toUserError, type UserError } from "@/utils/apiError";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import {
-  useGetEtablissementsAdmin,
+  useGetEtablissementById,
   useCreateEtablissement,
   useUpdateEtablissement,
   EtablissementRequest,
@@ -24,11 +25,10 @@ const UniversiteForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: etablissements } = useGetEtablissementsAdmin();
+  const { data: existing, isLoading: isLoadingExisting, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } =
+    useGetEtablissementById(Number(id), { enabled: isEditing });
   const createMutation = useCreateEtablissement();
   const updateMutation = useUpdateEtablissement();
-
-  const existing = isEditing ? etablissements?.content?.find(e => e.id === Number(id)) : undefined;
 
   const [formData, setFormData] = useState<EtablissementRequest>({
     nom: "",
@@ -58,8 +58,11 @@ const UniversiteForm: React.FC = () => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: Number(id), request: formData });
@@ -69,8 +72,8 @@ const UniversiteForm: React.FC = () => {
         toast({ title: "Établissement créé avec succès" });
       }
       navigate("/admin/universites");
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive" });
+    } catch (err) {
+      setFormError(toUserError(err));
     }
   };
 
@@ -100,6 +103,11 @@ const UniversiteForm: React.FC = () => {
       title={isEditing ? "Modifier l'établissement" : "Nouvel établissement"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
+      error={formError}
+      isLoading={isLoadingExisting}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
       backPath="/admin/universites"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

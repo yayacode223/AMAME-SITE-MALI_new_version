@@ -9,7 +9,7 @@ import {
 import { ArticleSummaryResponse } from "@/types/articleType";
 const ArticlesManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: articles, isLoading } = useGetAdminArticles();
+  const { data: articles, isLoading, error: listError, refetch, isFetching } = useGetAdminArticles();
   const deleteArticleMutation = useDeleteArticle();
   const navigate = useNavigate();
 
@@ -47,7 +47,7 @@ const ArticlesManagement: React.FC = () => {
   ];
 
   const handleDelete = (article: ArticleSummaryResponse) => {
-    deleteArticleMutation.mutate(article.id);
+    return deleteArticleMutation.mutateAsync(article.id);
   };
 
   const handleEdit = (article: ArticleSummaryResponse) => {
@@ -101,6 +101,9 @@ const ArticlesManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `L'article "${row.titre}" sera définitivement supprimé.`}
         onView={handleView}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
     </div>
   );

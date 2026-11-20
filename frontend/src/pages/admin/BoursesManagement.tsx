@@ -10,7 +10,7 @@ const BoursesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: boursesData, isLoading } = useGetBourses({
+  const { data: boursesData, isLoading, error: listError, refetch, isFetching } = useGetBourses({
     page,
     size: 10,
     sortBy: "dateLimite",
@@ -57,7 +57,7 @@ const BoursesManagement: React.FC = () => {
   ];
 
   const handleDelete = (bourse: BourseSummary) => {
-    deleteBourseMutation.mutate(bourse.id);
+    return deleteBourseMutation.mutateAsync(bourse.id);
   };
 
   return (
@@ -103,6 +103,9 @@ const BoursesManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `La bourse "${row.titre}" sera définitivement supprimée.`}
         onView={(b) => window.open(`/bourses/${b.id}`, "_blank")}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {boursesData && (

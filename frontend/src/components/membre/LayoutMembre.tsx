@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { userMessage } from "@/utils/apiError";
 import {
   HomeIcon,
   BoltIcon,
@@ -45,8 +47,8 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       await logout();
       toast({ title: "Déconnexion réussie", description: "À bientôt !" });
       navigate("/");
-    } catch {
-      toast({ title: "Erreur", description: "La déconnexion a échoué.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "La déconnexion a échoué", description: userMessage(err), variant: "destructive" });
     }
   };
 
@@ -143,7 +145,7 @@ export default function LayoutMembre() {
   // Ferme le menu mobile à chaque changement de page
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  const currentNavItem = NAV_ITEMS.find(n => n.pathname === location.pathname) ?? NAV_ITEMS.find(n => location.pathname.startsWith(n.href));
+  const currentNavItem = NAV_ITEMS.find(n => n.href === location.pathname) ?? NAV_ITEMS.find(n => location.pathname.startsWith(n.href));
 
   return (
     <div className="min-h-screen bg-amame-surface flex">
@@ -203,7 +205,9 @@ export default function LayoutMembre() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-5xl w-full mx-auto">
-          <Outlet />
+          <ErrorBoundary variant="section" resetKey={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

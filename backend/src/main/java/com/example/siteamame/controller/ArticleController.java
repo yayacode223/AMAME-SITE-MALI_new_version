@@ -107,7 +107,6 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAdminArticlesPage(page, size, sortBy, sortDirection, search, categorie));
     }
 
-    @Transactional
     @PostMapping("/admin/articles")
     @PreAuthorize("hasAuthority('ARTICLE_CREATE')")
     public ResponseEntity<ArticleDto> createArticle(
@@ -116,7 +115,6 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.createArticle(request, file));
     }
 
-    @Transactional
     @PutMapping("/admin/articles/{id}")
     @PreAuthorize("hasAuthority('ARTICLE_EDIT')")
     public ResponseEntity<ArticleDto> updateArticle (
@@ -127,7 +125,6 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.updateArticle(id, articleDto, file));
     }
 
-    @Transactional
     @DeleteMapping("/admin/articles/{id}")
     @PreAuthorize("hasAuthority('ARTICLE_DELETE')")
     public ResponseEntity<Void> deleteArticle (@PathVariable Long id){

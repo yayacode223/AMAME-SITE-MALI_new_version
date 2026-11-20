@@ -1,6 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import FormAlert from "@/components/FormAlert";
+import QueryError from "@/components/QueryError";
+import type { UserError } from "@/utils/apiError";
 
 interface FormWrapperProps {
   title: string;
@@ -13,6 +16,15 @@ interface FormWrapperProps {
   backPath?: string;
   onSubmit?: (e: React.FormEvent) => Promise<void> | void;
   isSubmitting?: boolean;
+  /** Échec de l'enregistrement (nouvelle API) : affiché au-dessus des boutons. */
+  error?: UserError | null;
+  /**
+   * Échec du chargement de l'élément à modifier : message et « Réessayer » à la place du formulaire,
+   * jamais un formulaire vide qui écraserait l'élément.
+   */
+  loadError?: unknown;
+  onRetry?: () => unknown;
+  isRetrying?: boolean;
 }
 
 const FormWrapper: React.FC<FormWrapperProps> = ({
@@ -24,10 +36,15 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
   backPath,
   onSubmit,
   isSubmitting = false,
+  error,
+  loadError,
+  onRetry,
+  isRetrying = false,
 }) => {
   const navigate = useNavigate();
   const resolvedBackPath = backUrl || backPath || "/admin";
-  const isPending = isLoading || isSubmitting;
+  // isLoading : chargement de l'élément à modifier, jamais l'enregistrement. Pendant l'enregistrement
+  // le formulaire reste affiché (avant : remplacé par le squelette, fichier choisi effacé à l'écran).
 
   const content = (
     <div className="max-w-4xl mx-auto">
@@ -51,7 +68,12 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
         </div>
 
         {/* Corps */}
-        {isPending && !onSubmit ? (
+        {loadError ? (
+          <div className="px-6 py-6">
+            <QueryError error={loadError} onRetry={onRetry} isRetrying={isRetrying}
+              title="L'élément à modifier n'a pas pu être chargé." />
+          </div>
+        ) : isLoading ? (
           <div className="p-6 animate-pulse space-y-4">
             <div className="h-4 bg-gray-100 rounded-lg w-3/4" />
             <div className="h-10 bg-gray-100 rounded-xl" />
@@ -62,8 +84,16 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
           <div className="px-6 py-6">{children}</div>
         )}
 
-        {/* Boutons d'action — nouvelle API uniquement */}
-        {onSubmit && (
+        {/* Erreur d'enregistrement, près des boutons — nouvelle API */}
+        {onSubmit && !loadError && error && (
+          <div className="px-6 pb-4">
+            <FormAlert error={error} />
+          </div>
+        )}
+
+        {/* Boutons d'action — nouvelle API uniquement ; absents tant que l'élément n'est pas chargé,
+            pour ne jamais enregistrer un formulaire encore vide */}
+        {onSubmit && !loadError && !isLoading && (
           <div className="px-6 py-4 border-t border-amame-border flex justify-end items-center gap-3 bg-gray-50/60">
             <button
               type="button"

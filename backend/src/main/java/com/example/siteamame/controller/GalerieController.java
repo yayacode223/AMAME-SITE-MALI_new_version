@@ -55,7 +55,6 @@ public class GalerieController {
         return ResponseEntity.ok(galerieService.getGaleriesAdminPage(page, size, sortBy, sortDirection));
     }
 
-    @Transactional
     @PostMapping("/admin/galeries")
     @PreAuthorize("hasAuthority('GALERIE_CREATE')")
     public ResponseEntity<GalerieDto> createGalerie(
@@ -65,7 +64,6 @@ public class GalerieController {
         return ResponseEntity.ok(galerieService.createGalerie(request, file));
     }
 
-    @Transactional
     @PutMapping("/admin/galeries/{id}")
     @PreAuthorize("hasAuthority('GALERIE_EDIT')")
     public ResponseEntity<GalerieDto> updateGalerie(
@@ -76,7 +74,6 @@ public class GalerieController {
         return ResponseEntity.ok(galerieService.updateGalerie(id, galerieDto, file));
     }
 
-    @Transactional
     @DeleteMapping("/admin/galeries/{id}")
     @PreAuthorize("hasAuthority('GALERIE_DELETE')")
     public ResponseEntity<Void> deleteGalerie(@PathVariable Long id) {

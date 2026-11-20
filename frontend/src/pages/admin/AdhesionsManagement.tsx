@@ -11,6 +11,9 @@ import {
 } from "@/service/adhesionService";
 import { AdhesionDto, AdhesionStatus, ADHESION_STATUS_LABELS, ADHESION_STATUS_STYLES } from "@/types/adhesionType";
 import { toast } from "@/hooks/use-toast";
+import FormAlert from "@/components/FormAlert";
+import QueryError from "@/components/QueryError";
+import { userMessage } from "@/utils/apiError";
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
@@ -34,8 +37,10 @@ const AdhesionsManagement: React.FC = () => {
 
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<AdhesionDto | null>(null);
+  // Échec du rejet ou de la suppression : affiché dans la fenêtre ouverte (une seule à la fois).
+  const [dialogError, setDialogError] = useState<string | null>(null);
 
-  const { data: adhesionsPage, isLoading } = useGetAllAdhesions({ page, size: 10, status: statusFilter });
+  const { data: adhesionsPage, isLoading, error: listError, refetch, isFetching } = useGetAllAdhesions({ page, size: 10, status: statusFilter });
   const approveMutation = useApproveAdhesion();
   const rejectMutation = useRejectAdhesion();
   const deleteMutation = useDeleteAdhesion();
@@ -48,31 +53,33 @@ const AdhesionsManagement: React.FC = () => {
     try {
       await approveMutation.mutateAsync(adhesion.id);
       toast({ title: "Adhésion approuvée", description: `${adhesion.userPrenom} ${adhesion.userNom} est maintenant membre.` });
-    } catch {
-      toast({ title: "Erreur", description: "Impossible d'approuver cette adhésion.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "L'adhésion n'a pas été approuvée", description: userMessage(err), variant: "destructive" });
     }
   };
 
   const handleReject = async () => {
     if (!rejectTarget) return;
+    setDialogError(null);
     try {
       await rejectMutation.mutateAsync({ id: rejectTarget.id, reason: rejectReason.trim() || undefined });
       toast({ title: "Adhésion rejetée", description: `La demande de ${rejectTarget.userPrenom} ${rejectTarget.userNom} a été rejetée.` });
       setRejectTarget(null);
       setRejectReason("");
-    } catch {
-      toast({ title: "Erreur", description: "Impossible de rejeter cette adhésion.", variant: "destructive" });
+    } catch (err) {
+      setDialogError(userMessage(err));
     }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDialogError(null);
     try {
       await deleteMutation.mutateAsync(deleteTarget.id);
       toast({ title: "Supprimé", description: "La demande d'adhésion a été supprimée." });
       setDeleteTarget(null);
-    } catch {
-      toast({ title: "Erreur", description: "Impossible de supprimer.", variant: "destructive" });
+    } catch (err) {
+      setDialogError(userMessage(err));
     }
   };
 
@@ -140,6 +147,10 @@ const AdhesionsManagement: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        ) : listError && !adhesionsPage ? (
+          <div className="p-4">
+            <QueryError error={listError} onRetry={refetch} isRetrying={isFetching} title="Les demandes d'adhésion n'ont pas pu être chargées." />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-14 px-6">
@@ -236,7 +247,7 @@ const AdhesionsManagement: React.FC = () => {
       )}
 
       {/* Modal rejet avec raison */}
-      <AlertDialog open={!!rejectTarget} onOpenChange={(o) => !o && setRejectTarget(null)}>
+      <AlertDialog open={!!rejectTarget} onOpenChange={(o) => { if (!o && !rejectMutation.isPending) { setRejectTarget(null); setDialogError(null); } }}>
         <AlertDialogContent className="max-w-md rounded-2xl border border-amame-border p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-2">
             <AlertDialogHeader>
@@ -258,9 +269,10 @@ const AdhesionsManagement: React.FC = () => {
               placeholder="Raison du rejet (optionnel)..."
               className="w-full mt-4 border border-amame-border rounded-xl py-2.5 px-3 text-sm text-amame-charcoal focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400 transition-colors resize-none"
             />
+            <FormAlert message={dialogError} className="mt-3" />
           </div>
           <AlertDialogFooter className="px-6 py-4 bg-gray-50/70 border-t border-amame-border gap-2 flex-row sm:flex-row sm:justify-end">
-            <AlertDialogCancel onClick={() => setRejectTarget(null)}
+            <AlertDialogCancel onClick={() => { setRejectTarget(null); setDialogError(null); }} disabled={rejectMutation.isPending}
               className="flex-1 sm:flex-none rounded-xl text-sm font-semibold border-amame-border h-9">
               Annuler
             </AlertDialogCancel>
@@ -280,8 +292,9 @@ const AdhesionsManagement: React.FC = () => {
         title="Supprimer la demande"
         description={deleteTarget ? `La demande de "${deleteTarget.userPrenom} ${deleteTarget.userNom}" sera définitivement supprimée.` : undefined}
         onConfirm={handleDelete}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => { if (!deleteMutation.isPending) { setDeleteTarget(null); setDialogError(null); } }}
         isLoading={deleteMutation.isPending}
+        error={dialogError}
       />
     </div>
   );

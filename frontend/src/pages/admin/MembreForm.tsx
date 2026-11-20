@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { toUserError, type UserError } from "@/utils/apiError";
 import { IMAGE_ACCEPT } from "@/utils/uploadFormats";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
-import { useGetAllMembresAdmin, useCreateMembre, useUpdateMembre } from "@/service/membreService";
+import { useGetMembreById, useCreateMembre, useUpdateMembre } from "@/service/membreService";
 import { MembreRequest } from "@/types/membreType";
 import { toast } from "@/hooks/use-toast";
 
@@ -22,11 +23,10 @@ const MembreForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: membres } = useGetAllMembresAdmin();
+  const { data: existing, isLoading: isLoadingExisting, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } =
+    useGetMembreById(Number(id), { enabled: isEditing });
   const createMutation = useCreateMembre();
   const updateMutation = useUpdateMembre();
-
-  const existing = isEditing ? membres?.find(m => m.id === Number(id)) : undefined;
 
   const [formData, setFormData] = useState<MembreRequest>({
     prenom: "",
@@ -64,8 +64,11 @@ const MembreForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: Number(id), request: formData, file: selectedFile ?? undefined });
@@ -75,8 +78,8 @@ const MembreForm: React.FC = () => {
         toast({ title: "Membre créé avec succès" });
       }
       navigate("/admin/membres");
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive" });
+    } catch (err) {
+      setFormError(toUserError(err));
     }
   };
 
@@ -87,6 +90,11 @@ const MembreForm: React.FC = () => {
       title={isEditing ? "Modifier le membre" : "Nouveau membre"}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
+      error={formError}
+      isLoading={isLoadingExisting}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
       backPath="/admin/membres"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

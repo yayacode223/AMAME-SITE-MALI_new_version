@@ -9,7 +9,7 @@ import { Partenaire } from "@/types/partenaireType";
 const PartenairesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: partenairesPage, isLoading } = useGetAllPartenairesAdmin({ page, size: 10 });
+  const { data: partenairesPage, isLoading, error: listError, refetch, isFetching } = useGetAllPartenairesAdmin({ page, size: 10 });
   const deleteMutation = useDeletePartenaire();
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ const PartenairesManagement: React.FC = () => {
   ];
 
   const handleDelete = (partenaire: Partenaire) => {
-    deleteMutation.mutate(partenaire.id);
+    return deleteMutation.mutateAsync(partenaire.id);
   };
 
   return (
@@ -97,6 +97,9 @@ const PartenairesManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `Le partenaire "${row.nom}" sera définitivement supprimé.`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {partenairesPage && (

@@ -1,5 +1,6 @@
 package com.example.siteamame.exception;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.exception.user.UserAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -57,6 +58,27 @@ class GlobalHandlerExceptionTest {
         assertThat(response.getBody().getFieldErrors()).isEqualTo(Map.of(
                 "email", "Adresse email invalide",
                 "password", "Le mot de passe doit contenir au moins 8 caractères"));
+    }
+
+    @Test
+    void aFieldRefusedByAServiceIsGivenLikeAValidationError() {
+        ResponseEntity<ApiError> response = handler.handleInvalidFieldException(
+                new InvalidFieldException("currentPassword", "Mot de passe actuel incorrect."), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().getCode()).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(response.getBody().getMessage()).isEqualTo(GlobalHandlerException.VALIDATION_MESSAGE);
+        assertThat(response.getBody().getFieldErrors()).isEqualTo(Map.of("currentPassword", "Mot de passe actuel incorrect."));
+    }
+
+    @Test
+    void aMissingItemIsA404WithItsSentence() {
+        ResponseEntity<ApiError> response = handler.handlerRessourceNotFoundException(
+                new RessourceNotFoundException("Cet article est introuvable : il a peut-être été supprimé."), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody().getCode()).isEqualTo(ApiErrorCode.NOT_FOUND);
+        assertThat(response.getBody().getMessage()).isEqualTo("Cet article est introuvable : il a peut-être été supprimé.");
     }
 
     @Test

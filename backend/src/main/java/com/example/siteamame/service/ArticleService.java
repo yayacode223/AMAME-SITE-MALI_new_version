@@ -1,5 +1,6 @@
 package com.example.siteamame.service;
 
+import com.example.siteamame.exception.concours.RessourceNotFoundException;
 import com.example.siteamame.dto.article.ArticleCreationRequest;
 import com.example.siteamame.dto.article.ArticleDto;
 import com.example.siteamame.dto.article.ArticleSearchingRequest;
@@ -82,14 +83,14 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public ArticleDto getArticleById(Long id) {
         Article article = articleRepository.findWithDetailsById(id)
-                .orElseThrow(() -> new RuntimeException("Article non trouvé avec l'id: " + id));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet article est introuvable : il a peut-être été supprimé."));
         return articleMapper.convertToDTO(article);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional // écrit le compteur de vues : jamais en lecture seule
     public ArticleDto getArticleBySlug(String slug) {
         Article article = articleRepository.findWithDetailsBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Article non trouvé avec le slug: " + slug));
+                .orElseThrow(() -> new RessourceNotFoundException("Cet article est introuvable : il a peut-être été supprimé."));
 
         // Incrémenter les vues
         articleRepository.incrementViews(article.getId());
@@ -199,7 +200,7 @@ public class ArticleService {
     @Transactional(rollbackFor = Exception.class)
     public ArticleDto updateArticle( Long id, ArticleDto articleDto, MultipartFile file) throws IOException {
         Article articleToUpdate = articleRepository.findById(id).
-                    orElseThrow(()-> new RuntimeException("Article avec cet Id:"+ articleDto.getId() +"n'existe pas"));
+                    orElseThrow(()-> new RessourceNotFoundException("Cet article est introuvable : il a peut-être été supprimé."));
 
         if (articleDto.getTitre() != null && !articleDto.getTitre().isBlank()) articleToUpdate.setTitre(articleDto.getTitre());
         if (articleDto.getContenu() != null && !articleDto.getContenu().isBlank()) articleToUpdate.setContenu(articleDto.getContenu());
@@ -237,7 +238,7 @@ public class ArticleService {
         if(articleRepository.existsById(id)){
             articleRepository.deleteById(id);
         }else{
-            throw new RuntimeException("Impossible de supprimer cet article");
+            throw new RessourceNotFoundException("Cet article est introuvable : il a peut-être été supprimé.");
         }
     }
 

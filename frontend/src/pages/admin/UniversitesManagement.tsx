@@ -8,7 +8,7 @@ import { useGetEtablissementsAdmin, useDeleteEtablissement, EtablissementRespons
 const UniversitesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: etablissementsPage, isLoading } = useGetEtablissementsAdmin({ page, size: 10 });
+  const { data: etablissementsPage, isLoading, error: listError, refetch, isFetching } = useGetEtablissementsAdmin({ page, size: 10 });
   const deleteMutation = useDeleteEtablissement();
   const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const UniversitesManagement: React.FC = () => {
   ];
 
   const handleDelete = (etab: EtablissementResponse) => {
-    deleteMutation.mutate(etab.id);
+    return deleteMutation.mutateAsync(etab.id);
   };
 
   return (
@@ -89,6 +89,9 @@ const UniversitesManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `L'établissement "${row.nom}" sera définitivement supprimé.`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {etablissementsPage && (

@@ -1,4 +1,5 @@
 import { useMyCotisations, COTISATION_STATUS_LABELS, COTISATION_STATUS_STYLES } from "@/service/monEspaceService";
+import QueryError from "@/components/QueryError";
 import { CreditCardIcon, CheckCircleIcon, ClockIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 
@@ -12,7 +13,8 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 export default function Cotisation() {
-  const { data: cotisations = [], isLoading } = useMyCotisations();
+  const { data, isLoading, error: listError, refetch, isFetching } = useMyCotisations();
+  const cotisations = data ?? [];
 
   const cotisationCourante = cotisations.find(c => c.annee === ANNEE);
   const historique          = cotisations.filter(c => c.annee !== ANNEE);
@@ -23,6 +25,10 @@ export default function Cotisation() {
         <h1 className="font-nunito font-bold text-xl sm:text-2xl text-amame-charcoal">Cotisation annuelle</h1>
         <p className="text-sm text-amame-muted mt-1">La cotisation annuelle est de {MONTANT_ANNUEL.toLocaleString("fr-FR")} FCFA.</p>
       </div>
+
+      {listError && !data ? (
+        <QueryError error={listError} onRetry={refetch} isRetrying={isFetching} title="Vos cotisations n'ont pas pu être chargées." />
+      ) : (<>
 
       {/* ── Carte cotisation en cours ── */}
       <div className={`rounded-2xl border p-6 ${cotisationCourante?.status === "PAID" ? "bg-amame-green-subtle border-amame-green/20" : "bg-white border-amame-border shadow-card"}`}>
@@ -113,6 +119,8 @@ export default function Cotisation() {
           </div>
         </div>
       )}
+
+      </>)}
 
       {isLoading && (
         <div className="flex items-center justify-center py-10">

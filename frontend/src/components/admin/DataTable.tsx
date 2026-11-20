@@ -7,6 +7,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import QueryError from "@/components/QueryError";
+import { userMessage } from "@/utils/apiError";
 
 interface Column {
   key: string;
@@ -18,9 +20,17 @@ interface DataTableProps {
   columns: Column[];
   data: any[];
   onEdit?: (item: any) => void;
-  onDelete?: (item: any) => void;
+  /**
+   * Suppression. Si elle renvoie une promesse (mutateAsync), la fenêtre de confirmation reste ouverte
+   * pendant l'appel, se ferme au succès et affiche l'erreur en cas d'échec.
+   */
+  onDelete?: (item: any) => void | Promise<unknown>;
   onView?: (item: any) => void;
   isLoading?: boolean;
+  /** Échec du chargement de la liste : message et bouton « Réessayer » au lieu d'une liste vide. */
+  error?: unknown;
+  onRetry?: () => unknown;
+  isRetrying?: boolean;
   protectSelf?: boolean;
   /** Génère le message de description dans la modale de confirmation */
   deleteConfirmMessage?: (row: any) => string;
@@ -35,12 +45,17 @@ const DataTable: React.FC<DataTableProps> = ({
   onDelete,
   onView,
   isLoading = false,
+  error,
+  onRetry,
+  isRetrying = false,
   protectSelf = false,
   deleteConfirmMessage,
   deleteConfirmTitle,
 }) => {
   const { user } = useAuth();
   const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const adminRoles = ["SUPERADMIN", "ADMIN", "EDITOR"];
   const canEdit = (row: any) =>
@@ -52,11 +67,29 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const hasActions = !!onView || !!onEdit || !!onDelete;
 
-  const handleConfirmDelete = () => {
-    if (itemToDelete) {
-      onDelete!(itemToDelete);
-    }
+  const closeDeleteDialog = () => {
+    if (isDeleting) return;
     setItemToDelete(null);
+    setDeleteError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete || !onDelete) return;
+    setDeleteError(null);
+    const pending = onDelete(itemToDelete);
+    if (!(pending instanceof Promise)) {
+      setItemToDelete(null);
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await pending;
+      setItemToDelete(null);
+    } catch (err) {
+      setDeleteError(userMessage(err));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getDescription = (row: any) => {
@@ -88,8 +121,17 @@ const DataTable: React.FC<DataTableProps> = ({
     );
   }
 
+  /* ── Chargement impossible : jamais « Aucune donnée », qui ferait croire la liste vide ── */
+  if (error && data.length === 0) {
+    return <QueryError error={error} onRetry={onRetry} isRetrying={isRetrying} title="La liste n'a pas pu être chargée." />;
+  }
+
   return (
     <>
+      {error && (
+        <QueryError error={error} onRetry={onRetry} isRetrying={isRetrying} className="mb-4"
+          title="La liste n'a pas pu être mise à jour : elle peut être incomplète." />
+      )}
       <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-amame-border">
@@ -170,7 +212,9 @@ const DataTable: React.FC<DataTableProps> = ({
         title={deleteConfirmTitle ?? "Confirmer la suppression"}
         description={itemToDelete ? getDescription(itemToDelete) : undefined}
         onConfirm={handleConfirmDelete}
-        onClose={() => setItemToDelete(null)}
+        onClose={closeDeleteDialog}
+        isLoading={isDeleting}
+        error={deleteError}
       />
     </>
   );

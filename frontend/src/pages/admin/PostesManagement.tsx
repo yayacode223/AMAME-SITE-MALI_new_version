@@ -11,7 +11,7 @@ const PostesManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // On filtre côté serveur par catégorie "POSTES"
-  const { data: postesPage, isLoading } = useGetAllArticles({
+  const { data: postesPage, isLoading, error: listError, refetch, isFetching } = useGetAllArticles({
     page,
     size: 10,
     categorie: "POSTES",
@@ -46,7 +46,7 @@ const PostesManagement: React.FC = () => {
   ];
 
   const handleDelete = (article: ArticleSummaryResponse) => {
-    deleteArticleMutation.mutate(article.id);
+    return deleteArticleMutation.mutateAsync(article.id);
   };
 
   return (
@@ -90,6 +90,9 @@ const PostesManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `Le poste "${row.titre}" sera définitivement supprimé.`}
         onView={(a) => window.open(`/articles/${a.slug}`, "_blank")}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {postesPage && (

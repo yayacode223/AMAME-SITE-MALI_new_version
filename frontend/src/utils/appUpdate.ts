@@ -13,7 +13,31 @@
 let updateReady = false;
 let userHasTyped = false;
 
+/**
+ * Recharge la page, mais pas plus d'une fois en 10 s (contre les boucles de rechargements).
+ * Retourne false si le rechargement est refusé : l'appelant affiche alors son message.
+ */
+export function reloadOnce(): boolean {
+  const key = "amame-preload-reload";
+  let last = 0;
+  try {
+    last = Number(sessionStorage.getItem(key) ?? 0);
+    if (Date.now() - last < 10_000) return false;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    return false; // stockage indisponible : on ne prend pas le risque d'une boucle de rechargements
+  }
+  window.location.reload();
+  return true;
+}
+
 export function watchForAppUpdate(): void {
+  // Un morceau de l'ancienne version (page chargée à la demande) n'existe plus après le déploiement :
+  // recharger une fois, au lieu d'une page blanche. Sans service worker aussi.
+  window.addEventListener("vite:preloadError", (event) => {
+    if (reloadOnce()) event.preventDefault();
+  });
+
   if (!("serviceWorker" in navigator)) return;
 
   document.addEventListener("input", () => { userHasTyped = true; }, { capture: true });
@@ -33,22 +57,6 @@ export function watchForAppUpdate(): void {
     navigator.serviceWorker.getRegistration()
       .then((registration) => registration?.update())
       .catch(() => { /* hors ligne : on réessaiera au prochain retour sur l'onglet */ });
-  });
-
-  // Un morceau de l'ancienne version (page chargée à la demande) n'existe plus après le déploiement :
-  // recharger une fois, au lieu d'une page blanche. Pas plus d'une fois en 10 s, contre les boucles.
-  window.addEventListener("vite:preloadError", (event) => {
-    const key = "amame-preload-reload";
-    let last = 0;
-    try {
-      last = Number(sessionStorage.getItem(key) ?? 0);
-      sessionStorage.setItem(key, String(Date.now()));
-    } catch {
-      return; // stockage indisponible : on ne prend pas le risque d'une boucle de rechargements
-    }
-    if (Date.now() - last < 10_000) return;
-    event.preventDefault();
-    window.location.reload();
   });
 }
 

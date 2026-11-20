@@ -138,7 +138,7 @@ public class AdhesionService {
     @Transactional
     public AdhesionDto approveAdhesion(Long adhesionId) {
         Adhesion adhesion = adhesionRepository.findById(adhesionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Adhésion non trouvée"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cette demande d'adhésion est introuvable : elle a peut-être été supprimée."));
 
         if (adhesion.getStatus() == AdhesionStatus.APPROVED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette adhésion est déjà approuvée.");
@@ -166,7 +166,7 @@ public class AdhesionService {
     @Transactional
     public AdhesionDto rejectAdhesion(Long adhesionId, String reason) {
         Adhesion adhesion = adhesionRepository.findById(adhesionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Adhésion non trouvée"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cette demande d'adhésion est introuvable : elle a peut-être été supprimée."));
 
         requireAccount(adhesion);
         adhesion.setStatus(AdhesionStatus.REJECTED);
@@ -198,7 +198,7 @@ public class AdhesionService {
     @Transactional
     public void deleteAdhesion(Long adhesionId) {
         if (!adhesionRepository.existsById(adhesionId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Adhésion non trouvée");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cette demande d'adhésion est introuvable : elle a peut-être été supprimée.");
         }
         adhesionRepository.deleteById(adhesionId);
     }

@@ -1,4 +1,5 @@
 import React from "react";
+import QueryError from "@/components/QueryError";
 import { Link } from "react-router-dom";
 import {
   NewspaperIcon,
@@ -36,21 +37,26 @@ const statColors = [
 ];
 
 const Dashboard: React.FC = () => {
-  const { data: bourseData, isLoading: bourseIsLoading } = useGetBourses({});
-  const { data: articleData, isLoading: articleIsLoading } = useGetAllArticles();
-  const { data: concoursData, isLoading: concoursIsLoading } = useConcoursLists({});
-  const { data: filiereData, isLoading: filiereIsLoading } = useGetAllFilieres();
-  const { data: userData, isLoading: userIsLoading } = useGetAllUsers();
-  const { data: adhesionStats, isLoading: adhesionIsLoading } = useGetAdhesionStats();
+  const users = useGetAllUsers();
+  const articles = useGetAllArticles();
+  const bourses = useGetBourses({});
+  const concours = useConcoursLists({});
+  const filieres = useGetAllFilieres();
+  const adhesions = useGetAdhesionStats();
+
+  // Un chiffre non chargé s'affiche « — », jamais 0 : un 0 ferait croire la plateforme vide.
+  const count = (q: { isLoading: boolean; isError: boolean }, value: number | undefined) =>
+    q.isLoading ? null : q.isError && value === undefined ? "—" : value ?? 0;
+  const failed = [users, articles, bourses, concours, filieres, adhesions].filter((q) => q.isError);
 
   const stats = [
-    { name: "Utilisateurs inscrits",  value: userIsLoading    ? null : userData?.totalElements ?? 0,     icon: UserGroupIcon,       href: "/admin/users" },
-    { name: "Articles publiés",       value: articleIsLoading ? null : articleData?.totalElements ?? 0,  icon: NewspaperIcon,        href: "/admin/articles" },
-    { name: "Bourses actives",        value: bourseIsLoading  ? null : bourseData?.totalElements ?? 0,   icon: AcademicCapIcon,      href: "/admin/bourses" },
-    { name: "Concours en cours",      value: concoursIsLoading ? null : concoursData?.totalElements ?? 0, icon: TrophyIcon,          href: "/admin/concours" },
-    { name: "Filières disponibles",   value: filiereIsLoading ? null : filiereData?.totalElements ?? 0,  icon: FolderIcon,           href: "/admin/filieres" },
-    { name: "Membres adhérents",      value: adhesionIsLoading ? null : adhesionStats?.approved ?? 0,    icon: IdentificationIcon,   href: "/admin/adhesions" },
-    { name: "Adhésions en attente",   value: adhesionIsLoading ? null : adhesionStats?.pending ?? 0,     icon: ClockIcon,            href: "/admin/adhesions?status=PENDING" },
+    { name: "Utilisateurs inscrits",  value: count(users, users.data?.totalElements),         icon: UserGroupIcon,       href: "/admin/users" },
+    { name: "Articles publiés",       value: count(articles, articles.data?.totalElements),   icon: NewspaperIcon,        href: "/admin/articles" },
+    { name: "Bourses actives",        value: count(bourses, bourses.data?.totalElements),     icon: AcademicCapIcon,      href: "/admin/bourses" },
+    { name: "Concours en cours",      value: count(concours, concours.data?.totalElements),   icon: TrophyIcon,          href: "/admin/concours" },
+    { name: "Filières disponibles",   value: count(filieres, filieres.data?.totalElements),   icon: FolderIcon,           href: "/admin/filieres" },
+    { name: "Membres adhérents",      value: count(adhesions, adhesions.data?.approved),      icon: IdentificationIcon,   href: "/admin/adhesions" },
+    { name: "Adhésions en attente",   value: count(adhesions, adhesions.data?.pending),       icon: ClockIcon,            href: "/admin/adhesions?status=PENDING" },
   ];
 
   return (
@@ -60,6 +66,16 @@ const Dashboard: React.FC = () => {
         <h1 className="font-nunito font-black text-2xl text-amame-charcoal">Tableau de bord</h1>
         <p className="text-sm text-amame-muted mt-1">Vue d'ensemble de la plateforme AMAME</p>
       </div>
+
+      {failed.length > 0 && (
+        <QueryError
+          className="mb-6"
+          error={failed[0].error}
+          title="Certains chiffres n'ont pas pu être chargés."
+          onRetry={() => failed.forEach((q) => q.refetch())}
+          isRetrying={failed.some((q) => q.isFetching)}
+        />
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">

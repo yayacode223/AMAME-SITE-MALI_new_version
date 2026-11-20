@@ -9,7 +9,7 @@ import { LienUtile } from "@/types/lienUtileType";
 const LiensUtilesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: liensPage, isLoading } = useGetLiensUtilesAdmin({ page, size: 10 });
+  const { data: liensPage, isLoading, error: listError, refetch, isFetching } = useGetLiensUtilesAdmin({ page, size: 10 });
   const deleteMutation = useDeleteLienUtile();
   const navigate = useNavigate();
 
@@ -55,7 +55,7 @@ const LiensUtilesManagement: React.FC = () => {
   ];
 
   const handleDelete = (lien: LienUtile) => {
-    deleteMutation.mutate(lien.id);
+    return deleteMutation.mutateAsync(lien.id);
   };
 
   return (
@@ -98,6 +98,9 @@ const LiensUtilesManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `Le lien "${row.titre}" sera définitivement supprimé.`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {liensPage && (

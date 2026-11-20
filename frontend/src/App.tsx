@@ -10,6 +10,7 @@ import type { Role } from "@/types/userType";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomNav from "@/components/BottomNav";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // ── Pages chargées immédiatement (above-the-fold critique) ─────────────────
 import Index        from "./pages/Index";
@@ -108,7 +109,7 @@ const AppContent = () => {
   useEffect(() => { reloadIfUpdateReady(); }, [pathname]);
 
   return (
-    <>
+    <ErrorBoundary resetKey={pathname}>
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -237,7 +238,7 @@ const AppContent = () => {
       </Suspense>
       {showMobileNav && <BottomNav />}
       <PWAInstallBanner />
-    </>
+    </ErrorBoundary>
   );
 };
 

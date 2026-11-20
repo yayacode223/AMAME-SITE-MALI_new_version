@@ -17,7 +17,7 @@ const FilieresManagement: React.FC = () => {
     DomaineFiliereType | ""
   >("");
 
-  const { data: filieres, isLoading } = useGetAllFilieres();
+  const { data: filieres, isLoading, error: listError, refetch, isFetching } = useGetAllFilieres();
   const deleteFiliereMutation = useDeleteFiliere();
 
   const filteredFilieres =
@@ -89,7 +89,7 @@ const FilieresManagement: React.FC = () => {
   ];
 
   const handleDelete = (filiere: FiliereSummaryResponse) => {
-    deleteFiliereMutation.mutate(filiere.id);
+    return deleteFiliereMutation.mutateAsync(filiere.id);
   };
 
   const handleEdit = (filiere: FiliereSummaryResponse) => {
@@ -156,6 +156,9 @@ const FilieresManagement: React.FC = () => {
         deleteConfirmMessage={(row) => `La filière "${row.nom}" sera définitivement supprimée.`}
         onView={handleView}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
     </div>
   );

@@ -4,6 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMyDons, useSubmitDon } from "@/service/monEspaceService";
 import { toast } from "@/hooks/use-toast";
+import FormAlert from "@/components/FormAlert";
+import QueryError from "@/components/QueryError";
+import { applyFieldErrors, toUserError } from "@/utils/apiError";
 import { HeartIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { Loader2 } from "lucide-react";
@@ -22,11 +25,12 @@ function formatDate(dateStr: string) {
 }
 
 export default function Don() {
-  const { data: dons = [], isLoading } = useMyDons();
+  const { data: dons = [], isLoading, error: listError, refetch, isFetching } = useMyDons();
   const submitMutation = useSubmitDon();
   const [success, setSuccess] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, setError, watch, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { montant: undefined, message: "" },
   });
@@ -34,13 +38,16 @@ export default function Don() {
   const montantWatch = watch("montant");
 
   const onSubmit = async (data: FormValues) => {
+    setFormError(null);
     try {
       await submitMutation.mutateAsync({ montant: data.montant, message: data.message || undefined });
       setSuccess(true);
       reset();
       toast({ title: "Merci pour votre don !", description: "Votre générosité soutient la mission de l'AMAME." });
-    } catch {
-      toast({ title: "Erreur", description: "Une erreur est survenue. Veuillez réessayer.", variant: "destructive" });
+    } catch (err) {
+      const error = toUserError(err);
+      applyFieldErrors(setError, error.fieldErrors, ["montant", "message"] as const);
+      setFormError(error.message);
     }
   };
 
@@ -101,7 +108,7 @@ export default function Don() {
                     {...register("montant", { valueAsNumber: true })}
                     className="w-full border border-amame-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green"
                   />
-                  {errors.montant && <p className="text-xs text-red-500 mt-1">{errors.montant.message}</p>}
+                  {errors.montant && <p className="text-xs text-red-700 mt-1">{errors.montant.message}</p>}
                 </div>
               </div>
 
@@ -116,8 +123,10 @@ export default function Don() {
                   placeholder="Un message pour accompagner votre don..."
                   className="w-full border border-amame-border rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-amame-green focus:border-amame-green"
                 />
-                {errors.message && <p className="text-xs text-red-500 mt-1">{errors.message.message}</p>}
+                {errors.message && <p className="text-xs text-red-700 mt-1">{errors.message.message}</p>}
               </div>
+
+              <FormAlert message={formError} />
 
               <button
                 type="submit"
@@ -153,6 +162,9 @@ export default function Don() {
           </div>
 
           {/* Historique */}
+          {listError && (
+            <QueryError error={listError} onRetry={refetch} isRetrying={isFetching} title="L'historique de vos dons n'a pas pu être chargé." />
+          )}
           {dons.length > 0 && (
             <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
               <h2 className="font-nunito font-bold text-sm text-amame-charcoal mb-3">Mes dons</h2>

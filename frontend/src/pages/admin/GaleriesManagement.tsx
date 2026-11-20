@@ -9,7 +9,7 @@ import { GalerieSummary } from "@/types/galerieType";
 const GaleriesManagement: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: galeriesPage, isLoading } = useGetAllGaleriesAdmin({ page, size: 10 });
+  const { data: galeriesPage, isLoading, error: listError, refetch, isFetching } = useGetAllGaleriesAdmin({ page, size: 10 });
   const deleteGalerieMutation = useDeleteGalerie();
   const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const GaleriesManagement: React.FC = () => {
   ];
 
   const handleDelete = (galerie: GalerieSummary) => {
-    deleteGalerieMutation.mutate(galerie.id);
+    return deleteGalerieMutation.mutateAsync(galerie.id);
   };
 
   return (
@@ -89,6 +89,9 @@ const GaleriesManagement: React.FC = () => {
         onDelete={handleDelete}
         deleteConfirmMessage={(row) => `La galerie "${row.titre}" sera définitivement supprimée.`}
         isLoading={isLoading}
+        error={listError}
+        onRetry={refetch}
+        isRetrying={isFetching}
       />
 
       {galeriesPage && (

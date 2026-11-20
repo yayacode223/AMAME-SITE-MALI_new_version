@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import QueryError from "@/components/QueryError";
 import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
@@ -134,7 +135,7 @@ const UserPermissionsPanel: React.FC<Props> = ({ targetUserId, targetRole }) => 
   const canManageRoles  = hasPermission("USER_MANAGE_ROLES");
   const canGrantPerms   = hasPermission("USER_GRANT_PERMISSIONS");
 
-  const { data: permsData, isLoading } = useGetUserPermissions(targetUserId);
+  const { data: permsData, isLoading, error: loadError, refetch, isFetching } = useGetUserPermissions(targetUserId);
 
   const grantMut   = useGrantPermissionMutation(targetUserId);
   const revokeMut  = useRevokePermissionMutation(targetUserId);
@@ -163,6 +164,11 @@ const UserPermissionsPanel: React.FC<Props> = ({ targetUserId, targetRole }) => 
         {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-gray-200 rounded" />)}
       </div>
     );
+  }
+
+  // Sans les permissions réelles, le panneau montrerait tout décoché : ne rien proposer de modifier.
+  if (loadError && !permsData) {
+    return <QueryError error={loadError} onRetry={refetch} isRetrying={isFetching} title="Les permissions n'ont pas pu être chargées." />;
   }
 
   const grantedSet   = new Set<Permission>(permsData?.grantedPermissions  ?? []);

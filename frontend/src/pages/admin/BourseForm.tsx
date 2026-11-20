@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import FormAlert from "@/components/FormAlert";
+import { clientError, toUserError, type UserError } from "@/utils/apiError";
 import { useNavigate, useParams } from "react-router-dom";
 import FormWrapper from "@/components/admin/FormWrapper";
 import { useCreateBourse, useUpdateBourse, useGetBourseDetail } from "@/service/bourseService";
@@ -12,7 +14,7 @@ const BourseForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
 
-  const { data: existingBourse, isLoading: isLoadingBourse } = useGetBourseDetail(
+  const { data: existingBourse, isLoading: isLoadingBourse, error: loadError, refetch: retryLoad, isFetching: isRetryingLoad } = useGetBourseDetail(
     parseInt(id || "0"), { enabled: isEditing }
   );
   const createMutation = useCreateBourse();
@@ -48,8 +50,11 @@ const BourseForm: React.FC = () => {
     }
   }, [existingBourse, isEditing]);
 
+  const [formError, setFormError] = useState<UserError | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
@@ -62,7 +67,7 @@ const BourseForm: React.FC = () => {
       }
       navigate("/admin/bourses");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      setFormError(toUserError(error));
     }
   };
 
@@ -73,7 +78,10 @@ const BourseForm: React.FC = () => {
       title={isEditing ? "Modifier la bourse" : "Créer une bourse"}
       subtitle={isEditing ? "Modifiez les informations de la bourse" : "Remplissez les informations pour créer une nouvelle bourse"}
       backUrl="/admin/bourses"
-      isLoading={isLoading}
+      isLoading={isLoadingBourse}
+      loadError={isEditing ? loadError : undefined}
+      onRetry={retryLoad}
+      isRetrying={isRetryingLoad}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Informations principales */}
@@ -207,6 +215,8 @@ const BourseForm: React.FC = () => {
             onChange={(e) => setFormData((p) => ({ ...p, descriptionLongue: e.target.value }))}
             className={inputCls} />
         </div>
+
+        <FormAlert error={formError} />
 
         {/* Actions */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-amame-border">
