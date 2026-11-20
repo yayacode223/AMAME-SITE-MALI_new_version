@@ -14,7 +14,7 @@ const navLinks = [
 const contactInfo = [
   { icon: Mail, label: "contact@amame.ml", href: "mailto:contact@amame.ml" },
   { icon: Phone, label: "+223 69 78 08 41", href: "tel:+22369780841" },
-  { icon: MapPin, label: "Dialakorodji, Bamako, Mali", href: null },
+  { icon: MapPin, label: "Au Lycée Bouillagui FADIGA, Commune II du District de Bamako", href: null },
 ];
 
 const socialLinks = [
