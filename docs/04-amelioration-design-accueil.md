@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 publiée (`frontend-v1.8` sur Docker Hub), en attente de déploiement (section 7).
+> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 en cours (section 7).
 
 ---
 
@@ -568,8 +568,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
-| 5. Cartes, partie 1 | **image publiée** ; en attente de déploiement | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 6. Cartes, partie 2 | prête à démarrer | — | — | — |
+| 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
+| 6. Cartes, partie 2 | **en cours** | `frontend-v1.9` (prévue) | 2026-11-20 | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
 ### Itération 1 : détail (2026-11-19)
@@ -925,6 +925,10 @@ Retour arrière : `frontend-v1.6`.
    - **itération 5** : `cards.py` donne sur l'image exactement les mesures du développement (8 routes, 390 et 1440 px : forme, média, textes, squelettes, survol, CLS, aucune erreur) ; aucun débordement à 320 px ; aucun mouvement avec la réduction des animations ; ombre visible au repos ;
    - **itérations 1 à 4** : hero aux 12 tailles identique (360×560 : marge de 23 px) ; bords du contenu à 16 / 32 / 112 / 352 px ; navbar centrée ; sous-menu visible au clavier après deux images, 10 essais sur 10.
 3. Fait : `docker push yayacode224/amame:frontend-v1.8`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:e1b61d1ec385f081a250d43a7c8456faf18f62632d404495942056ecd6aa2871`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.8`.
+4. Fait le 2026-11-20 : `FRONTEND_IMAGE_TAG=frontend-v1.8` dans la stack Portainer `amamestack`.
+   Contrôle en production (lecture seule ; service worker bloqué, appels `/api/` servis par le navigateur de test avec les données de test, aucun n'atteint le serveur) :
+   - le JavaScript et le CSS servis sont ceux du build de `a5039e4` (`index-Bj_v4fQi.js`, `index-BQ2Bs7tb.css`) ;
+   - `cards.py` donne en production exactement les mesures de l'image sur les 8 routes, à 390 et 1440 px ; aucun débordement à 320 px ; aucun mouvement avec la réduction des animations ; ombre visible au repos.
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.8`.
 
 Retour arrière : `frontend-v1.7`.
