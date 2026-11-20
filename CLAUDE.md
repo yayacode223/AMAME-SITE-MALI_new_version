@@ -160,8 +160,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.10`) | 80 |
-| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.11`) | 80 |
+| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.5`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
 

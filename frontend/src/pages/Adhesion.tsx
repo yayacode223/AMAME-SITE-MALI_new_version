@@ -119,7 +119,10 @@ export default function Adhesion() {
       });
       setSubmitted(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Une erreur est survenue.";
+      // 429 : limite de débit de Nginx (5 inscriptions par minute et par adresse), réponse sans JSON.
+      const msg = err?.response?.status === 429
+        ? "Trop de tentatives. Patientez une minute avant de réessayer."
+        : err?.response?.data?.message || "Une erreur est survenue.";
       toast({ title: "Erreur", description: msg, variant: "destructive" });
     }
   };
@@ -458,7 +461,7 @@ export default function Adhesion() {
               Adhérer à l'AMAME
             </h1>
             <p className="text-green-100/90 text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
-              Rejoignez l'Association Malienne pour l'Avancement du Mérite Éducatif
+              Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves
               et profitez d'un réseau unique d'excellence.
             </p>
           </div>

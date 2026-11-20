@@ -58,7 +58,7 @@ const Hero = () => {
       <div className="relative z-10 page-container pt-16 pb-8 lg:py-20">
         <div className="max-w-xl lg:max-w-[40rem] xl:max-w-[44rem]">
 
-          <motion.p
+          {/* <motion.p
             custom={0}
             variants={itemVariants}
             initial="hidden"
@@ -67,7 +67,7 @@ const Hero = () => {
           >
             <span className="h-0.5 w-8 shrink-0 rounded-full bg-amame-gold" aria-hidden="true" />
             Soutenir aujourd'hui… Bâtir demain
-          </motion.p>
+          </motion.p> */}
 
           <motion.h1
             custom={1}
@@ -77,12 +77,12 @@ const Hero = () => {
             className="font-nunito font-black text-[2rem] min-[390px]:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl
                        text-white leading-[1.1] mb-4 lg:mb-5"
           >
-            Bourses, concours et orientation
+            Association Malienne d'Appui aux Meilleurs Élèves
             {/* Vert clair (green-400) : le vert de la marque (#16a34a) n'atteint pas 3:1 sur la vidéo */}
-            <span className="block text-green-400 mt-1">pour les élèves maliens</span>
+            {/* <span className="block text-green-400 mt-1">pour les élèves maliens</span> */}
           </motion.h1>
 
-          <motion.p
+          {/* <motion.p
             custom={2}
             variants={itemVariants}
             initial="hidden"
@@ -90,7 +90,7 @@ const Hero = () => {
             className="text-white/90 text-base sm:text-lg leading-relaxed mb-6 lg:mb-8 max-w-md lg:max-w-lg"
           >
             Les opportunités pour réussir vos études, réunies au même endroit. Gratuit et bénévole.
-          </motion.p>
+          </motion.p> */}
 
           {/* Bouton d'action. « Explorer les bourses » a été retiré volontairement (décision D4) ;
               les chiffres « 500+ / 200+ / 100+ » aussi (décision D5). */}

@@ -572,6 +572,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 6. Cartes, partie 2 | **en production** | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 7. Polices servies par le site | **image publiée** ; en attente de déploiement | `frontend-v1.10` | 2026-11-20 | commit `4274cec` ; D9 |
 
+> **2026-11-20, texte du hero remplacé (décision de l'équipe)** : le titre devient le nom complet, « Association Malienne d'Appui aux Meilleurs Élèves » ; l'accroche, la ligne verte et la phrase du texte A (D3) sont mises en commentaire dans `Hero.tsx`. Livré avec `frontend-v1.11`, itération P1 du [rapport 05](05-emails-redirection-erreurs.md) (décision D6), qui donne la mesure de mise en page.
+
 ### Itération 1 : détail (2026-11-19)
 
 **Modifications** (28 fichiers, aucune dépendance, aucune modification de la configuration Tailwind) :

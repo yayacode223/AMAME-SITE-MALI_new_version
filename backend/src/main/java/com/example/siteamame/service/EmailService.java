@@ -10,6 +10,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
+
+import java.time.Year;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,9 @@ public class EmailService {
 
     @Value("${app.frontend.url:https://amame.ml}")
     private String frontendUrl;
+
+    /** Seul développement du sigle AMAME, le même que sur le site (pied de page, balises meta). */
+    static final String ASSOCIATION_NAME = "Association Malienne d'Appui aux Meilleurs Élèves";
 
     // ── Styles partagés ─────────────────────────────────────────────────────
 
@@ -90,7 +96,7 @@ public class EmailService {
             <p style="margin:0 0 24px;font-size:14px;color:%s;">
               Connectez-vous au tableau de bord administrateur pour examiner et traiter cette demande.
             </p>
-            """.formatted(TEXT, MUTED, TEXT, userPrenom, userNom, MUTED, TEXT, userEmail, MUTED),
+            """.formatted(TEXT, MUTED, TEXT, esc(userPrenom), esc(userNom), MUTED, TEXT, esc(userEmail), MUTED),
             "Voir les demandes d'adhésion",
             adminLink
         );
@@ -113,7 +119,7 @@ public class EmailService {
             <p style="margin:0 0 16px;font-size:15px;color:%s;line-height:1.6;">
               Bonjour <strong>%s</strong>,<br><br>
               Nous avons le plaisir de vous informer que votre demande d'adhésion à
-              l'<strong>Association Malienne pour l'Avancement du Mérite Éducatif (AMAME)</strong>
+              l'<strong>%s (AMAME)</strong>
               a été <span style="color:%s;font-weight:700;">approuvée</span>.
             </p>
 
@@ -133,7 +139,7 @@ public class EmailService {
               <li>Consulter les activités et événements</li>
               <li>Rejoindre la communauté d'étudiants d'excellence</li>
             </ul>
-            """.formatted(TEXT, userPrenom, GREEN, LIGHT_BG, GREEN, DARK_BG, MUTED, TEXT, MUTED),
+            """.formatted(TEXT, esc(userPrenom), ASSOCIATION_NAME, GREEN, LIGHT_BG, GREEN, DARK_BG, MUTED, TEXT, MUTED),
             "Accéder à mon espace membre",
             dashboardLink
         );
@@ -157,7 +163,7 @@ public class EmailService {
                 <p style="margin:0 0 6px;font-size:13px;color:#9a3412;font-weight:600;">Motif communiqué :</p>
                 <p style="margin:0;font-size:14px;color:#7c2d12;">%s</p>
               </div>
-              """.formatted(reason)
+              """.formatted(esc(reason))
             : "<p style=\"margin:0 0 24px;font-size:14px;color:" + MUTED + ";\">Notre équipe a examiné votre dossier et ne peut pas y donner une suite favorable pour le moment.</p>";
 
         String body = layout(
@@ -175,7 +181,7 @@ public class EmailService {
               Nous vous encourageons à soumettre une nouvelle demande en tenant compte de ces éléments.
               N'hésitez pas à nous contacter si vous avez des questions.
             </p>
-            """.formatted(TEXT, userPrenom, reasonBlock, MUTED),
+            """.formatted(TEXT, esc(userPrenom), reasonBlock, MUTED),
             "Soumettre une nouvelle demande",
             adhesionLink
         );
@@ -213,7 +219,7 @@ public class EmailService {
             <p style="margin:0 0 24px;font-size:14px;color:%s;line-height:1.6;">
               Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.
             </p>
-            """.formatted(TEXT, userPrenom, LIGHT_BG, GREEN, DARK_BG, MUTED, MUTED),
+            """.formatted(TEXT, esc(userPrenom), LIGHT_BG, GREEN, DARK_BG, MUTED, MUTED),
             "Réinitialiser mon mot de passe",
             resetLink
         );
@@ -238,7 +244,7 @@ public class EmailService {
                       <td style="background:%s;padding:28px 32px;border-radius:12px 12px 0 0;text-align:center;">
                         <p style="margin:0;font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">AMAME</p>
                         <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;">
-                          Association Malienne pour l'Avancement du Mérite Éducatif
+                          %s
                         </p>
                       </td>
                     </tr>
@@ -262,7 +268,7 @@ public class EmailService {
                     <tr>
                       <td style="background:#f9fafb;padding:20px 32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;text-align:center;">
                         <p style="margin:0;font-size:12px;color:#9ca3af;">
-                          © 2025 AMAME — Tous droits réservés<br>
+                          © %s AMAME — Tous droits réservés<br>
                           Cet email a été envoyé automatiquement, merci de ne pas y répondre.
                         </p>
                       </td>
@@ -273,10 +279,18 @@ public class EmailService {
               </table>
             </body>
             </html>
-            """.formatted(DARK_BG, TEXT, title, contentHtml, btnUrl, GREEN, btnLabel);
+            """.formatted(DARK_BG, ASSOCIATION_NAME, TEXT, title, contentHtml, btnUrl, GREEN, btnLabel, Year.now());
     }
 
     private String prenom(String prenom, String nom) {
         return prenom + " " + nom;
+    }
+
+    /**
+     * Échappe une valeur saisie par un visiteur ou un administrateur (nom, e-mail, motif) avant de
+     * l'insérer dans le HTML : un nom contenant une balise ne doit pas devenir un lien dans l'e-mail.
+     */
+    private static String esc(String value) {
+        return value == null ? "" : HtmlUtils.htmlEscape(value, "UTF-8");
     }
 }
