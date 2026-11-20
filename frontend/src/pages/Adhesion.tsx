@@ -2,6 +2,8 @@ import { useState } from "react";
 import { staticImageUrl } from "@/utils/staticImage";
 import { Link, useNavigate } from "react-router-dom";
 import { loginPath } from "@/utils/authRedirect";
+import { applyFieldErrors, ERROR_MESSAGES, isEmailAlreadyUsed, toUserError, userMessage } from "@/utils/apiError";
+import FormAlert from "@/components/FormAlert";
 
 /** Après la connexion depuis cette page, on y revient (rapport 05, P2). */
 const LOGIN_FROM_ADHESION = loginPath({ pathname: "/adhesion" });
@@ -70,6 +72,9 @@ const registerSchema = z
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
+/** Champs que la validation du serveur peut signaler (AdhesionRegisterRequest). */
+const REGISTER_FIELDS = ["nom", "prenom", "email", "password", "ville", "phone"] as const;
+
 // ── Avantages sidebar ───────────────────────────────────────────────────────
 
 const AVANTAGES = [
@@ -110,7 +115,14 @@ export default function Adhesion() {
 
   // ── Soumission du formulaire public ──────────────────────────────────────
 
+  // Erreurs affichées dans le formulaire, jamais dans un toast (rapport 05, P3a).
+  const [formError, setFormError] = useState<string | null>(null);
+  const [takenEmail, setTakenEmail] = useState<string | null>(null);
+  const emailValue = form.watch("email");
+
   const onSubmit = async (data: RegisterFormValues) => {
+    setFormError(null);
+    setTakenEmail(null);
     try {
       await registerMutation.mutateAsync({
         nom: data.nom,
@@ -122,29 +134,35 @@ export default function Adhesion() {
         acceptConditions: data.acceptConditions,
       });
       setSubmitted(true);
-    } catch (err: any) {
-      // 429 : limite de débit de Nginx (5 inscriptions par minute et par adresse), réponse sans JSON.
-      const msg = err?.response?.status === 429
-        ? "Trop de tentatives. Patientez une minute avant de réessayer."
-        : err?.response?.data?.message || "Une erreur est survenue.";
-      toast({ title: "Erreur", description: msg, variant: "destructive" });
+    } catch (err) {
+      const error = toUserError(err);
+      if (isEmailAlreadyUsed(error)) {
+        // Sous le champ, avec le focus : « Connectez-vous ou saisissez une autre adresse. »
+        setTakenEmail(data.email);
+        form.setError("email", { type: "server", message: ERROR_MESSAGES.emailAlreadyUsed }, { shouldFocus: true });
+        return;
+      }
+      applyFieldErrors(form.setError, error.fieldErrors, REGISTER_FIELDS);
+      setFormError(error.message);
     }
   };
 
   // ── Soumission pour utilisateur connecté (motivation) ────────────────────
 
+  const [motivationError, setMotivationError] = useState<string | null>(null);
+
   const handleSubmitMotivation = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMotivationError(null);
     if (motivation.trim().length < 10) {
-      toast({ title: "Message trop court", description: "Écrivez au moins 10 caractères.", variant: "destructive" });
+      setMotivationError("Votre message est trop court : écrivez au moins 10 caractères.");
       return;
     }
     try {
       await submitMutation.mutateAsync({ motivation: motivation.trim() });
       toast({ title: "Demande envoyée !", description: "Votre demande est en cours d'examen." });
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Une erreur est survenue.";
-      toast({ title: "Erreur", description: msg, variant: "destructive" });
+    } catch (err) {
+      setMotivationError(userMessage(err));
     }
   };
 
@@ -290,23 +308,38 @@ export default function Adhesion() {
                 className="border-amame-border rounded-xl focus-visible:ring-amame-green focus-visible:border-amame-green" />
             </FormControl>
             <FormMessage />
+            {takenEmail && emailValue === takenEmail && (
+              <p className="text-sm text-amame-charcoal">
+                <Link to={LOGIN_FROM_ADHESION} state={{ email: takenEmail }}
+                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green">
+                  Connectez-vous
+                </Link>{" "}
+                ou saisissez une autre adresse.{" "}
+                <Link to="/forgot-password" state={{ email: takenEmail }}
+                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green whitespace-nowrap">
+                  Mot de passe oublié ?
+                </Link>
+              </p>
+            )}
           </FormItem>
         )} />
 
         <FormField control={form.control} name="password" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-sm font-semibold text-amame-charcoal">Mot de passe <span className="text-red-500">*</span></FormLabel>
-            <FormControl>
-              <div className="relative">
+            {/* FormControl sur le champ lui-même : étiquette, aria-invalid et message d'erreur s'y rattachent */}
+            <div className="relative">
+              <FormControl>
                 <Input {...field} type={showPassword ? "text" : "password"}
                   placeholder="Min. 8 caractères"
                   className="border-amame-border rounded-xl focus-visible:ring-amame-green focus-visible:border-amame-green pr-10" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amame-muted hover:text-amame-charcoal transition-colors">
-                  {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
-                </button>
-              </div>
-            </FormControl>
+              </FormControl>
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-amame-muted hover:text-amame-charcoal transition-colors">
+                {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            </div>
             <FormMessage />
           </FormItem>
         )} />
@@ -314,17 +347,18 @@ export default function Adhesion() {
         <FormField control={form.control} name="confirmPassword" render={({ field }) => (
           <FormItem>
             <FormLabel className="text-sm font-semibold text-amame-charcoal">Confirmer le mot de passe <span className="text-red-500">*</span></FormLabel>
-            <FormControl>
-              <div className="relative">
+            <div className="relative">
+              <FormControl>
                 <Input {...field} type={showConfirm ? "text" : "password"}
                   placeholder="Répétez le mot de passe"
                   className="border-amame-border rounded-xl focus-visible:ring-amame-green focus-visible:border-amame-green pr-10" />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amame-muted hover:text-amame-charcoal transition-colors">
-                  {showConfirm ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
-                </button>
-              </div>
-            </FormControl>
+              </FormControl>
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                aria-label={showConfirm ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-amame-muted hover:text-amame-charcoal transition-colors">
+                {showConfirm ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            </div>
             <FormMessage />
           </FormItem>
         )} />
@@ -379,6 +413,8 @@ export default function Adhesion() {
           </FormItem>
         )} />
 
+        <FormAlert message={formError} />
+
         <button type="submit" disabled={registerMutation.isPending}
           className="w-full py-3 px-5 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
           {registerMutation.isPending ? (
@@ -427,6 +463,7 @@ export default function Adhesion() {
           {motivation.length} caractère{motivation.length > 1 ? "s" : ""}
         </span>
       </div>
+      <FormAlert message={motivationError} />
       <button type="submit" disabled={submitMutation.isPending || motivation.trim().length < 10}
         className="w-full py-3 px-5 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
         {submitMutation.isPending ? "Envoi..." : "Soumettre ma demande"}

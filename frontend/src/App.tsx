@@ -1,4 +1,5 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { reloadIfUpdateReady } from "@/utils/appUpdate";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -102,6 +103,9 @@ const HIDE_BOTTOM_NAV = ['/admin', '/membre', '/login', '/forgot-password', '/re
 const AppContent = () => {
   const { pathname } = useLocation();
   const showMobileNav = !HIDE_BOTTOM_NAV.some(p => pathname.startsWith(p));
+
+  // Nouvelle version arrivée pendant une saisie : chargée au changement de page suivant (D9).
+  useEffect(() => { reloadIfUpdateReady(); }, [pathname]);
 
   return (
     <>

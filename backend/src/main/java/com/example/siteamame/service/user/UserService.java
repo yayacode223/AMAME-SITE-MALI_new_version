@@ -5,6 +5,7 @@ import com.example.siteamame.dto.file.FileDto;
 import com.example.siteamame.dto.user.UserRequestDto;
 import com.example.siteamame.dto.user.UserReponseDto;
 import com.example.siteamame.enumeration.RoleType;
+import com.example.siteamame.exception.user.UserAlreadyExistsException;
 import com.example.siteamame.mapper.FileMapper;
 import com.example.siteamame.mapper.UserMapperDto;
 import com.example.siteamame.model.File;
@@ -75,7 +76,7 @@ public class UserService {
 
         Optional<User> existingUser = userRepository.findByEmailIgnoreCase(userRequestDto.getEmail());
         if(existingUser.isPresent())
-            throw new RuntimeException("L'utilisateur existe deja");
+            throw UserAlreadyExistsException.forEmail(); // 409 EMAIL_ALREADY_USED (était une erreur 500)
 
         User user = userMapper.DtoToUser(userRequestDto);
         // Endpoint public : tout compte naît USER, quel que soit le rôle envoyé dans la requête.

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { staticImageUrl } from "@/utils/staticImage";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { userMessage } from "@/utils/apiError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,9 +37,12 @@ export default function ForgotPassword() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const mutation = useForgotPassword();
 
+  // E-mail transmis par la page Adhésion (« Cet e-mail est déjà utilisé… Mot de passe oublié ? »).
+  const prefilledEmail = (useLocation().state as { email?: string } | null)?.email ?? "";
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "" },
+    defaultValues: { email: prefilledEmail },
   });
 
   const onSubmit = async ({ email }: FormValues) => {
@@ -46,11 +50,8 @@ export default function ForgotPassword() {
     try {
       await mutation.mutateAsync(email);
       setSuccessEmail(email);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        "Une erreur est survenue. Veuillez réessayer.";
-      setErrorMsg(msg);
+    } catch (err) {
+      setErrorMsg(userMessage(err)); // réseau, 429, panne : message clair (rapport 05, P3a)
     }
   };
 

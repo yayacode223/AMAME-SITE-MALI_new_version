@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { userMessage } from "@/utils/apiError";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -65,11 +66,8 @@ export default function ResetPassword() {
     try {
       await mutation.mutateAsync({ token, newPassword });
       setSuccess(true);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        "Une erreur est survenue. Veuillez réessayer.";
-      setErrorMsg(msg);
+    } catch (err) {
+      setErrorMsg(userMessage(err)); // réseau, 429, panne : message clair (rapport 05, P3a)
     }
   };
 

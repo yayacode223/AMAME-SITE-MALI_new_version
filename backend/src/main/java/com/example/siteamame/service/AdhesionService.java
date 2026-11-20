@@ -6,6 +6,7 @@ import com.example.siteamame.dto.adhesion.AdhesionRequestDto;
 import com.example.siteamame.dto.common.PageResponse;
 import com.example.siteamame.enumeration.AdhesionStatus;
 import com.example.siteamame.enumeration.RoleType;
+import com.example.siteamame.exception.user.UserAlreadyExistsException;
 import com.example.siteamame.mapper.AdhesionMapper;
 import com.example.siteamame.model.Adhesion;
 import com.example.siteamame.model.User;
@@ -49,9 +50,8 @@ public class AdhesionService {
         }
 
         // Vérifier email unique
-        if (userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Un compte existe déjà avec cet email.");
+        if (userRepository.findByEmailIgnoreCase(request.getEmail().trim()).isPresent()) {
+            throw UserAlreadyExistsException.forEmail(); // 409 EMAIL_ALREADY_USED : le site propose de se connecter
         }
 
         // Créer le compte utilisateur

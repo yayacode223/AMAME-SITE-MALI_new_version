@@ -1,4 +1,4 @@
-import { useNavigate, Link, Navigate, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { staticImageUrl } from "@/utils/staticImage";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +19,8 @@ import { Input } from "../components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn, Loader2, ArrowLeft, Clock, Lock } from "lucide-react";
 import { clearSessionEnded, REASON_PARAM, REDIRECT_PARAM, safeRedirectPath } from "@/utils/authRedirect";
+import { applyFieldErrors, ERROR_MESSAGES, toUserError } from "@/utils/apiError";
+import FormAlert from "@/components/FormAlert";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -75,6 +77,10 @@ const Login = () => {
   const target = safeRedirectPath(searchParams.get(REDIRECT_PARAM)) ?? "/";
   const reason = searchParams.get(REASON_PARAM);
   const notice = reason === "acces" || reason === "session" ? REASON_NOTICES[reason] : null;
+  // E-mail transmis par la page Adhésion (« Cet e-mail est déjà utilisé. Connectez-vous… »).
+  const location = useLocation();
+  const prefilledEmail = (location.state as { email?: string } | null)?.email ?? "";
+  const [formError, setFormError] = useState<string | null>(null);
 
   // La raison est déjà dans l'adresse : l'indicateur de session terminée a servi.
   useEffect(() => {
@@ -84,7 +90,7 @@ const Login = () => {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: prefilledEmail,
       password: "",
     },
   });
@@ -95,6 +101,7 @@ const Login = () => {
   }
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
+    setFormError(null);
     try {
       await login({
         email: values.email,
@@ -106,13 +113,11 @@ const Login = () => {
       });
       // replace : le bouton Retour ne ramène pas sur le formulaire de connexion.
       navigate(target, { replace: true });
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect.",
-      });
+    } catch (err) {
+      // Identifiants refusés (401) seulement : une panne ou une coupure réseau ont leur propre message.
+      const error = toUserError(err);
+      applyFieldErrors(form.setError, error.fieldErrors, ["email", "password"] as const);
+      setFormError(error.status === 401 ? ERROR_MESSAGES.invalidCredentials : error.message);
     }
   }
 
@@ -276,6 +281,8 @@ const Login = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormAlert message={formError} />
 
                   <Button
                     type="submit"

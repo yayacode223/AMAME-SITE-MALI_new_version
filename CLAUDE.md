@@ -116,6 +116,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 - `requestUser`: the user loaded by `JwtFilter` on each authenticated request, kept 60 s (`RequestUserLoader`). Any method that changes a role, permissions or a password, or deletes a user, must carry `@CacheEvict(cacheNames = CacheConfig.REQUEST_USER, allEntries = true)`. Login never uses this cache. The cached `User` is detached and shared: never modify it.
 - `publicLists`: public list endpoints annotated with `@PublicListCache`. Disabled unless `PUBLIC_LISTS_CACHE_TTL` is a positive duration; emptied after any non-GET request on `/api/admin/**`. Do not annotate an endpoint that writes (view counters) or depends on the caller.
 
+**Error responses** (report 05, P3a): every error body is an `ApiError` with a stable `code` (`ApiErrorCode`: `EMAIL_ALREADY_USED`, `VALIDATION_FAILED` with `fieldErrors`, `INTERNAL_ERROR`…) and a `message` that is always a sentence for the user, never an exception's text. `GlobalHandlerException` logs every unexpected error with an 8-character reference that the message repeats. Throw a dedicated exception or a `ResponseStatusException` with a French reason; never a bare `RuntimeException` for an expected case (it becomes a 500).
+
 **Domain entities**: `User`, `Adhesion`, `Article`, `Bourse`, `Concours`, `Filiere`, `Etablissement`, `Galerie`, `LienUtile`, `Membre` (bureau), `Partenaire`, `RessourceAcademique`, `Opportunites`, `Cotisation`, `Don`, `RefreshToken`, `PasswordResetToken`, `UserPermission`.
 
 ### Frontend — React + Vite
@@ -126,6 +128,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Service layer**: `src/service/*.ts` files contain React Query hooks (`useQuery`, `useMutation`) that call `Api`. Components consume these hooks directly — no manual fetch/useEffect.
 
+**Error messages** (report 05, P3a): turn any API error into a message with `toUserError` / `userMessage` (`src/utils/apiError.ts`), never `err.message` or a raw `response.data.message`. It handles network loss, Nginx HTML replies (429, 413, 502, 504) and hides old technical 500 texts. A form shows its error inside the form (`<FormAlert>` above the submit button, `applyFieldErrors` under the fields); toasts are for confirmations. Field error text uses `red-700` (contrast), not `text-destructive`.
+
 **Auth context**: `src/context/AuthContext.tsx` wraps the app and exposes `{ user, isAuthenticated, isUserLoading, login, logout, register, hasPermission }`. It calls `useGetCurrentUser()` (React Query) on mount to rehydrate session from cookie.
 
 **Protected pages and login return** (report 05, P2): `/admin/*` and `/membre/*` are guarded by `<RequireAuth>` (`src/components/RequireAuth.tsx`) in `App.tsx`, never by a check inside a layout. A visitor goes to `/login?redirect=<page>&raison=acces`, and `/login` sends them back after login. Every link to the login page uses `loginPath(location)` (`src/utils/authRedirect.ts`), never a bare `"/login"`. The `redirect` value is only followed through `safeRedirectPath` (paths of this site only, no open redirect). When `/api/auth/refresh` is refused (401/403/404) while a user is shown, the Axios interceptor clears the user and the guard sends to `/login?…&raison=session`; a network failure logs nobody out.
@@ -134,7 +138,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Mobile navigation**: `<BottomNav />` (`src/components/BottomNav.tsx`) is a fixed bottom bar (mobile only, `lg:hidden`) with 4 primary tabs (Home, Bourses, Concours, Orientation) and a "Plus" Sheet for secondary links. The Navbar hamburger was removed — BottomNav is the sole mobile navigation.
 
-**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API.
+**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API. After a deployment, `src/utils/appUpdate.ts` (called from `main.tsx`) reloads the page when the new version takes control, at once if nothing was typed, otherwise at the next route change; it also reloads once on `vite:preloadError` (an old lazy chunk that no longer exists).
 
 **Breakpoints**: Mobile/desktop split is at `lg` (1024px) matching Tailwind's default — consistent across Navbar, BottomNav, Footer padding (`pb-16 lg:pb-0`).
 
@@ -162,8 +166,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.12`) | 80 |
-| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.5`) | internal only |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.13`) | 80 |
+| backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.6`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
 

@@ -93,7 +93,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-destructive", className)}
+      className={cn(error && "text-red-700", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -155,7 +155,8 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-sm font-medium text-destructive", className)}
+      /* red-700 : 6,5:1 sur blanc ; --destructive (#ef4444) n'atteint que 3,8:1 (WCAG AA : 4,5:1). Rapport 05, P3a. */
+      className={cn("text-sm font-medium text-red-700", className)}
       {...props}
     >
       {body}

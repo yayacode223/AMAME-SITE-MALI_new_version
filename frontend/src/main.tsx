@@ -8,9 +8,13 @@ import "./index.css";
 import { AuthProvider } from "@/context/AuthContext.tsx";
 import { queryClient } from "@/lib/queryClient";
 import { purgePrivateCaches } from "@/utils/privateCaches";
+import { watchForAppUpdate } from "@/utils/appUpdate";
 
 // Supprime l'ancien cache de l'API, qui gardait des réponses privées (écart E44).
 void purgePrivateCaches();
+
+// Après un déploiement, passe à la nouvelle version sans perdre de saisie (rapport 05, D9).
+watchForAppUpdate();
 
 const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);
