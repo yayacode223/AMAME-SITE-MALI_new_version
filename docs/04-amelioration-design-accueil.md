@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 publiée (`frontend-v1.10` sur Docker Hub), en attente de déploiement (section 7).
+> **Avancement** : les 7 itérations ont été en production (itération 7 : `frontend-v1.10`) ; depuis le 20 novembre, `frontend-v1.11` les contient toutes, avec le nouveau titre du hero (section 7 et [rapport 05](05-emails-redirection-erreurs.md)).
 
 ---
 
@@ -570,7 +570,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | **en production** | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 7. Polices servies par le site | **image publiée** ; en attente de déploiement | `frontend-v1.10` | 2026-11-20 | commit `4274cec` ; D9 |
+| 7. Polices servies par le site | **en production** (remplacée par `frontend-v1.11` le 20 novembre) | `frontend-v1.10` | 2026-11-20 | commit `4274cec` ; D9 ; déploiement confirmé par l'équipe, contrôle en production fait par l'équipe |
 
 > **2026-11-20, texte du hero remplacé (décision de l'équipe)** : le titre devient le nom complet, « Association Malienne d'Appui aux Meilleurs Élèves » ; l'accroche, la ligne verte et la phrase du texte A (D3) sont mises en commentaire dans `Hero.tsx`. Livré avec `frontend-v1.11`, itération P1 du [rapport 05](05-emails-redirection-erreurs.md) (décision D6), qui donne la mesure de mise en page.
 
@@ -1118,6 +1118,6 @@ Retour arrière : `frontend-v1.8`.
      - navbar centrée ;
      - sous-menu visible au clavier après deux images.
 3. Fait : `docker push yayacode224/amame:frontend-v1.10`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:82eb0f5d0c6b8b7818cf2e122364687e221578efb0db1f5e5d5b75f7092276f3`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.10`.
+4. Fait : `frontend-v1.10` déployée (confirmé par l'équipe le 20 novembre), puis remplacée le même jour par `frontend-v1.11` ; `deploy/portainer/amamestack.env.example` est passé directement à `frontend-v1.11` (rapport 05).
 
 Retour arrière : `frontend-v1.9`.

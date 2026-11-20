@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Date** | 20 novembre 2026 |
-| **Base** | branche `deploiement/v1.3`, commit `a2c3046` (production : `backend-v1.4`, `frontend-v1.9` ; `frontend-v1.10` publiée, déploiement à confirmer) |
+| **Base** | branche `deploiement/v1.3`, commit `a2c3046` (production au départ : `backend-v1.4`, `frontend-v1.10`) |
 | **Demande** | trois points de l'équipe, implémentés et déployés **un par un** : (1) le sigle AMAME mal développé dans les e-mails ; (2) après une connexion, revenir à la page qui l'exigeait ; (3) des messages d'erreur compréhensibles par un élève, sans outil de développement |
 | **Nature** | analyse du code, plan par itération **et fichier de suivi** (section 6) : le lire en premier à chaque session, le mettre à jour après chaque itération |
 
@@ -166,8 +166,8 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 
 | Itération | État | Images | Date | Commit / notes |
 | --- | --- | --- | --- | --- |
-| P1. Sigle dans les e-mails (+ titre de l'accueil, D6 ; limite de débit de l'inscription, D8) | **images publiées** ; en attente de déploiement | `backend-v1.5`, `frontend-v1.11` | 2026-11-20 | commit `04a46c4` ; `EmailService`, `EmailServiceTest`, `Adhesion.tsx`, `Hero.tsx`, `nginx.conf` |
-| P2. Retour après connexion | décidé (D2, D3) ; après le déploiement de P1 | `frontend-v1.12` | | |
+| P1. Sigle dans les e-mails (+ titre de l'accueil, D6 ; limite de débit de l'inscription, D8) | **en production** | `backend-v1.5`, `frontend-v1.11` | 2026-11-20 | commit `04a46c4` ; contrôle en production fait par l'équipe ; `EmailService`, `EmailServiceTest`, `Adhesion.tsx`, `Hero.tsx`, `nginx.conf` |
+| P2. Retour après connexion | **en cours** (décidé : D2, D3) | `frontend-v1.12` | 2026-11-20 | |
 | P3a. Erreurs : contrat + formulaires publics + limite de débit (A1) | décidé (D4, D5) ; après P2 | `backend-v1.6`, `frontend-v1.13` | | |
 | P3b. Erreurs : autres formulaires | décidé (D5) ; après P3a | `frontend-v1.14` (+ `backend-v1.7`) | | |
 
@@ -190,4 +190,4 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 - Page Adhésion servie par l'image, quota épuisé : l'envoi du formulaire reçoit `429` et le toast affiche « Trop de tentatives. Patientez une minute avant de réessayer. » ; titre de l'accueil « Association Malienne d'Appui aux Meilleurs Élèves ».
 - Publication (« publie et pousse ») : étiquettes absentes de Docker Hub avant l'envoi ; `docker push` des deux images ; empreintes sur Docker Hub identiques aux images vérifiées (`backend-v1.5` `sha256:8661891f…`, `frontend-v1.11` `sha256:a927af71…`, `linux/amd64`). Commits publiés sur `main` par avance rapide (`a2c3046..c0681d8`).
 - **Déploiement** (équipe, Portainer, stack `amamestack`) : `BACKEND_IMAGE_TAG=backend-v1.5`, `FRONTEND_IMAGE_TAG=frontend-v1.11`, mise à jour de la stack avec nouveau téléchargement des images. Aucune migration, aucune variable nouvelle. Retour arrière : `backend-v1.4`, et la version frontend en service avant (`frontend-v1.10` si elle a été déployée, sinon `frontend-v1.9`).
-- Reste pour P1 : contrôle en production (accueil, `/adhesion`, e-mail réel de réinitialisation demandé par l'équipe sur son propre compte, limite de débit), puis `amamestack.env.example`.
+- **Déployé** le 20 novembre (confirmé par l'équipe ; la version précédente en service était `frontend-v1.10`). Le contrôle en production est fait par l'équipe, à sa demande (aucun contrôle de ma part, ni de la limite de débit). `deploy/portainer/amamestack.env.example` passé à `backend-v1.5` et `frontend-v1.11`. Retour arrière : `backend-v1.4`, `frontend-v1.10`.
