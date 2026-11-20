@@ -4,6 +4,7 @@ import { Calendar, User, Search, Clock, Eye, Newspaper, ArrowRight, Tag } from "
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -117,7 +118,7 @@ export function Articles() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: articlesPage, isLoading } = useGetAllArticles({
+  const { data: articlesPage, isLoading, isLoadingError, error, refetch, isFetching } = useGetAllArticles({
     page: currentPage,
     size: 6,
     sortBy: "datePublication",
@@ -219,6 +220,10 @@ export function Articles() {
                     <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                       className="space-y-4">
                       {[...Array(3)].map((_, i) => <CardSkeleton key={i} layout="row" lines={2} />)}
+                    </motion.div>
+                  ) : isLoadingError ? (
+                    <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les articles n'ont pas pu être chargés." />
                     </motion.div>
                   ) : articles.length === 0 ? (
                     <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}

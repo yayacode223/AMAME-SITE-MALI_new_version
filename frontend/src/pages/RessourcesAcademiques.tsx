@@ -7,6 +7,7 @@ import PageHero from "../components/PageHero";
 import Pagination from "../components/Pagination";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetRessources } from "@/service/ressourceAcademiqueService";
 import { mediaUrl } from "@/utils/media";
@@ -29,7 +30,7 @@ const RessourcesAcademiques = () => {
   const [selectedNiveau, setSelectedNiveau] = useState("all");
   const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: ressourcesPage, isLoading } = useGetRessources({
+  const { data: ressourcesPage, isLoading, isLoadingError, error, refetch, isFetching } = useGetRessources({
     page: currentPage,
     size: 12,
     sortBy: "ordre",
@@ -146,6 +147,10 @@ const RessourcesAcademiques = () => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="none" lines={3} />)}
+              </motion.div>
+            ) : isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les ressources académiques n'ont pas pu être chargées." />
               </motion.div>
             ) : filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}

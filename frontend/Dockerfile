@@ -29,6 +29,7 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Règle de /uploads/ : servie depuis le disque par défaut, réécrite au démarrage par 40-runtime-config.sh.
+COPY docker/security-headers.conf /etc/nginx/amame/security-headers.conf
 COPY docker/uploads-disk.conf /etc/nginx/amame/uploads-disk.conf
 COPY docker/uploads-disk.conf /etc/nginx/amame/uploads.conf
 # Écrit config.js à chaque démarrage, à partir de MEDIA_BASE_URL et MEDIA_OPTIMIZER_ENABLED :

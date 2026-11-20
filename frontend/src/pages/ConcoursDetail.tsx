@@ -14,11 +14,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, MapPin, GraduationCap, Target, Globe, FileText, ArrowLeft, Clock, ExternalLink, Download, Trophy } from "lucide-react";
 import { useConcoursDetail } from "@/service/concoursService";
+import DetailLoadError from "@/components/DetailLoadError";
+import { isNotFound } from "@/utils/apiError";
 
 const ConcoursDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: concours, isLoading, error } = useConcoursDetail(Number(id));
+  const { data: concours, isLoading, isLoadingError, error, refetch, isFetching } = useConcoursDetail(Number(id));
 
   const formattedOpenDate = useMemo(() => {
     if (!concours?.dateOuverture) return "";
@@ -61,16 +63,25 @@ const ConcoursDetail = () => {
     document.body.removeChild(link);
   };
 
-  if (error) {
+  // Rien à afficher : panne (serveur, réseau) → « Réessayer » ; introuvable (404, adresse sans
+  // identifiant valable) → « Concours non trouvé » (docs/06, R2).
+  if (!isLoading && !concours) {
     return (
       <div className="min-h-screen bg-amame-surface"><Navbar />
         <div className="page-container py-24 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5"><Trophy className="h-8 w-8 text-red-500" /></div>
-          <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Concours non trouvé</h1>
-          <p className="text-amame-muted mb-8">Le concours que vous recherchez n'existe pas ou a été supprimé.</p>
-          <Button onClick={() => navigate("/concours")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
-            <ArrowLeft className="h-4 w-4" /> Retour aux concours
-          </Button>
+          {isLoadingError && !isNotFound(error) ? (
+            <DetailLoadError error={error} onRetry={refetch} isRetrying={isFetching}
+              title="Ce concours n'a pas pu être chargé." backTo="/concours" backLabel="Retour aux concours" />
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5"><Trophy className="h-8 w-8 text-red-500" /></div>
+              <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Concours non trouvé</h1>
+              <p className="text-amame-muted mb-8">Le concours que vous recherchez n'existe pas ou a été supprimé.</p>
+              <Button onClick={() => navigate("/concours")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+                <ArrowLeft className="h-4 w-4" /> Retour aux concours
+              </Button>
+            </>
+          )}
         </div>
         <Footer />
       </div>

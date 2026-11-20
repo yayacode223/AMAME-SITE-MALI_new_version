@@ -7,6 +7,7 @@ import PageHero from "../components/PageHero";
 import Pagination from "../components/Pagination";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetAllGaleries } from "@/service/galerieService";
 import MediaImage from "@/components/MediaImage";
@@ -15,7 +16,7 @@ const Galeries = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: galeriesPage, isLoading } = useGetAllGaleries({
+  const { data: galeriesPage, isLoading, isLoadingError, error, refetch, isFetching } = useGetAllGaleries({
     page: currentPage,
     size: 6,
     sortBy: "dateCreation",
@@ -83,6 +84,10 @@ const Galeries = () => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={2} footer={false} />)}
+              </motion.div>
+            ) : isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les galeries n'ont pas pu être chargées." />
               </motion.div>
             ) : filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}

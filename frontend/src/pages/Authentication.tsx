@@ -136,8 +136,10 @@ const Login = () => {
         {/* ── Panneau gauche : image hero + branding (desktop) ───────────── */}
         <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-cover bg-no-repeat [background-position:center_right_10%]"
           style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
-          {/* Overlay vert — allégé pour laisser l'image hero respirer */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 via-amame-green-dark/55 to-amame-green/35 pointer-events-none" />
+          {/* Voile de verts foncés : texte lisible sur la photo (docs/06, S1). L'ancien dégradé (/72) ne
+              générait aucune classe : pas de voile. Bas assombri en plus, sous le copyright. */}
+          <div className="absolute inset-0 amame-photo-veil pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-amame-green-darker/70 to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
 
@@ -163,11 +165,12 @@ const Login = () => {
             {/* Centre : uniquement le slogan */}
             <h1 className="font-nunito font-black text-5xl xl:text-6xl text-white leading-[1.1] drop-shadow-md">
               Votre Passerelle
-              <span className="block text-amame-gold mt-2">vers l'Excellence</span>
+              {/* Or clair : l'or de la marque (#ca8a04) n'atteint pas 3:1 sur le voile sombre */}
+              <span className="block text-amber-300 mt-2">vers l'Excellence</span>
             </h1>
 
             {/* Pied */}
-            <p className="text-white/35 text-xs">
+            <p className="text-white text-xs">
               © {new Date().getFullYear()} AMAME. Tous droits réservés.
             </p>
           </div>
@@ -179,7 +182,7 @@ const Login = () => {
           {/* Bandeau mobile : image + logo */}
           <div className="lg:hidden relative h-44 overflow-hidden shrink-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage", 640)})` }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 to-amame-green/45" />
+            <div className="absolute inset-0 amame-photo-veil" />
             <div className="relative z-10 flex items-center justify-between px-5 pt-5">
               {/* Logo plus visible */}
               <Link to="/" className="flex items-center gap-2 group">
@@ -194,7 +197,7 @@ const Login = () => {
             </div>
             <div className="relative z-10 px-5 pt-4">
               <p className="font-nunito font-black text-xl text-white leading-tight drop-shadow">
-                Votre passerelle <span className="text-amame-gold">vers l'excellence</span>
+                Votre passerelle <span className="text-amber-300">vers l'excellence</span>
               </p>
             </div>
           </div>

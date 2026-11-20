@@ -94,10 +94,23 @@
 
   html {
     scroll-behavior: smooth;
+    /* La barre de navigation des pages publiques reste en haut (sticky, 64 px). Safari (WebKit, tous les
+       navigateurs d'iPhone) amène un champ qui reçoit le focus au bord haut, donc sous la barre : cette
+       marge l'arrête dessous. Vaut aussi pour les ancres et scrollIntoView (docs/06, S2). */
+    scroll-padding-top: 5rem;
   }
 }
 
 @layer components {
+  /* Voile sur une photo qui porte du texte blanc (bandeau Adhésion, panneau de connexion, Mot de passe
+     oublié) : verts foncés seulement, réglé pour 4,5:1 au pire endroit de la photo (docs/06, S1).
+     Le vert de la marque (#16a34a) ne convient pas : du blanc sur lui ne dépasse pas 3,3:1.
+     Attention aux opacités Tailwind hors de l'échelle (/72, /58…) : aucune classe n'est générée. */
+  .amame-photo-veil {
+    background-image: linear-gradient(to bottom right,
+      rgb(20 83 45 / 0.9), rgb(20 83 45 / 0.85), rgb(21 128 61 / 0.82));
+  }
+
   /* Boutons AMAME */
   .btn-primary {
     @apply bg-amame-green hover:bg-amame-green-dark text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-green hover:shadow-lg;

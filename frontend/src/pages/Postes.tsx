@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { motion } from "framer-motion";
 import { useGetAllArticles } from "@/service/articleService";
 import { adaptArticleForNews } from "@/utils/articleAdapter";
@@ -14,7 +15,7 @@ import MediaImage from "@/components/MediaImage";
 
 const Postes = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: allArticles, isLoading } = useGetAllArticles();
+  const { data: allArticles, isLoading, isLoadingError, error, refetch, isFetching } = useGetAllArticles();
 
   const postes = useMemo(() => {
     if (!allArticles) return [];
@@ -75,6 +76,8 @@ const Postes = () => {
             <div className="space-y-5">
               {[...Array(4)].map((_, i) => <CardSkeleton key={i} layout="row" lines={3} />)}
             </div>
+          ) : isLoadingError ? (
+            <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les offres de postes n'ont pas pu être chargées." />
           ) : postes.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">

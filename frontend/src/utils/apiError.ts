@@ -88,6 +88,12 @@ export const isChunkLoadError = (error: unknown): boolean =>
     `${error.name} ${error.message}`,
   );
 
+/**
+ * Élément introuvable (404) : une fiche affiche alors son écran « … non trouvé », et non une panne
+ * avec « Réessayer » (docs/06, R2).
+ */
+export const isNotFound = (error: unknown) => toUserError(error).status === 404;
+
 /** Un compte existe déjà avec cet e-mail (code du backend, ou ancien message 409 avant backend-v1.6). */
 export const isEmailAlreadyUsed = (e: UserError) =>
   e.code === "EMAIL_ALREADY_USED" || (e.status === 409 && !e.code && /existe déjà/i.test(e.message));

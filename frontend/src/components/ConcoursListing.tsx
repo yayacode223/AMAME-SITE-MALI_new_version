@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConcoursCardItem from "./ConcoursCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { Search, GraduationCap, SearchX, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useConcoursLists, useConcoursFilter, useConcoursSearch } from "@/service/concoursService";
 import { ConcoursFilterParams, NiveauType, StatusType } from "@/types/concoursType";
@@ -34,25 +35,22 @@ const ConcoursListing = ({ defaultStatus }: ConcoursListingProps) => {
 
   const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "ASC" };
 
-  const { data: allConcours, isLoading: isAllLoading } = useConcoursLists(commonParams, {
+  const listQuery = useConcoursLists(commonParams, {
     enabled: !hasSearch && !hasNiveau && !hasStatus,
   });
-  const { data: filtered, isLoading: isFilterLoading } = useConcoursFilter(
+  const filterQuery = useConcoursFilter(
     { ...commonParams, ...filter },
     { enabled: (hasNiveau || hasStatus) && !hasSearch }
   );
-  const { data: searched, isLoading: isSearchLoading } = useConcoursSearch(
+  const searchQuery = useConcoursSearch(
     { ...commonParams, search: searchTerm },
     { enabled: hasSearch }
   );
 
-  const data = useMemo(() => {
-    if (hasSearch) return searched ?? null;
-    if (hasNiveau || hasStatus) return filtered ?? null;
-    return allConcours ?? null;
-  }, [allConcours, filtered, searched, hasSearch, hasNiveau, hasStatus]);
-
-  const isLoading = isAllLoading || isFilterLoading || isSearchLoading;
+  // Une seule des trois requêtes est active : c'est elle qui donne la liste, le chargement et l'échec.
+  const activeQuery = hasSearch ? searchQuery : hasNiveau || hasStatus ? filterQuery : listQuery;
+  const data = activeQuery.data ?? null;
+  const isLoading = activeQuery.isLoading;
   const hasUserFilters = hasSearch || hasNiveau;
 
   const resetFilters = () => {
@@ -143,6 +141,11 @@ const ConcoursListing = ({ defaultStatus }: ConcoursListingProps) => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={4} />)}
+              </motion.div>
+            ) : activeQuery.isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={activeQuery.error} onRetry={activeQuery.refetch} isRetrying={activeQuery.isFetching}
+                  title="Les concours n'ont pas pu être chargés." />
               </motion.div>
             ) : !data || data.concours.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}

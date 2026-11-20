@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { motion } from "framer-motion";
 import { useGetMembres } from "@/service/membreService";
 import MediaImage from "@/components/MediaImage";
@@ -63,7 +64,7 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
 );
 
 const Membres = () => {
-  const { data: membres, isLoading } = useGetMembres();
+  const { data: membres, isLoading, isLoadingError, error, refetch, isFetching } = useGetMembres();
 
   return (
     <div className="min-h-screen bg-amame-surface flex flex-col">
@@ -89,6 +90,8 @@ const Membres = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
               {[...Array(8)].map((_, i) => <CardSkeleton key={i} media="portrait" lines={2} />)}
             </div>
+          ) : isLoadingError ? (
+            <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les membres du bureau n'ont pas pu être chargés." />
           ) : !membres || membres.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">

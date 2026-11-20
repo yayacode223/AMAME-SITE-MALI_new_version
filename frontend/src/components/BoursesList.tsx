@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BourseCardItem from "./BourseCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { Search, Award, MapPin, GraduationCap, SearchX, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useGetBourses, useGetBourseByFilter, useGetBourseBySearch } from "@/service/bourseService";
 import { BourseFilterParams, BourseSearchRequest } from "@/types/bourseType";
@@ -44,25 +45,22 @@ const BoursesList = ({ defaultCategorie }: BourseListProps) => {
 
   const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "DESC" };
 
-  const { data: bourses, isLoading: isBourseLoading } = useGetBourses(commonParams, {
+  const listQuery = useGetBourses(commonParams, {
     enabled: !hasSearch && !hasFilter,
   });
-  const { data: searchResults, isLoading: isSearchLoading } = useGetBourseBySearch(
+  const searchQuery = useGetBourseBySearch(
     { ...commonParams, titre: searchTerm.titre || undefined },
     { enabled: hasSearch }
   );
-  const { data: filterResults, isLoading: isFilterLoading } = useGetBourseByFilter(
+  const filterQuery = useGetBourseByFilter(
     { ...commonParams, categorie: filter.categorie || undefined, niveau: filter.niveau || undefined, pays: filter.pays || undefined },
     { enabled: hasFilter && !hasSearch }
   );
 
-  const data = useMemo(() => {
-    if (hasSearch) return searchResults ?? null;
-    if (hasFilter) return filterResults ?? null;
-    return bourses ?? null;
-  }, [bourses, searchResults, filterResults, hasSearch, hasFilter]);
-
-  const isLoading = isBourseLoading || isSearchLoading || isFilterLoading;
+  // Une seule des trois requêtes est active : c'est elle qui donne la liste, le chargement et l'échec.
+  const activeQuery = hasSearch ? searchQuery : hasFilter ? filterQuery : listQuery;
+  const data = activeQuery.data ?? null;
+  const isLoading = activeQuery.isLoading;
 
   const resetFilters = () => {
     setFilter(defaultCategorie ? { categorie: defaultCategorie } : {});
@@ -163,6 +161,11 @@ const BoursesList = ({ defaultCategorie }: BourseListProps) => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+              </motion.div>
+            ) : activeQuery.isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={activeQuery.error} onRetry={activeQuery.refetch} isRetrying={activeQuery.isFetching}
+                  title="Les bourses n'ont pas pu être chargées." />
               </motion.div>
             ) : !data || data.bourseSummaryDtos.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginPath } from "@/utils/authRedirect";
 import { applyFieldErrors, ERROR_MESSAGES, isEmailAlreadyUsed, toUserError, userMessage } from "@/utils/apiError";
 import FormAlert from "@/components/FormAlert";
+import QueryError from "@/components/QueryError";
 
 /** Après la connexion depuis cette page, on y revient (rapport 05, P2). */
 const LOGIN_FROM_ADHESION = loginPath({ pathname: "/adhesion" });
@@ -94,9 +95,10 @@ export default function Adhesion() {
   const [submitted, setSubmitted] = useState(false);
 
   // Statut adhésion pour utilisateurs déjà connectés
-  const { data: adhesionStatus, isLoading: isLoadingStatus } = useGetAdhesionStatus({
+  const statusQuery = useGetAdhesionStatus({
     enabled: isAuthenticated,
   });
+  const { data: adhesionStatus, isLoading: isLoadingStatus } = statusQuery;
 
   // Mutation pour le formulaire public (inscription + adhésion)
   const registerMutation = useRegisterAndSubmitAdhesion();
@@ -194,6 +196,17 @@ export default function Adhesion() {
             <UserGroupIcon className="h-5 w-5" />
             Mon espace membre
           </Link>
+        </div>
+      );
+    }
+
+    // Statut inconnu (serveur, réseau) : ne pas proposer une nouvelle demande alors qu'une autre est
+    // peut-être en attente (docs/06, R2).
+    if (isAuthenticated && statusQuery.isLoadingError) {
+      return (
+        <div className="py-10">
+          <QueryError error={statusQuery.error} onRetry={statusQuery.refetch} isRetrying={statusQuery.isFetching}
+            title="L'état de votre demande d'adhésion n'a pas pu être chargé." />
         </div>
       );
     }
@@ -488,8 +501,9 @@ export default function Adhesion() {
           className="relative overflow-hidden py-16 sm:py-24 hero-bg-image"
           style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-adhesion")})` }}
         >
-          {/* Overlay vert allégé — image visible en texture, texte blanc lisible */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amame-green-darker/72 via-amame-green-dark/58 to-amame-green/42 pointer-events-none" />
+          {/* Voile de verts foncés : la photo reste une texture, le texte blanc atteint 4,5:1 au pire endroit
+              (docs/06, S1). L'ancien dégradé (/72, /58, /42) ne générait aucune classe : pas de voile. */}
+          <div className="absolute inset-0 amame-photo-veil pointer-events-none" />
           {/* Vignette basse pour transition douce avec le contenu */}
           <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-amame-surface to-transparent pointer-events-none" />
 
@@ -501,7 +515,7 @@ export default function Adhesion() {
             <h1 className="font-nunito font-black text-3xl sm:text-5xl text-white mb-4 leading-tight drop-shadow-sm">
               Adhérer à l'AMAME
             </h1>
-            <p className="text-green-100/90 text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
+            <p className="text-white text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
               Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves
               et profitez d'un réseau unique d'excellence.
             </p>

@@ -12,8 +12,17 @@ const shouldRetry = (failureCount: number, error: unknown) => {
   return failureCount < 2;
 };
 
+/**
+ * `networkMode: "always"` (docs/06, R2) : par défaut, React Query met en pause, sans erreur, toute
+ * requête lancée après l'événement « offline » du navigateur. Une page restait alors sur son état vide
+ * (« Aucune bourse trouvée ») et un formulaire sur « Envoi… ». Ici la requête part quand même : le
+ * service worker répond avec sa copie des réponses publiques (règle `api-public` de vite.config.ts),
+ * sinon l'échec réseau s'affiche (« Connexion impossible… ») avec « Réessayer ». Le rechargement
+ * automatique au retour de la connexion (refetchOnReconnect) est inchangé.
+ */
 export const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: shouldRetry },
+    queries: { retry: shouldRetry, networkMode: "always" },
+    mutations: { networkMode: "always" },
   },
 });

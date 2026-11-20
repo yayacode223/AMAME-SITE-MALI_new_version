@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import {
   Search,
   Award,
@@ -61,23 +62,20 @@ const Bourses = () => {
 
   const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "DESC" };
 
-  const { data: bourses, isLoading: isBourseDataLoading } = useGetBourses(commonParams, { enabled: !hasSearch && !hasFilter });
-  const { data: filteredBySearchBourses, isLoading: isSearchLoading } = useGetBourseBySearch(
+  const listQuery = useGetBourses(commonParams, { enabled: !hasSearch && !hasFilter });
+  const searchQuery = useGetBourseBySearch(
     { ...commonParams, titre: searchTerm.titre || undefined, description: undefined, pays: undefined },
     { enabled: hasSearch },
   );
-  const { data: filteredByFilterBourses, isLoading: isFilterLoading } = useGetBourseByFilter(
+  const filterQuery = useGetBourseByFilter(
     { ...commonParams, categorie: undefined, niveau: filter.niveau || undefined, pays: filter.pays || undefined },
     { enabled: hasFilter && !hasSearch },
   );
 
-  const filteredBourses = useMemo(() => {
-    if (hasSearch) return filteredBySearchBourses || null;
-    if (hasFilter) return filteredByFilterBourses || null;
-    return bourses || null;
-  }, [bourses, filteredBySearchBourses, filteredByFilterBourses, hasSearch, hasFilter]);
-
-  const isLoading = isBourseDataLoading || isSearchLoading || isFilterLoading;
+  // Une seule des trois requêtes est active : c'est elle qui donne la liste, le chargement et l'échec.
+  const activeQuery = hasSearch ? searchQuery : hasFilter ? filterQuery : listQuery;
+  const filteredBourses = activeQuery.data || null;
+  const isLoading = activeQuery.isLoading;
 
   const resetFilters = () => { setFilter({}); setSearchTerm({}); setCurrentPage(0); };
   const handleNextPage = () => { if (filteredBourses?.hasNext) { setCurrentPage(p => p + 1); window.scrollTo({ top: 400, behavior: "smooth" }); } };
@@ -188,6 +186,11 @@ const Bourses = () => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+              </motion.div>
+            ) : activeQuery.isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={activeQuery.error} onRetry={activeQuery.refetch} isRetrying={activeQuery.isFetching}
+                  title="Les bourses n'ont pas pu être chargées." />
               </motion.div>
             ) : !filteredBourses || filteredBourses.bourseSummaryDtos.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}

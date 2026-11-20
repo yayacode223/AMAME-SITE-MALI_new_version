@@ -11,6 +11,8 @@ import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetBourseDetail } from "@/service/bourseService";
+import DetailLoadError from "@/components/DetailLoadError";
+import { isNotFound } from "@/utils/apiError";
 
 const flagMap: Record<string, StaticImageName> = {
   "france":      "bourses/france",
@@ -31,7 +33,7 @@ const getFlagImage = (pays?: string): StaticImageName | null => {
 const BoursesDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: bourse, isLoading, error } = useGetBourseDetail(Number(id));
+  const { data: bourse, isLoading, isLoadingError, error, refetch, isFetching } = useGetBourseDetail(Number(id));
 
   const formattedDate = useMemo(() => {
     if (!bourse?.dateLimite) return "Non spécifiée";
@@ -54,19 +56,28 @@ const BoursesDetail = () => {
   };
   const dc = deadlineConfig[deadlineStatus];
 
-  if (error) {
+  // Rien à afficher : panne (serveur, réseau) → « Réessayer » ; introuvable (404, adresse sans
+  // identifiant valable) → « Bourse non trouvée » (docs/06, R2).
+  if (!isLoading && !bourse) {
     return (
       <div className="min-h-screen bg-amame-surface">
         <Navbar />
         <div className="page-container py-24 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5">
-            <Award className="h-8 w-8 text-red-500" />
-          </div>
-          <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Bourse non trouvée</h1>
-          <p className="text-amame-muted mb-8">La bourse que vous recherchez n'existe pas ou a été supprimée.</p>
-          <Button onClick={() => navigate("/bourses")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
-            <ArrowLeft className="h-4 w-4" /> Retour aux bourses
-          </Button>
+          {isLoadingError && !isNotFound(error) ? (
+            <DetailLoadError error={error} onRetry={refetch} isRetrying={isFetching}
+              title="Cette bourse n'a pas pu être chargée." backTo="/bourses" backLabel="Retour aux bourses" />
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5">
+                <Award className="h-8 w-8 text-red-500" />
+              </div>
+              <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Bourse non trouvée</h1>
+              <p className="text-amame-muted mb-8">La bourse que vous recherchez n'existe pas ou a été supprimée.</p>
+              <Button onClick={() => navigate("/bourses")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+                <ArrowLeft className="h-4 w-4" /> Retour aux bourses
+              </Button>
+            </>
+          )}
         </div>
         <Footer />
       </div>

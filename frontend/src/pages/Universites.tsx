@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { useGetEtablissement } from "@/service/etablissementService";
 
 
@@ -14,7 +15,7 @@ const Universites = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
 
-  const { data: etablissements, isLoading } = useGetEtablissement();
+  const { data: etablissements, isLoading, isLoadingError, error, refetch, isFetching } = useGetEtablissement();
 
   const types = useMemo(() => {
     if (!etablissements) return [];
@@ -107,6 +108,8 @@ const Universites = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
               {[...Array(9)].map((_, i) => <CardSkeleton key={i} media="logo" lines={1} />)}
             </div>
+          ) : isLoadingError ? (
+            <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les établissements n'ont pas pu être chargés." />
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import {
   Search,
   Trophy,
@@ -57,17 +58,14 @@ const Concours = () => {
 
   const commonParams = { page: currentPage, size: 6, sortBy: "dateLimite", sortDirection: "ASC" };
 
-  const { data: concours, isLoading: isConcoursLoading } = useConcoursLists(commonParams, { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter });
-  const { data: concoursByFilter, isLoading: isConcoursByFilterLoading } = useConcoursFilter({ ...commonParams, ...filter }, { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch });
-  const { data: searchedConcours, isLoading: isSearchLoading } = useConcoursSearch({ ...commonParams, search: searchTerm }, { enabled: hasSearch });
+  const listQuery = useConcoursLists(commonParams, { enabled: !hasSearch && !hasNiveauFilter && !hasStatusFilter });
+  const filterQuery = useConcoursFilter({ ...commonParams, ...filter }, { enabled: (hasStatusFilter || hasNiveauFilter) && !hasSearch });
+  const searchQuery = useConcoursSearch({ ...commonParams, search: searchTerm }, { enabled: hasSearch });
 
-  const filteredConcours = useMemo(() => {
-    if (hasSearch) return searchedConcours || null;
-    if (hasNiveauFilter || hasStatusFilter) return concoursByFilter || null;
-    return concours || null;
-  }, [concours, concoursByFilter, searchedConcours, hasSearch, hasNiveauFilter, hasStatusFilter]);
-
-  const isLoading = isConcoursLoading || isConcoursByFilterLoading || isSearchLoading;
+  // Une seule des trois requêtes est active : c'est elle qui donne la liste, le chargement et l'échec.
+  const activeQuery = hasSearch ? searchQuery : hasNiveauFilter || hasStatusFilter ? filterQuery : listQuery;
+  const filteredConcours = activeQuery.data || null;
+  const isLoading = activeQuery.isLoading;
   const hasActiveFilters = hasSearch || hasNiveauFilter || hasStatusFilter;
 
   const resetFilters = () => { setFilter({}); setSearchTerm(""); setCurrentPage(0); };
@@ -180,6 +178,11 @@ const Concours = () => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={4} />)}
+              </motion.div>
+            ) : activeQuery.isLoadingError ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <QueryError error={activeQuery.error} onRetry={activeQuery.refetch} isRetrying={activeQuery.isFetching}
+                  title="Les concours n'ont pas pu être chargés." />
               </motion.div>
             ) : !filteredConcours || filteredConcours.concours.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}

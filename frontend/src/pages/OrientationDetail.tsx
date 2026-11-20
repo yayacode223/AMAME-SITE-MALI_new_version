@@ -9,6 +9,8 @@ import { ArrowLeft, Clock, TrendingUp, DollarSign, BookOpen, MapPin, Star, Brief
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useGetFiliereById } from "../service/orientationService";
+import DetailLoadError from "@/components/DetailLoadError";
+import { isNotFound } from "@/utils/apiError";
 import { DifficulteType } from "@/types/orientationType";
 
 const diffConfig: Record<string, { label: string; cls: string }> = {
@@ -19,7 +21,7 @@ const defaultDiff = { label: "Moyenne", cls: "bg-amame-green-light text-amame-gr
 
 export function OrientationDetail() {
   const { id } = useParams();
-  const { data: filiere, isLoading } = useGetFiliereById(Number(id));
+  const { data: filiere, isLoading, isLoadingError, error, refetch, isFetching } = useGetFiliereById(Number(id));
 
   if (isLoading) {
     return (
@@ -37,19 +39,28 @@ export function OrientationDetail() {
     );
   }
 
+  // Panne (serveur, réseau) → « Réessayer » ; introuvable (404, adresse sans identifiant valable) →
+  // « Filière non trouvée » (docs/06, R2).
   if (!filiere) {
     return (
       <>
         <Navbar />
         <div className="min-h-screen bg-amame-surface flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5"><Briefcase className="h-8 w-8 text-amame-green" /></div>
-            <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Filière non trouvée</h2>
-            <p className="text-amame-muted mb-6">La filière que vous recherchez n'existe pas ou a été déplacée.</p>
-            <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
-              <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
-            </Button>
-          </div>
+          {isLoadingError && !isNotFound(error) ? (
+            <div className="w-full p-8">
+              <DetailLoadError error={error} onRetry={refetch} isRetrying={isFetching}
+                title="Cette filière n'a pas pu être chargée." backTo="/orientation" backLabel="Retour à l'orientation" />
+            </div>
+          ) : (
+            <div className="text-center p-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5"><Briefcase className="h-8 w-8 text-amame-green" /></div>
+              <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Filière non trouvée</h2>
+              <p className="text-amame-muted mb-6">La filière que vous recherchez n'existe pas ou a été déplacée.</p>
+              <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+                <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
+              </Button>
+            </div>
+          )}
         </div>
         <Footer />
       </>

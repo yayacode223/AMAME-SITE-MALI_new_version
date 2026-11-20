@@ -11,6 +11,8 @@ import { useGetAllArticles, useGetArticleBySlug } from "@/service/articleService
 import { adaptArticleForDetail, adaptArticleForNews } from "@/utils/articleAdapter";
 import MediaImage from "@/components/MediaImage";
 import { mediaUrl } from "@/utils/media";
+import DetailLoadError from "@/components/DetailLoadError";
+import { isNotFound } from "@/utils/apiError";
 
 const CATEGORY_STYLES: Record<string, string> = {
   Conseils: "bg-amame-green-light text-amame-green-dark border-amame-green/20",
@@ -43,7 +45,7 @@ const PREVIEW_PARAGRAPHS = 3;
 export function ArticleDetail() {
   const { slug } = useParams();
   const [contentExpanded, setContentExpanded] = useState(false);
-  const { data: articleData, isLoading } = useGetArticleBySlug(slug || "");
+  const { data: articleData, isLoading, isLoadingError, error, refetch, isFetching } = useGetArticleBySlug(slug || "");
   const { data: allArticlesData } = useGetAllArticles({ page: 0, size: 10, sortBy: "datePublication", sortDirection: "DESC" });
 
   const article = useMemo(() => articleData ? adaptArticleForDetail(articleData) : null, [articleData]);
@@ -92,22 +94,29 @@ export function ArticleDetail() {
     );
   }
 
-  /* ─── Not found ─── */
+  /* ─── Panne (serveur, réseau) → « Réessayer » ; introuvable (404) → « Article non trouvé » (docs/06, R2) ─── */
   if (!article) {
     return (
       <>
         <Navbar />
         <div className="min-h-screen bg-amame-surface flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">
-              <Newspaper className="h-8 w-8 text-amame-green" />
+          {isLoadingError && !isNotFound(error) ? (
+            <div className="w-full p-8">
+              <DetailLoadError error={error} onRetry={refetch} isRetrying={isFetching}
+                title="Cet article n'a pas pu être chargé." backTo="/articles" backLabel="Retour aux actualités" />
             </div>
-            <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Article non trouvé</h2>
-            <p className="text-amame-muted mb-6">L'article que vous recherchez n'existe pas ou a été déplacé.</p>
-            <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
-              <Link to="/articles"><ArrowLeft className="h-4 w-4" />Retour aux actualités</Link>
-            </Button>
-          </div>
+          ) : (
+            <div className="text-center p-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">
+                <Newspaper className="h-8 w-8 text-amame-green" />
+              </div>
+              <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Article non trouvé</h2>
+              <p className="text-amame-muted mb-6">L'article que vous recherchez n'existe pas ou a été déplacé.</p>
+              <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+                <Link to="/articles"><ArrowLeft className="h-4 w-4" />Retour aux actualités</Link>
+              </Button>
+            </div>
+          )}
         </div>
         <Footer />
       </>

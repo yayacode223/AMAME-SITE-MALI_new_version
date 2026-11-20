@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 import { motion } from "framer-motion";
 import { useGetLiensUtiles } from "@/service/lienUtileService";
 
@@ -25,7 +26,7 @@ const LiensUtiles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCat, setSelectedCat] = useState("all");
 
-  const { data: liens, isLoading } = useGetLiensUtiles();
+  const { data: liens, isLoading, isLoadingError, error, refetch, isFetching } = useGetLiensUtiles();
 
   const categories = useMemo(() => {
     if (!liens) return [];
@@ -102,6 +103,8 @@ const LiensUtiles = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
               {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="none" lines={2} />)}
             </div>
+          ) : isLoadingError ? (
+            <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les liens utiles n'ont pas pu être chargés." />
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5">

@@ -21,6 +21,7 @@ import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
 import MediaImage from "@/components/MediaImage";
 import CardSkeleton from "@/components/CardSkeleton";
+import QueryError from "@/components/QueryError";
 
 const difficultyConfig: Record<string, { label: string; cls: string }> = {
   TRES_ELEVEE: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
@@ -44,7 +45,7 @@ export function Orientation() {
   const [selectedDomain, setSelectedDomain] = useState<DomaineFiliereType>(DomaineFiliereType.ALL);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: filieresPage, isLoading } = useGetAllFilieres({
+  const { data: filieresPage, isLoading, isLoadingError, error, refetch, isFetching } = useGetAllFilieres({
     page: currentPage,
     size: 6,
     sortBy: "nom",
@@ -181,6 +182,10 @@ export function Orientation() {
                   {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={3} />)}
                 </motion.div>
 
+              ) : isLoadingError ? (
+                <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les filières n'ont pas pu être chargées." />
+                </motion.div>
               ) : filieres.length === 0 ? (
                 <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-20">
