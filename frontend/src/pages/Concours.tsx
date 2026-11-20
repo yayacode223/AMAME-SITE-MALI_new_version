@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import {
   Search,
   Trophy,
@@ -45,25 +45,6 @@ const statusOptions = [
   { value: "NATIONAL", label: "National" },
   { value: "INTERNATIONAL", label: "International" },
 ];
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
-    <div className="h-1 bg-gray-100" />
-    <div className="p-5 space-y-3">
-      <div className="flex justify-between">
-        <Skeleton className="h-5 w-20 rounded-full" />
-        <Skeleton className="h-5 w-24 rounded-full" />
-      </div>
-      <Skeleton className="h-5 w-3/4 rounded-md" />
-      <Skeleton className="h-4 w-full rounded-md" />
-      <Skeleton className="h-4 w-2/3 rounded-md" />
-      <div className="space-y-1.5 pt-2">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-3.5 w-1/2 rounded-md" />)}
-      </div>
-      <Skeleton className="h-9 w-full rounded-lg mt-2" />
-    </div>
-  </div>
-);
 
 const Concours = () => {
   const [filter, setFilter] = useState<ConcoursFilterParams>({});
@@ -198,7 +179,7 @@ const Concours = () => {
             {isLoading ? (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-                {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={4} />)}
               </motion.div>
             ) : !filteredConcours || filteredConcours.concours.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}

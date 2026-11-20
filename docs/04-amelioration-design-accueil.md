@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 en cours (section 7).
+> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 commitée, image `frontend-v1.8` en construction (section 7).
 
 ---
 
@@ -568,7 +568,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
-| 5. Cartes, partie 1 | **en cours** | `frontend-v1.8` (prévue) | 2026-11-19 | couleurs par domaine (D6) ; pages publiques (D7) |
+| 5. Cartes, partie 1 | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.8` | 2026-11-20 | couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
@@ -855,3 +855,72 @@ Toutes restent sous 0,1 (seuil « bon »). Elles viennent de l'arrivée des poli
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.7`.
 
 Retour arrière : `frontend-v1.6`.
+
+### Itération 5 : détail (2026-11-20)
+
+**Modifications** (12 fichiers, dont 1 nouveau) :
+- `src/index.css` : classes `.amame-card`, `-interactive`, `-media` (et ses variantes `-portrait`, `-logo`), `-img`, `-body`, `-title`, `-text`, `-footer`, `-action` ; les classes inutilisées `.card-base` et `.card-hover` sont retirées.
+- `src/components/CardSkeleton.tsx` (nouveau) : un squelette unique, qui reprend la forme de la carte (rayon, bordure, hauteur du média, marges, pied). Il remplace 7 squelettes écrits à la main, dont 4 copies identiques dans les pages des bourses et des concours.
+- Cartes : `BourseCardItem.tsx` et `ConcoursCardItem.tsx` (6 routes), `Orientation.tsx`, `Universites.tsx`, `Partenaires.tsx`, `Membres.tsx`.
+- Squelettes : `BoursesList.tsx`, `ConcoursListing.tsx`, `Bourses.tsx`, `Concours.tsx`, plus les quatre pages ci-dessus.
+- Grilles : `gap-5 lg:gap-6` partout ; l'orientation passe à 3 colonnes dès 1024 px (avant : dès 1280 px), comme les bourses et les concours.
+- `CLAUDE.md` : règle des cartes (paragraphe « Cards »).
+
+**Ce qui change à l'écran :**
+- **Bourses, concours, orientation** (toute la carte est un lien) : la carte elle-même devient le lien, au lieu d'un lien qui l'enveloppe ; l'anneau de focus suit donc ses angles arrondis. Au survol : soulèvement de 4 px, ombre plus marquée, léger zoom de la photo, titre dans la couleur du domaine.
+- **Universités, partenaires, membres** (la carte n'est pas un lien) : elles ne se soulèvent plus au survol, puisqu'un clic sur la carte ne fait rien. Seul le lien du pied réagit (« Voir le détail », « Visiter le site », l'adresse e-mail), avec son propre anneau de focus.
+- **Concours** : le gros bouton bleu « Voir les détails » laisse la place au pied commun, avec la date de clôture à gauche et « Voir le concours → » à droite.
+- **Orientation** : le nom de la filière passe de l'image au corps de la carte, comme sur les autres cartes, et le dégradé sombre qui le rendait lisible disparaît.
+- **Bourses** : la description n'est plus coupée à 10 mots ; elle est limitée à 3 lignes, comme ailleurs.
+- **Libellés d'action** : « Voir » devient « Voir la bourse » ; « Voir détail » devient « Voir la filière » ; « Voir les détails » devient « Voir le concours ».
+- **Couleur des liens d'action et des titres au survol** : même teinte par domaine (D6), en version foncée pour atteindre 4,5:1 sur blanc. Or : `#ca8a04` (2,9:1) → `amber-700` (`#b45309`, 5,0:1). Vert : `#16a34a` (3,3:1) → `amame-green-dark` (`#15803d`, 5,0:1). Bleu : `blue-600` (5,2:1), inchangé. Même correction pour le poste des membres.
+
+**Constat : l'ombre des cartes était invisible.** `shadow-card` désigne à la fois une ombre (`boxShadow.card` de `tailwind.config.ts`) et une couleur d'ombre, issue de la couleur `card` de shadcn, qui est blanche. Tailwind génère les deux règles sous le même nom, et la seconde rend l'ombre blanche. Au repos, aucune carte du site n'avait donc d'ombre visible ; seule celle du survol (`shadow-card-hover`) s'affichait.
+- `.amame-card` pose désormais l'ombre elle-même ; elle est visible sur les cartes de cette itération.
+- La classe `shadow-card` reste utilisée à 46 endroits, ailleurs dans le site, avec le même défaut. L'itération 6 en remplace une partie par `.amame-card`. Pour le reste (administration, espace membre), une correction globale serait de renommer l'ombre dans `tailwind.config.ts`. Elle n'est pas faite ici, puisqu'elle changerait l'aspect de pages hors périmètre (D7).
+
+**Mesures** (Playwright ; données de test servies par le navigateur, aucun appel à une API réelle ; 8 routes : `/bourses`, `/bourses/etude`, `/concours`, `/concours/national`, `/orientation`, `/orientation/universites`, `/a-propos/partenaires`, `/a-propos/membres` ; 390 et 1440 px) :
+
+| Mesure | Avant (`frontend-v1.7`) | Après |
+|---|---|---|
+| Rayon des cartes | 16 px | 16 px |
+| Rayon des squelettes | 12 px (bourses, concours), 16 px (autres) | 16 px partout |
+| Hauteur du média des cartes | 144, 160, 176, 128, 208 px (6 hauteurs selon la page et la largeur) | 176 (photo), 128 (logo), 224 px (portrait) |
+| Média des squelettes | bandeau de 4 px (bourses, concours) ; sinon, comme la carte | identique à la carte |
+| Titre | 14 px (bourses, orientation), 16 px (autres) | 16 px partout |
+| Texte | 12 px (5 pages), 14 px (membres) | 14 px partout |
+| Ombre au repos | blanche (invisible) | `rgba(0, 0, 0, 0.08)` |
+| Survol d'une carte-lien | soulèvement de 4 px | soulèvement de 4 px, ombre `shadow-card-hover` |
+| Survol d'une carte qui n'est pas un lien | soulèvement de 4 px | aucun mouvement |
+| Focus clavier, carte-lien | contour par défaut du navigateur, rectangulaire, autour du lien qui enveloppe la carte (bourses, orientation) ; anneau bleu (concours) | anneau vert de 2 px, à 2 px de la carte, qui en suit les angles |
+| Focus clavier, carte qui n'est pas un lien | contour par défaut sur le bouton | anneau vert sur le lien du pied |
+| Réduction des animations | soulèvement et zoom conservés | ni soulèvement, ni zoom, ni transition |
+| Débordement horizontal à 320 px | — | aucun, sur les 8 routes ; bord des grilles à 16 px (320) et 112 px (1440) |
+| Erreurs JavaScript | aucune | aucune |
+
+**CLS à l'arrivée des données** (réponse de l'API retenue, squelettes affichés, puis données envoyées ; 1440×900) :
+
+| Cas | Avant | Après |
+|---|---|---|
+| Page en haut (premier affichage ; 5 routes mesurées) | 0 sur 4 routes ; 0,0026 sur `/orientation/universites` | identique |
+| Grille à l'écran pendant le chargement (pire cas) | 0,016 à 0,103 | 0,005 à 0,045 |
+
+- **Page en haut**, le cas réel d'un premier affichage : 0 sur les cartes. Le 0,0026 des universités vient de la rangée de filtres au-dessus de la grille ; il est présent avant comme après.
+- **Grille à l'écran pendant le chargement** : le bas de page se déplace, parce que le nombre de cartes reçues (ici 4 à 6) et leur hauteur diffèrent du nombre de squelettes (6 à 9) ; les partenaires arrivent en plus groupés par type, avec un titre par groupe. Ces décalages ne viennent pas de la forme des cartes ; ils baissent nettement (concours : 0,073 → 0,006 ; membres : 0,028 → 0,005).
+- **Sur mobile (390 px)** : CLS de 0 sur les 8 routes, avant comme après.
+- Le critère « CLS = 0 sur les listes » est donc atteint au premier affichage, pas quand la grille est déjà à l'écran pendant le chargement.
+
+**Vérifications de base** : `npx tsc --noEmit -p tsconfig.app.json`, les 4 erreurs connues et aucune nouvelle ; `vite build` réussi. Le précache passe de 113 à 114 entrées : le seul ajout est `CardSkeleton.js` (681 octets), partagé par les pages chargées à la demande. Le total baisse de 2 Kio (1 816 contre 1 818 Kio), puisque les squelettes dupliqués disparaissent.
+
+**Pas traité :**
+- l'accueil (fonctionnalités, témoignages), les articles, galeries, guides, postes, liens utiles, ressources et la page À propos : itération 6 ;
+- le libellé accessible des cartes de concours (`aria-label` « Voir les détails du concours … ») remplace tout le contenu de la carte pour un lecteur d'écran ; il est conservé tel quel ;
+- le contraste de la couleur or des icônes (calendrier) et des titres de bourse au repos : les icônes ne portent pas d'information seule, le titre reste en noir au repos.
+
+**Livraison** :
+1. Fait : étiquette par défaut passée à `frontend-v1.8` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
+2. En cours : image `frontend-v1.8` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
+3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.8`.
+
+Retour arrière : `frontend-v1.7`.

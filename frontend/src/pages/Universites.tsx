@@ -6,19 +6,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { useGetEtablissement } from "@/service/etablissementService";
 
-const CardSkeleton = () => (
-  <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
-    <Skeleton className="h-32 w-full rounded-none" />
-    <div className="p-5 space-y-3">
-      <Skeleton className="h-5 w-3/4 rounded-md" />
-      <Skeleton className="h-4 w-1/2 rounded-md" />
-      <Skeleton className="h-9 w-full rounded-xl mt-2" />
-    </div>
-  </div>
-);
 
 const Universites = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,8 +104,8 @@ const Universites = () => {
       <section className="flex-grow py-8 lg:py-12">
         <div className="page-container">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(9)].map((_, i) => <CardSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              {[...Array(9)].map((_, i) => <CardSkeleton key={i} media="logo" lines={1} />)}
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
@@ -133,7 +123,7 @@ const Universites = () => {
                   <p className="text-sm text-amame-muted">{filtered.length} établissement{filtered.length > 1 ? "s" : ""}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {filtered.map((etab, index) => (
                   <motion.div
                     key={etab.id}
@@ -141,14 +131,16 @@ const Universites = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.04 }}
                   >
-                    <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group h-full">
-                      {/* Header — logo pleine largeur (object-contain pour ne jamais rogner le logo) */}
-                      <div className="relative h-32 w-full flex items-center justify-center p-5 bg-gradient-to-br from-amame-green-subtle to-white border-b border-amame-border">
+                    {/* Carte .amame-card (index.css). Elle n'est pas un lien : pas de soulèvement au
+                        survol ; seul le lien du pied réagit. */}
+                    <div className="amame-card">
+                      {/* Média — logo (object-contain pour ne jamais rogner le logo) */}
+                      <div className="amame-card-media amame-card-media-logo">
                         {etab.urlLogo ? (
                           <img
                             src={etab.urlLogo}
                             alt={etab.nom}
-                            className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                            className="max-h-full max-w-full object-contain"
                             loading="lazy"
                             onError={e => { e.currentTarget.style.display = "none"; }}
                           />
@@ -162,27 +154,25 @@ const Universites = () => {
                         )}
                       </div>
 
-                      {/* Body — titre + lieu */}
-                      <div className="flex flex-col flex-grow p-5">
-                        <h3 className="font-nunito font-bold text-base text-amame-charcoal group-hover:text-amame-green transition-colors line-clamp-2 leading-snug">
-                          {etab.nom}
-                        </h3>
+                      {/* Corps — nom + lieu */}
+                      <div className="amame-card-body">
+                        <h3 className="amame-card-title">{etab.nom}</h3>
                         {etab.lieu && (
-                          <div className="flex items-center gap-2 text-xs text-amame-muted mt-2">
+                          <div className="flex items-center gap-2 text-sm text-amame-muted mt-2">
                             <MapPin className="h-3.5 w-3.5 text-amame-green shrink-0" />
                             <span className="line-clamp-1">{etab.lieu}</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Footer — lien détail (si présent) */}
+                      {/* Pied — lien vers la fiche de l'établissement (si présent) */}
                       {etab.urlDetailEtablissement && (
-                        <div className="px-5 pb-5 mt-auto">
+                        <div className="amame-card-footer justify-end">
                           <a
                             href={etab.urlDetailEtablissement}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex w-full items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold bg-amame-green-subtle text-amame-green-dark border border-amame-green/20 hover:bg-amame-green hover:text-white hover:border-amame-green transition-colors"
+                            className="amame-card-action text-amame-green-dark hover:gap-1.5 hover:underline"
                           >
                             Voir le détail
                             <ExternalLink className="h-3.5 w-3.5" />

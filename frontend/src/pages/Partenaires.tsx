@@ -3,7 +3,7 @@ import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion } from "framer-motion";
 import { useGetPartenaires } from "@/service/partenaireService";
 import MediaImage from "@/components/MediaImage";
@@ -39,17 +39,8 @@ const Partenaires = () => {
       <section className="flex-grow py-8 lg:py-12">
         <div className="page-container">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-amame-border overflow-hidden">
-                  <Skeleton className="h-32 w-full rounded-none" />
-                  <div className="p-5 space-y-3">
-                    <Skeleton className="h-5 w-2/3 rounded-md" />
-                    <Skeleton className="h-4 w-full rounded-md" />
-                    <Skeleton className="h-9 w-full rounded-xl mt-2" />
-                  </div>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="logo" lines={2} />)}
             </div>
           ) : !partenaires || partenaires.length === 0 ? (
             <div className="text-center py-20">
@@ -69,7 +60,7 @@ const Partenaires = () => {
                     <span className="section-label">{type}s</span>
                     <h2 className="font-nunito font-bold text-xl text-amame-charcoal">{type}s ({list!.length})</h2>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                     {list!.map((partenaire, index) => (
                       <motion.div
                         key={partenaire.id}
@@ -77,16 +68,18 @@ const Partenaires = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: index * 0.06 }}
                       >
-                        <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
-                          {/* Header — logo pleine largeur (object-contain pour ne jamais rogner le logo) */}
-                          <div className="relative h-32 w-full flex items-center justify-center p-5 bg-gradient-to-br from-amame-green-subtle to-white border-b border-amame-border">
+                        {/* Carte .amame-card (index.css). Elle n'est pas un lien : pas de soulèvement
+                            au survol ; seul le lien du pied réagit. */}
+                        <div className="amame-card">
+                          {/* Média — logo (object-contain pour ne jamais rogner le logo) */}
+                          <div className="amame-card-media amame-card-media-logo">
                             {(partenaire.fileUrl ?? partenaire.filePath) ? (
                               <MediaImage
                                 src={partenaire.fileUrl ?? partenaire.filePath}
                                 maxWidth={320}
                                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                                 alt={partenaire.nom}
-                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                                className="max-h-full max-w-full object-contain"
                                 onError={e => { e.currentTarget.style.display = "none"; }}
                               />
                             ) : (
@@ -97,26 +90,22 @@ const Partenaires = () => {
                             </span>
                           </div>
 
-                          {/* Body — nom + description */}
-                          <div className="flex flex-col flex-grow p-5">
-                            <h3 className="font-nunito font-bold text-base text-amame-charcoal group-hover:text-amame-green transition-colors line-clamp-2 leading-snug">
-                              {partenaire.nom}
-                            </h3>
+                          {/* Corps — nom + description */}
+                          <div className="amame-card-body">
+                            <h3 className="amame-card-title">{partenaire.nom}</h3>
                             {partenaire.description && (
-                              <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mt-2">
-                                {partenaire.description}
-                              </p>
+                              <p className="amame-card-text mt-2">{partenaire.description}</p>
                             )}
                           </div>
 
-                          {/* Footer — site web (si présent) */}
+                          {/* Pied — site web (si présent) */}
                           {partenaire.siteWeb && (
-                            <div className="px-5 pb-5 mt-auto">
+                            <div className="amame-card-footer justify-end">
                               <a
                                 href={partenaire.siteWeb}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex w-full items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold bg-amame-green-subtle text-amame-green-dark border border-amame-green/20 hover:bg-amame-green hover:text-white hover:border-amame-green transition-colors"
+                                className="amame-card-action text-amame-green-dark hover:gap-1.5 hover:underline"
                               >
                                 Visiter le site
                                 <ExternalLink className="h-3.5 w-3.5" />

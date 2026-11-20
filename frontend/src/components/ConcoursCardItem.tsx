@@ -57,20 +57,21 @@ const ConcoursCardItem = ({
   const imageUrl = mediaUrl(fileUrl ?? filePath);
 
   return (
+    // Carte .amame-card (index.css) ; couleur du domaine : bleu.
     <Link
       to={`/concours/${id}`}
       aria-label={`Voir les détails du concours ${nom}`}
-      className="group h-full flex flex-col bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+      className="amame-card amame-card-interactive group"
     >
-      {/* ── Header : image pleine largeur + badges flottants ── */}
-      <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-gray-100">
+      {/* ── Média : image pleine largeur + badges flottants ── */}
+      <div className="amame-card-media">
         {imageUrl ? (
           <MediaImage
             src={imageUrl}
             maxWidth={640}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={nom}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isClosed ? "grayscale" : ""}`}
+            className={`amame-card-img ${isClosed ? "grayscale" : ""}`}
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
@@ -97,19 +98,13 @@ const ConcoursCardItem = ({
         </span>
       </div>
 
-      {/* ── Body : titre, description, méta ── */}
-      <div className="flex flex-col flex-grow p-4 sm:p-5">
-        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-2 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
-          {nom}
-        </h3>
+      {/* ── Corps : titre, description, méta ── */}
+      <div className="amame-card-body">
+        <h3 className="amame-card-title group-hover:text-blue-600">{nom}</h3>
 
-        {description && (
-          <p className="text-xs text-amame-muted leading-relaxed line-clamp-2 mb-4">
-            {description}
-          </p>
-        )}
+        {description && <p className="amame-card-text mt-2">{description}</p>}
 
-        <div className="mt-auto space-y-1.5">
+        <div className="mt-4 space-y-1.5">
           <div className="flex items-center gap-2 text-xs text-amame-slate">
             <GraduationCap className="h-3.5 w-3.5 text-blue-500 shrink-0" />
             <span>{getNiveauLabel(niveau)}</span>
@@ -121,16 +116,9 @@ const ConcoursCardItem = ({
             <Calendar className="h-3.5 w-3.5 text-amame-gold shrink-0" />
             <span>Ouverture : {safeFormat(ouverture)}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-amame-slate">
-            <Clock className="h-3.5 w-3.5 text-red-500 shrink-0" />
-            <span>Clôture : {safeFormat(limite)}</span>
-          </div>
-
           {isOpen && (
-            <div
-              className={`flex items-center gap-1.5 text-xs font-semibold pt-1 ${isUrgent ? "text-red-600" : "text-blue-600"}`}
-            >
-              <Clock className="h-3.5 w-3.5" />
+            <div className={`flex items-center gap-2 text-xs font-semibold ${isUrgent ? "text-red-600" : "text-blue-600"}`}>
+              <Clock className="h-3.5 w-3.5 shrink-0" />
               {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
               {isUrgent && <span className="font-bold">· Urgent !</span>}
             </div>
@@ -138,17 +126,14 @@ const ConcoursCardItem = ({
         </div>
       </div>
 
-      {/* ── Footer : CTA visuel (toute la carte est cliquable) ── */}
-      <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-        <span
-          className={`inline-flex w-full items-center justify-center gap-2 h-10 rounded-xl text-sm font-semibold transition-colors ${
-            isClosed
-              ? "bg-amame-charcoal/5 text-amame-charcoal group-hover:bg-amame-charcoal/10"
-              : "bg-blue-600 text-white group-hover:bg-blue-700"
-          }`}
-        >
-          Voir les détails
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+      {/* ── Pied : clôture, action (toute la carte est cliquable) ── */}
+      <div className="amame-card-footer">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-amame-slate min-w-0">
+          <Clock className="h-3.5 w-3.5 text-red-500 shrink-0" />
+          <span className="truncate">Clôture : {safeFormat(limite)}</span>
+        </div>
+        <span className="amame-card-action text-blue-600 group-hover:gap-1.5">
+          Voir le concours <ArrowRight className="h-3.5 w-3.5" />
         </span>
       </div>
     </Link>

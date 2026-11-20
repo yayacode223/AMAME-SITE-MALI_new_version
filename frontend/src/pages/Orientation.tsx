@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 import { useGetAllFilieres } from "../service/orientationService";
 import { DomaineFiliereType } from "@/types/orientationType";
 import MediaImage from "@/components/MediaImage";
+import CardSkeleton from "@/components/CardSkeleton";
 
 const difficultyConfig: Record<string, { label: string; cls: string }> = {
   TRES_ELEVEE: { label: "Très élevée", cls: "bg-red-50 text-red-700 border-red-200" },
@@ -37,25 +38,6 @@ const domains = [
   { value: DomaineFiliereType.LETTRES_ET_SCIENCES_HUMAINES,    label: "Lettres & Humaines" },
   { value: DomaineFiliereType.ARTS_ET_COMMUNICATION,           label: "Arts & Com."        },
 ];
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
-    <Skeleton className="h-40 w-full rounded-none" />
-    <div className="p-4 space-y-3">
-      <Skeleton className="h-4 w-full rounded-md" />
-      <Skeleton className="h-4 w-2/3 rounded-md" />
-      <div className="flex gap-1.5 pt-1">
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-16 rounded-full" />
-      </div>
-    </div>
-    <div className="px-4 pb-4 pt-3 border-t border-amame-border flex items-center justify-between">
-      <Skeleton className="h-4 w-20 rounded-md" />
-      <Skeleton className="h-4 w-16 rounded-md" />
-    </div>
-  </div>
-);
 
 export function Orientation() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,8 +89,8 @@ export function Orientation() {
             </div>
           </div>
           <div className="page-container py-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={3} />)}
             </div>
           </div>
         </div>
@@ -195,8 +177,8 @@ export function Orientation() {
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
-                  {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                  {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={3} />)}
                 </motion.div>
 
               ) : filieres.length === 0 ? (
@@ -214,29 +196,28 @@ export function Orientation() {
 
               ) : (
                 <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                     {filieres.map((filiere) => {
                       const diff = difficultyConfig[filiere.difficulte] ?? difficultyConfig.MOYENNE;
                       return (
-                        <Link key={filiere.id} to={`/orientation/${filiere.id}`} className="block h-full group">
-                          <div className="h-full flex flex-col bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        // Carte .amame-card (index.css) ; couleur du domaine : vert.
+                        <Link key={filiere.id} to={`/orientation/${filiere.id}`} className="amame-card amame-card-interactive group">
 
-                            {/* Header — image pleine largeur */}
-                            <div className="relative h-40 overflow-hidden shrink-0 bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
+                            {/* Média — image pleine largeur */}
+                            <div className="amame-card-media bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
                               {(filiere.fileUrl ?? filiere.filePath) ? (
                                 <MediaImage
                                   src={filiere.fileUrl ?? filiere.filePath}
                                   maxWidth={640}
                                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                                   alt={filiere.nom}
-                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                  className="amame-card-img"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                   <Briefcase className="h-12 w-12 text-amame-green/20" />
                                 </div>
                               )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
 
                               {/* Badge difficulté — coin supérieur droit */}
                               <div className="absolute top-3 right-3">
@@ -244,20 +225,14 @@ export function Orientation() {
                                   {diff.label}
                                 </span>
                               </div>
-
-                              {/* Nom filière — overlay bas */}
-                              <div className="absolute bottom-3 left-4 right-16">
-                                <h3 className="font-nunito font-bold text-sm text-white leading-snug line-clamp-2 drop-shadow-sm">
-                                  {filiere.nom}
-                                </h3>
-                              </div>
                             </div>
 
-                            {/* Body */}
-                            <div className="flex flex-col flex-grow px-4 pt-4 pb-3">
-                              <p className="text-xs text-amame-muted leading-relaxed flex-grow line-clamp-3">
-                                {filiere.descriptionCourte}
-                              </p>
+                            {/* Corps — le nom de la filière passe de l'image au corps, comme les autres cartes */}
+                            <div className="amame-card-body">
+                              <h3 className="amame-card-title group-hover:text-amame-green-dark">{filiere.nom}</h3>
+                              {filiere.descriptionCourte && (
+                                <p className="amame-card-text mt-2">{filiere.descriptionCourte}</p>
+                              )}
 
                               {filiere.debouches && filiere.debouches.length > 0 && (
                                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -276,18 +251,16 @@ export function Orientation() {
                               )}
                             </div>
 
-                            {/* Footer */}
-                            <div className="px-4 pb-4 pt-3 border-t border-amame-border flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5 text-xs text-amame-muted min-w-0">
+                            {/* Pied — durée des études, action */}
+                            <div className="amame-card-footer">
+                              <div className="flex items-center gap-1.5 text-xs font-medium text-amame-slate min-w-0">
                                 <Clock className="h-3.5 w-3.5 shrink-0 text-blue-400" />
                                 <span className="truncate">{filiere.dureeEtudes}</span>
                               </div>
-                              <div className="flex items-center gap-1 text-xs font-semibold text-amame-green shrink-0 group-hover:gap-1.5 transition-all duration-200">
-                                Voir détail <ArrowRight className="h-3 w-3" />
-                              </div>
+                              <span className="amame-card-action text-amame-green-dark group-hover:gap-1.5">
+                                Voir la filière <ArrowRight className="h-3.5 w-3.5" />
+                              </span>
                             </div>
-
-                          </div>
                         </Link>
                       );
                     })}

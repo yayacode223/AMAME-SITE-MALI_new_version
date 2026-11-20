@@ -3,7 +3,7 @@ import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion } from "framer-motion";
 import { useGetMembres } from "@/service/membreService";
 import MediaImage from "@/components/MediaImage";
@@ -14,16 +14,18 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.07 }}
   >
-    <div className="bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group">
-      {/* Header — photo pleine largeur */}
-      <div className="relative w-full h-52 overflow-hidden bg-amame-green-subtle">
+    {/* Carte .amame-card (index.css), zone média portrait. Elle n'est pas un lien : pas de
+        soulèvement au survol ; seul le lien du pied réagit. */}
+    <div className="amame-card">
+      {/* Média — photo */}
+      <div className="amame-card-media amame-card-media-portrait">
         {(membre.fileUrl ?? membre.filePath) ? (
           <MediaImage
             src={membre.fileUrl ?? membre.filePath}
             maxWidth={640}
-            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={`${membre.prenom} ${membre.nom}`}
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover object-center"
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
         ) : (
@@ -35,25 +37,21 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
         )}
       </div>
 
-      {/* Body — nom + poste + bio */}
-      <div className="flex flex-col flex-grow p-5 text-center">
-        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-0.5">
+      {/* Corps — nom + poste + bio */}
+      <div className="amame-card-body text-center">
+        <h3 className="amame-card-title">
           {membre.prenom} {membre.nom}
         </h3>
-        <p className="text-sm font-medium text-amame-green mb-3">{membre.poste}</p>
-        {membre.bio && (
-          <p className="text-xs text-amame-muted leading-relaxed line-clamp-3">
-            {membre.bio}
-          </p>
-        )}
+        <p className="text-sm font-medium text-amame-green-dark mt-0.5">{membre.poste}</p>
+        {membre.bio && <p className="amame-card-text mt-3">{membre.bio}</p>}
       </div>
 
-      {/* Footer — email (si présent) */}
+      {/* Pied — email (si présent) */}
       {membre.email && (
-        <div className="px-5 pb-5 pt-3 mt-auto border-t border-amame-border">
+        <div className="amame-card-footer justify-center">
           <a
             href={`mailto:${membre.email}`}
-            className="inline-flex w-full items-center justify-center gap-1.5 text-xs text-amame-muted hover:text-amame-green transition-colors"
+            className="amame-card-action min-w-0 shrink font-medium text-amame-muted hover:text-amame-green-dark"
           >
             <Mail className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{membre.email}</span>
@@ -88,17 +86,8 @@ const Membres = () => {
       <section className="flex-grow py-8 lg:py-12">
         <div className="page-container">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-amame-border overflow-hidden">
-                  <Skeleton className="h-52 w-full rounded-none" />
-                  <div className="p-5 space-y-2 text-center">
-                    <Skeleton className="h-5 w-3/4 mx-auto rounded-md" />
-                    <Skeleton className="h-4 w-1/2 mx-auto rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-md mt-2" />
-                  </div>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
+              {[...Array(8)].map((_, i) => <CardSkeleton key={i} media="portrait" lines={2} />)}
             </div>
           ) : !membres || membres.length === 0 ? (
             <div className="text-center py-20">
@@ -118,7 +107,7 @@ const Membres = () => {
                   {membres.length} membre{membres.length > 1 ? "s" : ""} actif{membres.length > 1 ? "s" : ""}
                 </h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
                 {membres.map((membre, index) => (
                   <MembreCard key={membre.id} membre={membre} index={index} />
                 ))}

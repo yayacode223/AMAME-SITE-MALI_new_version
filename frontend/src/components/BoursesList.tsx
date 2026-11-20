@@ -4,7 +4,7 @@ import BourseCardItem from "./BourseCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { Search, Award, MapPin, GraduationCap, SearchX, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useGetBourses, useGetBourseByFilter, useGetBourseBySearch } from "@/service/bourseService";
 import { BourseFilterParams, BourseSearchRequest } from "@/types/bourseType";
@@ -27,26 +27,6 @@ const PAYS_OPTIONS = [
   { value: "Suisse", label: "Suisse" },
   { value: "Suède", label: "Suède" },
 ];
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
-    <div className="h-1 bg-gray-100" />
-    <div className="p-5 space-y-3">
-      <div className="flex justify-between">
-        <Skeleton className="h-5 w-24 rounded-full" />
-        <Skeleton className="h-5 w-16 rounded-full" />
-      </div>
-      <Skeleton className="h-5 w-3/4 rounded-md" />
-      <Skeleton className="h-4 w-full rounded-md" />
-      <Skeleton className="h-4 w-2/3 rounded-md" />
-      <div className="space-y-1.5 pt-2">
-        <Skeleton className="h-3.5 w-1/2 rounded-md" />
-        <Skeleton className="h-3.5 w-2/5 rounded-md" />
-      </div>
-      <Skeleton className="h-9 w-full rounded-lg mt-2" />
-    </div>
-  </div>
-);
 
 interface BourseListProps {
   defaultCategorie?: string;

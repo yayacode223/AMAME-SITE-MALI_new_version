@@ -31,12 +31,6 @@ const formatDate = (dateString?: string) => {
   });
 };
 
-const truncateWords = (text: string | undefined, max: number) => {
-  if (!text) return "";
-  const words = text.trim().split(/\s+/);
-  return words.length > max ? words.slice(0, max).join(" ") + "…" : text;
-};
-
 const isDeadlineNear = (dateString?: string) => {
   if (!dateString) return false;
   const diff = new Date(dateString).getTime() - Date.now();
@@ -48,54 +42,48 @@ const BourseCardItem = ({ id, titre, descriptionCourte, paysHote, dateLimite }: 
   const nearDeadline = isDeadlineNear(dateLimite);
 
   return (
-    <Link to={`/bourses/${id}`} className="block h-full group">
-      <div className="h-full flex flex-col bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+    // Carte .amame-card (index.css) ; couleur du domaine : or (amber-700 pour le texte, 5:1 sur blanc).
+    <Link to={`/bourses/${id}`} className="amame-card amame-card-interactive group">
 
-        {/* Header — Drapeau */}
-        <div className="relative h-36 overflow-hidden shrink-0 bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
-          {flagImage ? (
-            <StaticImage
-              name={flagImage}
-              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              alt={paysHote ?? ""}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MapPin className="h-10 w-10 text-amame-gold/30" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-          {paysHote && (
-            <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-              <MapPin className="h-3 w-3 text-white/80 shrink-0" />
-              <span className="text-white text-xs font-semibold drop-shadow-sm">{paysHote}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="flex flex-col flex-grow px-4 pt-4 pb-3">
-          <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-2 line-clamp-2 leading-snug group-hover:text-amame-gold transition-colors duration-200">
-            {titre}
-          </h3>
-          <p className="text-xs text-amame-muted leading-relaxed flex-grow">
-            {truncateWords(descriptionCourte, 10)}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 pb-4 pt-3 border-t border-amame-border flex items-center justify-between gap-2">
-          <div className={`flex items-center gap-1.5 text-xs font-medium min-w-0 ${nearDeadline ? "text-red-600" : "text-amame-slate"}`}>
-            <Calendar className={`h-3.5 w-3.5 shrink-0 ${nearDeadline ? "text-red-500" : "text-amame-gold"}`} />
-            <span className="truncate">{formatDate(dateLimite)}</span>
-            {nearDeadline && <span className="font-bold shrink-0">· Urgent</span>}
+      {/* Média — drapeau du pays hôte */}
+      <div className="amame-card-media bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
+        {flagImage ? (
+          <StaticImage
+            name={flagImage}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            alt={paysHote ?? ""}
+            className="amame-card-img"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <MapPin className="h-10 w-10 text-amame-gold/30" />
           </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-amame-gold shrink-0 group-hover:gap-1.5 transition-all duration-200">
-            Voir <ArrowRight className="h-3 w-3" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+        {paysHote && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+            <MapPin className="h-3 w-3 text-white/80 shrink-0" />
+            <span className="text-white text-xs font-semibold drop-shadow-sm">{paysHote}</span>
           </div>
-        </div>
+        )}
+      </div>
 
+      {/* Corps */}
+      <div className="amame-card-body">
+        <h3 className="amame-card-title group-hover:text-amber-700">{titre}</h3>
+        {descriptionCourte && <p className="amame-card-text mt-2">{descriptionCourte}</p>}
+      </div>
+
+      {/* Pied — date limite, action */}
+      <div className="amame-card-footer">
+        <div className={`flex items-center gap-1.5 text-xs font-medium min-w-0 ${nearDeadline ? "text-red-600" : "text-amame-slate"}`}>
+          <Calendar className={`h-3.5 w-3.5 shrink-0 ${nearDeadline ? "text-red-500" : "text-amame-gold"}`} />
+          <span className="truncate">{formatDate(dateLimite)}</span>
+          {nearDeadline && <span className="font-bold shrink-0">· Urgent</span>}
+        </div>
+        <span className="amame-card-action text-amber-700 group-hover:gap-1.5">
+          Voir la bourse <ArrowRight className="h-3.5 w-3.5" />
+        </span>
       </div>
     </Link>
   );

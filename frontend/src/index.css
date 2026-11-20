@@ -71,13 +71,71 @@
     @apply border-2 border-amame-green text-amame-green hover:bg-amame-green-subtle font-semibold py-2.5 px-5 rounded-lg transition-all duration-200;
   }
 
-  /* Cards AMAME */
-  .card-base {
-    @apply bg-white rounded-xl border border-amame-border shadow-card transition-all duration-300;
+  /* Cartes des pages publiques (docs/04-amelioration-design-accueil.md, section 3.4).
+     - .amame-card : la carte (rayon, bordure, ombre, colonne pleine hauteur dans sa grille).
+     - .amame-card-interactive : en plus, quand toute la carte est un lien (<Link>) : soulèvement
+       et ombre au survol, anneau vert au focus clavier, sans mouvement si l'utilisateur demande
+       de réduire les animations. Une carte qui n'est pas un lien ne bouge pas au survol.
+     - La couleur du domaine (or : bourses, bleu : concours, vert : le reste) reste dans le
+       composant : icône, titre au survol, lien d'action. */
+  .amame-card {
+    @apply flex h-full flex-col overflow-hidden rounded-2xl border border-amame-border bg-white;
+    /* Ombre au repos posée ici, pas avec la classe shadow-card : ce nom désigne aussi une couleur
+       d'ombre (la couleur « card » de shadcn, blanche), et Tailwind génère les deux règles ;
+       l'ombre devenait blanche, donc invisible. Les variables gardent l'anneau de focus et
+       hover:shadow-card-hover compatibles. */
+    --tw-shadow: theme("boxShadow.card");
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   }
 
-  .card-hover {
-    @apply card-base hover:shadow-card-hover hover:-translate-y-1;
+  .amame-card-interactive {
+    @apply transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-card-hover
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amame-green focus-visible:ring-offset-2
+           motion-reduce:transition-none motion-reduce:hover:translate-y-0;
+  }
+
+  /* Zone média en haut de la carte : photo (h-44), portrait (h-56, membres), logo (h-32,
+     jamais rogné : l'image y est en object-contain). CardSkeleton.tsx reprend ces hauteurs. */
+  .amame-card-media {
+    @apply relative h-44 w-full shrink-0 overflow-hidden bg-gray-100;
+  }
+
+  .amame-card-media-portrait {
+    @apply h-56 bg-amame-green-subtle;
+  }
+
+  .amame-card-media-logo {
+    @apply flex h-32 items-center justify-center border-b border-amame-border bg-gradient-to-br from-amame-green-subtle to-white p-5;
+  }
+
+  /* Photo d'une carte : couvre la zone, léger zoom au survol d'une carte interactive (.group). */
+  .amame-card-img {
+    @apply h-full w-full object-cover transition-transform duration-500 group-hover:scale-105
+           motion-reduce:transition-none motion-reduce:group-hover:scale-100;
+  }
+
+  .amame-card-body {
+    @apply flex flex-grow flex-col p-5;
+  }
+
+  .amame-card-title {
+    @apply font-nunito text-base font-bold leading-snug text-amame-charcoal line-clamp-2 transition-colors duration-200;
+  }
+
+  .amame-card-text {
+    @apply text-sm leading-relaxed text-amame-muted line-clamp-3;
+  }
+
+  /* Pied : informations à gauche, action « Voir … → » à droite. */
+  .amame-card-footer {
+    @apply mt-auto flex items-center justify-between gap-3 border-t border-amame-border px-5 py-4;
+  }
+
+  /* Lien d'action du pied. Sa couleur (celle du domaine, en teinte foncée pour un contraste
+     d'au moins 4,5:1 sur blanc) est donnée par le composant. */
+  .amame-card-action {
+    @apply inline-flex shrink-0 items-center gap-1 rounded text-sm font-semibold transition-all duration-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amame-green focus-visible:ring-offset-2;
   }
 
   /* Colonne d'une page : centrée, 1280 px au plus (padding compris), marges latérales de

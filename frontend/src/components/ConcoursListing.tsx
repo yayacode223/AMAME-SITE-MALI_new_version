@@ -4,7 +4,7 @@ import ConcoursCardItem from "./ConcoursCardItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { Search, GraduationCap, SearchX, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useConcoursLists, useConcoursFilter, useConcoursSearch } from "@/service/concoursService";
 import { ConcoursFilterParams, NiveauType, StatusType } from "@/types/concoursType";
@@ -16,24 +16,6 @@ const NIVEAU_OPTIONS = [
   { value: "MASTER", label: "Master" },
   { value: "DOCTORAT", label: "Doctorat" },
 ];
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
-    <div className="h-1 bg-gray-100" />
-    <div className="p-5 space-y-3">
-      <div className="flex justify-between">
-        <Skeleton className="h-5 w-20 rounded-full" />
-        <Skeleton className="h-5 w-24 rounded-full" />
-      </div>
-      <Skeleton className="h-5 w-3/4 rounded-md" />
-      <Skeleton className="h-4 w-full rounded-md" />
-      <div className="space-y-1.5 pt-2">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-3.5 w-1/2 rounded-md" />)}
-      </div>
-      <Skeleton className="h-9 w-full rounded-lg mt-2" />
-    </div>
-  </div>
-);
 
 interface ConcoursListingProps {
   defaultStatus?: "NATIONAL" | "INTERNATIONAL";
@@ -160,7 +142,7 @@ const ConcoursListing = ({ defaultStatus }: ConcoursListingProps) => {
             {isLoading ? (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-                {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={4} />)}
               </motion.div>
             ) : !data || data.concours.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
