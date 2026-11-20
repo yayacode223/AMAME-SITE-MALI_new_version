@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 commitée, image `frontend-v1.10` en construction (section 7).
+> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 publiée (`frontend-v1.10` sur Docker Hub), en attente de déploiement (section 7).
 
 ---
 
@@ -570,7 +570,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | **en production** | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 7. Polices servies par le site | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.10` | 2026-11-20 | D9 |
+| 7. Polices servies par le site | **image publiée** ; en attente de déploiement | `frontend-v1.10` | 2026-11-20 | commit `4274cec` ; D9 |
 
 ### Itération 1 : détail (2026-11-19)
 
@@ -1092,9 +1092,30 @@ Retour arrière : `frontend-v1.8`.
 - les italiques : aucune police italique n'est chargée, avant comme après ; le navigateur incline la police droite.
 
 **Livraison** :
-1. Fait : étiquette par défaut passée à `frontend-v1.10` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
-2. En cours : image `frontend-v1.10` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
-3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+1. Fait : étiquette par défaut passée à `frontend-v1.10` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code (`4274cec`).
+2. Fait : image `frontend-v1.10` construite depuis `4274cec` dans un `git worktree` propre, supprimé ensuite. Image `82eb0f5d0c6b`, 112 Mo ; précache de 115 entrées (1 895 Kio), comme en local.
+   Vérifiée dans un conteneur de test (`amame-it7-front`, à côté d'un conteneur `frontend-v1.9` pour la comparaison ; tous deux supprimés ensuite) :
+   - **HTTP** :
+     - les pages, `/config.js` et `sw.js` répondent `200` avec le bon type ;
+     - les 4 polices répondent `200` en `font/woff2`, avec le cache d'un an `immutable` de `/assets/` ;
+     - les deux liens de préchargement d'`index.html` désignent les fichiers `latin` du CSS ;
+     - le précache contient ces deux polices et pas les `latin-ext` ;
+     - aucune mention de `googleapis` ni de `gstatic` dans le HTML, le CSS et le JavaScript d'entrée.
+   - **Itération 7** (`fonts7.py`, `console7.py`) : mêmes résultats qu'en local.
+     - Aucune requête vers Google ; les fichiers `latin-ext` ne sont demandés que pour ɛ ɔ ɲ ŋ.
+     - Polices réellement utilisées identiques à `frontend-v1.9`.
+     - Avec Google bloqué, Nunito se charge.
+     - Captures identiques à `frontend-v1.9` (22 paires sur 24 sans aucun écart, 19 pixels sur le bord d'une pastille pour les 2 autres).
+     - Aucun avertissement de la console sur 8 pages.
+   - **Itérations 5 et 6** :
+     - `cards.py` donne exactement les mesures de production ;
+     - `cards6.py` aussi, au second passage. Le premier avait relevé deux écarts ponctuels : une page de concours mesurée avant la fin de son chargement, un survol non pris en compte.
+   - **Itérations 1 à 4** :
+     - hero identique aux 12 tailles, y compris avec Google bloqué (320×568 : marge de 31 px) ;
+     - bords du contenu à 16 / 32 / 112 / 352 px ;
+     - navbar centrée ;
+     - sous-menu visible au clavier après deux images.
+3. Fait : `docker push yayacode224/amame:frontend-v1.10`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:82eb0f5d0c6b8b7818cf2e122364687e221578efb0db1f5e5d5b75f7092276f3`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
 4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.10`.
 
 Retour arrière : `frontend-v1.9`.
