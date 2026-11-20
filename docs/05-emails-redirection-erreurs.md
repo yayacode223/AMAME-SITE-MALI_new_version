@@ -151,6 +151,7 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 | D5 | Découper le point 3 en P3a (inscription, connexion, contrat d'erreur backend) et P3b (le reste) ? | **oui** |
 | D6 | Le titre de `Hero.tsx` modifié localement entre-t-il dans `frontend-v1.11` ? | **oui** : intégré à P1 |
 | D8 | Limite de débit de l'inscription réelle, et point final du titre | **limite appliquée dès P1** au formulaire « Adhérer » (`/api/visitor/adhesion/register`) ; **point final retiré** du titre de l'accueil |
+| D9 | Après un déploiement, le navigateur garde l'ancienne version jusqu'au chargement suivant (service worker) | **intégré à P3a** (décision du 20 novembre) : recharger quand une nouvelle version est active, sans perdre une saisie en cours ; exclure `sw.js` et `registerSW.js` du cache de NPM reste une action de l'équipe |
 | D7 | Tests | l'équipe ne fait pas lancer la suite backend complète (trop longue sur ce poste) : **implémenter et compiler suffit**. Les tests ciblés et rapides restent écrits ; ce qui n'est pas vérifié est listé dans le journal. |
 
 ---
@@ -168,8 +169,8 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 | Itération | État | Images | Date | Commit / notes |
 | --- | --- | --- | --- | --- |
 | P1. Sigle dans les e-mails (+ titre de l'accueil, D6 ; limite de débit de l'inscription, D8) | **en production** | `backend-v1.5`, `frontend-v1.11` | 2026-11-20 | commit `04a46c4` ; contrôle en production fait par l'équipe ; `EmailService`, `EmailServiceTest`, `Adhesion.tsx`, `Hero.tsx`, `nginx.conf` |
-| P2. Retour après connexion | **image publiée** ; en attente de déploiement | `frontend-v1.12` | 2026-11-20 | commit `e977a39` ; `RequireAuth.tsx`, `authRedirect.ts`, `authKeys.ts`, `axiosInstance.ts`, `Authentication.tsx`, `App.tsx`, `LayoutMembre.tsx`, `Navbar.tsx`, `BottomNav.tsx`, `Adhesion.tsx` ; `ProtectedRoute.tsx` supprimé |
-| P3a. Erreurs : contrat + formulaires publics + limite de débit (A1) | décidé (D4, D5) ; après P2 | `backend-v1.6`, `frontend-v1.13` | | |
+| P2. Retour après connexion | **en production** (contrôlé par l'équipe après rechargement) | `frontend-v1.12` | 2026-11-20 | commit `e977a39` ; `RequireAuth.tsx`, `authRedirect.ts`, `authKeys.ts`, `axiosInstance.ts`, `Authentication.tsx`, `App.tsx`, `LayoutMembre.tsx`, `Navbar.tsx`, `BottomNav.tsx`, `Adhesion.tsx` ; `ProtectedRoute.tsx` supprimé |
+| P3a. Erreurs : contrat + formulaires publics + limite de débit (A1) + mise à jour automatique (D9) | **en cours** (décidé : D4, D5, D9) | `backend-v1.6`, `frontend-v1.13` | | |
 | P3b. Erreurs : autres formulaires | décidé (D5) ; après P3a | `frontend-v1.14` (+ `backend-v1.7`) | | |
 
 ### Journal
@@ -215,3 +216,4 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 - Constaté en lecture seule : la production sert bien `frontend-v1.12` (script d'entrée `index-Bp-haN_h.js`, celui de l'image). Le scénario `p2.py` rejoué **contre la production** (API simulée par Playwright : aucune requête vers le backend ni la base) : **38/38**, retour à la page initiale compris. Le code déployé fonctionne.
 - Cause la plus probable : le navigateur de l'équipe exécutait encore `frontend-v1.11`, servie par le service worker depuis son cache. `registerType: 'autoUpdate'` installe la nouvelle version en arrière-plan, mais rien ne recharge la page : la nouvelle version ne s'exécute qu'au chargement suivant. De plus, Nginx Proxy Manager (« Cache Assets ») sert `sw.js` et `registerSW.js` avec `Expires` à 00:30 GMT (`max-age` d'environ 11 h) ; d'après la configuration connue de NPM, il les garde aussi en cache environ 30 min, ce qui retarde la détection de la nouvelle version. Au moment du contrôle, `sw.js` en production était déjà celui de `frontend-v1.12`. Non reproduit en local : dans l'essai (profil Chromium persistant, `frontend-v1.11` puis `frontend-v1.12` sur le même port), le service worker n'a jamais pris le contrôle de la page.
 - Proposé à l'équipe : recharger le site deux fois (ou fermer tous ses onglets) avant de retester ; à corriger ensuite (D9) : rechargement automatique quand une nouvelle version est active, et `sw.js` / `registerSW.js` exclus du cache de NPM (décision NPM déjà en attente, suivis 03 et 04).
+- Retest de l'équipe après rechargement : **le retour à la page initiale fonctionne en production**. Cause confirmée : ancienne version servie depuis le cache du navigateur. D9 intégré à P3a. `deploy/portainer/amamestack.env.example` passé à `frontend-v1.12`.
