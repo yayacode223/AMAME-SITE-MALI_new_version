@@ -89,8 +89,8 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 
 | Itération | État | Image | Date | Notes |
 | --- | --- | --- | --- | --- |
-| R1 | **code prêt et vérifié**, pas commité (décidé : E1, E2, E4, E5) | `frontend-v1.15` | 2026-11-20 | voir le journal |
-| R2 | **code prêt et vérifié**, pas commité ; dans la même image que R1 (E5 révisé) | `frontend-v1.15` | 2026-11-20 | voir le journal |
+| R1 | **publiée** sur Docker Hub, à déployer (décidé : E1, E2, E4, E5) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
+| R2 | **publiée** sur Docker Hub, à déployer ; même image que R1 (E5 révisé) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
 | S3 (équipe) | décidé (E3) : désactiver *Cache Assets* | — | | |
 
 ### Journal
@@ -119,3 +119,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
   - `r2_check.py` **81/81** : pour les 16 listes, 500 → message avec la référence et « Réessayer », jamais l'état vide ; « Réessayer » relance la requête et recharge la liste ; réseau coupé (390 px) → « Connexion impossible », encadré dans l'écran. Pour les 4 fiches, 500 → message, « Réessayer », lien de retour, puis la fiche s'affiche ; 404 (390 px) → « … non trouvé » sans « Réessayer » ; identifiant invalide → « non trouvé ». Adhésion connectée, statut en 500 → message sans formulaire, puis formulaire après « Réessayer ». Les 16 listes sans erreur : aucun message, aucun plantage.
   - `r2_offline.py` **5/5** : événement `offline` et requêtes en échec, 4 fiches et une recherche → « Connexion impossible » (3 essais envoyés), jamais « non trouvé » ni l'état vide. Contre-épreuve sans `networkMode: "always"` : **0/5**, aucune requête envoyée, les 4 fiches affichent « … non trouvé ».
   - `tsc` sans erreur. Non-régression (le réglage `networkMode` vaut pour tout le site) : `p3a.py` **40/40** (formulaires publics), `p2.py` **38/38** (retour après connexion), `p3b.py` **14/14** (administration et espace membre).
+
+**2026-11-20 — `frontend-v1.15` construite et publiée.** Commit `a3494fc` (R1 et R2), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; `/`, `/sw.js`, `/registerSW.js`, `/config.js` et `/assets/…js` portent les en-têtes de sécurité ; `sw.js` et `registerSW.js` en `no-cache` ; le bundle contient le code R2, `networkMode: "always"`, `.amame-photo-veil` et la nouvelle adresse du pied de page. Poussée : empreinte `sha256:0f3e095e4d586b3a5d7ce877f61b54fc1b5421072c08c6a81e6cadf0053d12b0`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.15`, backend inchangé `backend-v1.7`) et décocher *Cache Assets* (S3). Retour arrière : `frontend-v1.14`. Relevé en passant, déjà présent en v1.14 et sans effet gênant : `/assets/` envoie deux `Cache-Control` (`expires 365d` et `add_header`), tous deux d'un an.
