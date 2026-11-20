@@ -142,6 +142,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Tailwind brand tokens**: `amame-green` (#16a34a), `amame-green-dark` (#15803d), `amame-green-subtle` (#f0fdf4), `amame-gold` (#ca8a04), defined in `tailwind.config.ts`.
 
+**Fonts**: Inter (text) and Nunito (`font-nunito`, headings) are served by the site, never by Google: variable `woff2` files in `src/assets/fonts/` (license `OFL.txt`), two subsets each (`latin`, `latin-ext`), declared by the `@font-face` rules at the top of `src/index.css`; `index.html` preloads the two `latin` files (Vite rewrites the `/src/assets/fonts/…` paths to the hashed names), which keeps the font swap from shifting the hero. Do not add a Google Fonts `@import`, `<link>` or `preconnect`. The `latin-ext` files are excluded from the PWA precache (`globIgnores` in `vite.config.ts`): the browser fetches them only for a page that contains one of their characters. Nunito has no ɛ, ɔ or ɲ: those letters fall back to another font.
+
 **Icons**: `lucide-react` v0.446.0 — use named imports.
 
 **Uploaded media** (article images, galleries, member photos, documents): never build a media URL by hand and never hardcode a domain. Use the URL computed by the backend through `mediaUrl(dto.fileUrl ?? dto.filePath)` (`src/utils/media.ts`) or `<MediaImage src={dto.fileUrl ?? dto.filePath} maxWidth={…} sizes="…" />`. Resizing parameters are added only when `MEDIA_OPTIMIZER_ENABLED=true`. File inputs for images use `IMAGE_ACCEPT` (`src/utils/uploadFormats.ts`), aligned with the backend's `UploadValidator`.
@@ -158,7 +160,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.9`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.10`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

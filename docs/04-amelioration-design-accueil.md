@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 en cours (section 7).
+> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 commitée, image `frontend-v1.10` en construction (section 7).
 
 ---
 
@@ -570,7 +570,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | **en production** | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 7. Polices servies par le site | **en cours** | `frontend-v1.10` (prévue) | 2026-11-20 | D9 |
+| 7. Polices servies par le site | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.10` | 2026-11-20 | D9 |
 
 ### Itération 1 : détail (2026-11-19)
 
@@ -1034,3 +1034,67 @@ Retour arrière : `frontend-v1.7`.
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.9`.
 
 Retour arrière : `frontend-v1.8`.
+
+### Itération 7 : détail (2026-11-20)
+
+**Modifications** (4 fichiers modifiés, 5 nouveaux) :
+- `src/assets/fonts/` (nouveau) :
+  - 4 fichiers `woff2` : `inter-latin` (48 Ko), `inter-latin-ext` (85 Ko), `nunito-latin` (39 Ko), `nunito-latin-ext` (36 Ko) ;
+  - ce sont les fichiers variables que Google Fonts sert à Chrome pour l'ancien `@import` (Inter v20, Nunito v32), pris tels quels ;
+  - `OFL.txt` : la licence SIL OFL 1.1, avec les mentions de droits des deux polices.
+- `src/index.css` : l'`@import` de Google est remplacé par 4 `@font-face`, avec les plages `unicode-range` de Google et `font-display: swap`.
+- `index.html` : retrait des deux `preconnect` vers Google ; préchargement des deux fichiers `latin` (voir « Écart au plan »).
+- `vite.config.ts` : les fichiers `latin-ext` sont exclus du précache de la PWA (voir « Écart au plan »).
+- `tailwind.config.ts` : retrait de `roboto`, utilisée nulle part.
+- `CLAUDE.md` : nouvelle règle « Fonts ».
+
+**Graisses déclarées.** Chaque police est variable : un seul fichier couvre toutes les graisses (Inter 100 à 900, Nunito 200 à 1000). Les `@font-face` déclarent les plages que couvrait l'ancien `@import` : Inter de 300 à 700, Nunito de 400 à 900. Une graisse hors plage est ramenée à la plus proche, comme avant. Par exemple, un `font-black` sur du texte en Inter reste rendu en 700. Le rendu ne change donc pas.
+
+**Écart au plan.**
+- **Préchargement des deux fichiers `latin`** (`<link rel="preload">` dans `index.html`, non prévu au plan).
+  - Sans lui, le navigateur ne demande les polices qu'une fois le texte affiché par React, donc après le premier affichage. Le changement de police décalait encore le hero sur desktop : CLS 0,019 avec les polices de Google comme avec celles du site.
+  - Avec lui, les polices arrivent avant le premier affichage. Le CLS desktop tombe à 0,001.
+  - Coût mesuré : environ 70 ms de FCP sur desktop par rapport à la même version sans préchargement (plus lent dans 5 tours sur 6), mais 160 ms de mieux que `frontend-v1.9`. Sur mobile, aucun coût mesurable : les écarts restent dans le bruit de la mesure.
+  - Vite remplace les chemins `/src/assets/fonts/…` par les noms à empreinte, les mêmes que ceux du CSS. Sur 8 pages (accueil, bourses, articles, connexion, adhésion, administration, espace membre, page inexistante), les deux polices préchargées servent et la console n'affiche aucun avertissement.
+- **Précache.** Le plan acceptait les 4 fichiers dans le précache. Seuls les 2 fichiers `latin` y entrent : précachés, les 2 fichiers `latin-ext` (120 Ko) seraient téléchargés par chaque visiteur à l'installation du service worker, alors qu'ils ne servent qu'aux pages qui contiennent ɛ, ɔ, ɲ ou ŋ. Hors ligne, ces lettres s'afficheraient dans la police du système.
+
+**Constat : Nunito n'a pas ɛ, ɔ ni ɲ.** Le fichier complet de Nunito ne contient que ŋ (et Ŋ) parmi les lettres bambara ; Inter les contient toutes. Dans un titre en Nunito, ɛ, ɔ et ɲ s'affichent donc dans une autre police (Arial sous Windows), exactement comme avant : le critère « ɛ, ɔ, ɲ, ŋ dans la bonne police » ne peut être tenu que pour Inter. Le plan prévoyait le contraire, faute d'avoir ouvert les fichiers. Pour aller plus loin, il faudrait mettre Inter avant `sans-serif` dans la pile de `font-nunito` : ces lettres viendraient alors d'Inter, déjà chargée. Ce changement n'est pas fait, il reste à décider.
+
+**Mesures** (Playwright ; données de test servies par le navigateur, aucun appel à une API réelle ; avant = build de `frontend-v1.9`, après = build de l'itération) :
+
+| Critère | Avant (`frontend-v1.9`) | Après |
+|---|---|---|
+| Requêtes vers `fonts.googleapis.com` / `fonts.gstatic.com` (accueil, bourses, À propos, articles) | 3 par page | **0** ; 2 fichiers du site (`inter-latin`, `nunito-latin`) |
+| Fichiers `latin-ext` | demandés quand la page contient un de leurs caractères | idem : demandés seulement après l'ajout de ɛ ɔ ɲ ŋ dans la page |
+| Polices réellement utilisées (protocole Chrome, texte de test avec accents et lettres bambara) | Inter : 43 glyphes sur 43 ; Nunito : 37, 6 en Arial | identique |
+| Domaines de Google bloqués | page affichée en police de repli ; 320×568 : bouton 4 px sous la barre du bas (itération 4) | page affichée, Inter et Nunito chargées ; 320×568 : marge de 31 px |
+| Captures 390, 1024 et 1440 px (accueil, bourses, À propos, articles ; haut de page et premières cartes) | — | texte identique au pixel près ; 20 paires sur 24 sans aucun écart, les 4 autres à 9, 15, 19 et 19 pixels (bord du champ de recherche, une ligne de la photo du hero, bord d'une pastille) |
+| FCP mobile, médiane de 6 tours alternés (1,6 Mbit/s, 150 ms, processeur ×4) | 6 290 ms | **5 976 ms** (−5 %) ; plus rapide dans 4 tours sur 6 |
+| FCP desktop, médiane de 6 tours | 958 ms | **780 ms** (−19 %) ; plus rapide dans 6 tours sur 6 |
+| LCP mobile / desktop, médianes | 6 418 / 1 002 ms | 6 150 / 820 ms |
+| CLS mobile / desktop, médianes | 0 / 0,019 | 0 / **0,001** |
+| Précache | 113 entrées (1 808 Kio) | 115 entrées (1 895 Kio) : seuls `inter-latin` et `nunito-latin` en plus |
+
+- Une mesure séparée à deux versions, avant le préchargement, donnait déjà un FCP mobile de −3 % (plus rapide dans 6 tours sur 6) et desktop de −16 %.
+- **Non-régression** (`cards6.py`, `cards.py`, `hero4.py`) : sur le build de l'itération, mêmes mesures que celles de `frontend-v1.9` en production :
+  - 13 routes de l'itération 6 et 8 de l'itération 5, à 390 et 1440 px (hauteurs des cartes comprises, qui dépendent des polices) ;
+  - hero identique aux 12 tailles ;
+  - aucun débordement à 320 px.
+
+**Vérifications de base** : `npx tsc --noEmit -p tsconfig.app.json`, les 4 erreurs connues et aucune nouvelle ; `vite build` réussi ; plus aucune mention de `googleapis` ni de `gstatic` dans le build.
+
+**À vérifier en production** :
+- `Content-Type: font/woff2` pour les polices, servies sous `/assets/` ;
+- leurs en-têtes de cache à travers Nginx Proxy Manager (voir le constat de l'itération 6 sur *Cache Assets*).
+
+**Pas traité :**
+- les lettres ɛ, ɔ, ɲ des titres en Nunito (voir « Constat ») ;
+- les italiques : aucune police italique n'est chargée, avant comme après ; le navigateur incline la police droite.
+
+**Livraison** :
+1. Fait : étiquette par défaut passée à `frontend-v1.10` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
+2. En cours : image `frontend-v1.10` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
+3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.10`.
+
+Retour arrière : `frontend-v1.9`.
