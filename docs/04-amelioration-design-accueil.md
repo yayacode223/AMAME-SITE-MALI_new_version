@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 commitée, image `frontend-v1.9` en construction (section 7).
+> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 publiée (`frontend-v1.9` sur Docker Hub), en attente de déploiement (section 7).
 
 ---
 
@@ -569,7 +569,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 6. Cartes, partie 2 | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.9` | 2026-11-20 | couleurs par domaine (D6) ; pages publiques (D7) |
+| 6. Cartes, partie 2 | **image publiée** ; en attente de déploiement | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
 ### Itération 1 : détail (2026-11-19)
@@ -1005,9 +1005,26 @@ Retour arrière : `frontend-v1.7`.
 - l'administration et l'espace membre (D7).
 
 **Livraison** :
-1. Fait : étiquette par défaut passée à `frontend-v1.9` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
-2. En cours : image `frontend-v1.9` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
-3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+1. Fait : étiquette par défaut passée à `frontend-v1.9` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code (`c557df8`).
+2. Fait : image `frontend-v1.9` construite depuis `c557df8` dans un `git worktree` propre, supprimé ensuite. Image `1b9bbfe73c1f`, 112 Mo ; précache de 113 entrées (1 808 Kio), comme en local.
+   Vérifiée dans un conteneur de test (`amame-it6-front`, supprimé ensuite) :
+   - **HTTP** :
+     - les 13 routes mesurées, `/register`, `/config.js`, `sw.js` et une image statique répondent `200` avec le bon type ;
+     - la vidéo répond `206` (`video/mp4`, cache d'un an, `immutable`) ;
+     - le CSS livré contient `.amame-panel`, la variante `.amame-card-row` et la règle de la photo en position absolue, avec l'ombre noire à 8 % ; il ne contient plus `.card-base` ni `.card-hover`.
+   - **Itération 6** :
+     - `cards6.py` (13 routes, 390 et 1440 px) donne sur l'image les mêmes mesures qu'en développement : aucun bloc construit à la main, rayon de 16 px, ombre visible, soulèvement des seules cartes-liens, aucune erreur, aucun débordement à 320 px.
+     - Seul écart avec l'enregistrement local : le média des cartes en ligne à 1440 px mesure de 182 à 208 px, contre 320 px au plus en local. L'enregistrement local datait d'avant la correction des photos en portrait. Sur l'image, `rowcheck.py` retrouve les hauteurs mesurées après la correction (cartes de 184 à 255 px, média de 176 px sur mobile).
+     - `focus6.py` : anneau vert au focus clavier sur l'accueil, les liens utiles, les contacts et les articles ; aucun mouvement avec la réduction des animations.
+   - **Itération 5** :
+     - `cards.py` (8 routes, 390 et 1440 px) donne sur l'image les mêmes mesures qu'en développement.
+     - Par rapport à la mesure de `frontend-v1.8` en production, un seul écart : l'épaisseur du contour du lien e-mail des membres à 390 px. Ce contour est transparent, et sa largeur est lue pendant sa transition : 1 px sur l'image `frontend-v1.8` comme sur `frontend-v1.9`, 0 px une fois en production. L'anneau de focus est présent dans toutes les mesures.
+   - **Itérations 1 à 4** :
+     - hero identique aux 12 tailles (360×560 : marge de 23 px) ;
+     - bords du contenu à 16 / 32 / 112 / 352 px ;
+     - navbar centrée ;
+     - sous-menu visible au clavier après deux images, 10 essais sur 10.
+3. Fait : `docker push yayacode224/amame:frontend-v1.9`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:1b9bbfe73c1ffbf62afc58fde22820c0bcb1d39666b3cb3c5c2376e9d7b61016`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
 4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.9`.
 
 Retour arrière : `frontend-v1.8`.
