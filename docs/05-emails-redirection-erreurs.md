@@ -168,7 +168,7 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 | Itération | État | Images | Date | Commit / notes |
 | --- | --- | --- | --- | --- |
 | P1. Sigle dans les e-mails (+ titre de l'accueil, D6 ; limite de débit de l'inscription, D8) | **en production** | `backend-v1.5`, `frontend-v1.11` | 2026-11-20 | commit `04a46c4` ; contrôle en production fait par l'équipe ; `EmailService`, `EmailServiceTest`, `Adhesion.tsx`, `Hero.tsx`, `nginx.conf` |
-| P2. Retour après connexion | **image construite et vérifiée** ; à publier | `frontend-v1.12` | 2026-11-20 | commit `e977a39` ; `RequireAuth.tsx`, `authRedirect.ts`, `authKeys.ts`, `axiosInstance.ts`, `Authentication.tsx`, `App.tsx`, `LayoutMembre.tsx`, `Navbar.tsx`, `BottomNav.tsx`, `Adhesion.tsx` ; `ProtectedRoute.tsx` supprimé |
+| P2. Retour après connexion | **image publiée** ; en attente de déploiement | `frontend-v1.12` | 2026-11-20 | commit `e977a39` ; `RequireAuth.tsx`, `authRedirect.ts`, `authKeys.ts`, `axiosInstance.ts`, `Authentication.tsx`, `App.tsx`, `LayoutMembre.tsx`, `Navbar.tsx`, `BottomNav.tsx`, `Adhesion.tsx` ; `ProtectedRoute.tsx` supprimé |
 | P3a. Erreurs : contrat + formulaires publics + limite de débit (A1) | décidé (D4, D5) ; après P2 | `backend-v1.6`, `frontend-v1.13` | | |
 | P3b. Erreurs : autres formulaires | décidé (D5) ; après P3a | `frontend-v1.14` (+ `backend-v1.7`) | | |
 
@@ -205,4 +205,6 @@ Toutes prises par l'équipe le **20 novembre 2026** : les recommandations sont r
 - Non vérifié : un vrai renouvellement de session refusé par le backend (simulé ici) ; il le sera en production par l'équipe.
 - « commit et build » : étiquette par défaut `frontend-v1.12` (`docker-compose.yml`, `CLAUDE.md`) ; `CLAUDE.md` décrit la garde `RequireAuth`, `loginPath` et le traitement d'une session refusée. Commit `e977a39` (15 fichiers).
 - Image `frontend-v1.12` construite depuis `e977a39` dans un `git worktree` propre, supprimé ensuite : `sha256:c91c27be1ca0a58746b5568857ce4fd7bb92d36b583b711e3f635e7c6d7d4ffe` ; précache de 115 entrées (1 896 Kio). `nginx -t` correct ; limite de débit de l'inscription (P1) toujours présente ; repli SPA de `/membre/profil` en `200`. Scénario `p2.py` rejoué **contre l'image** servie par Nginx (port 8112, API simulée par Playwright) : **38/38**, mêmes résultats qu'avec le serveur Vite.
-- Reste pour P2 : publication (« publie et pousse »), déploiement Portainer (`FRONTEND_IMAGE_TAG=frontend-v1.12`, le backend reste `backend-v1.5`), contrôle en production par l'équipe (dont : se déconnecter dans un onglet, puis cliquer dans l'espace membre de l'autre), puis `amamestack.env.example`.
+- Publication (« publie et pousse ») : étiquette absente de Docker Hub avant l'envoi ; `docker push` ; empreinte sur Docker Hub identique à l'image vérifiée (`sha256:c91c27be…`, `linux/amd64`). Commits publiés sur `main` par avance rapide (`715dcb8..` ce commit).
+- **Déploiement** (équipe, Portainer, stack `amamestack`) : `FRONTEND_IMAGE_TAG=frontend-v1.12`, le backend reste `backend-v1.5` ; aucune variable nouvelle. Retour arrière : `frontend-v1.11`.
+- Reste pour P2 : contrôle en production par l'équipe (dont : deux onglets de l'espace membre, se déconnecter dans l'un, cliquer dans l'autre → « Votre session a expiré », puis retour à la page après reconnexion), puis `amamestack.env.example`.
