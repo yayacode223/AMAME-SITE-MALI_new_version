@@ -804,6 +804,7 @@ Ce qui a été anticipé, et ce qu'il ne faudra pas oublier.
   - Les fichiers de l'application portent une empreinte dans leur nom : aucun effet.
   - Pour `/config.js` (servi en `no-store`, action J) et `/sw.js`, en revanche, un changement de `MEDIA_BASE_URL` ou une nouvelle version mettraient du temps à arriver chez les visiteurs.
   - À vérifier au déploiement de l'étape 1 : relire les en-têtes de `/config.js` à travers `https://amame.ml`. S'ils ne sont pas `no-store`, désactiver *Cache Assets*, ou exclure ces deux fichiers par une *Custom location*.
+  - **Relevé du 20 novembre** (itération 6 du plan de design, docs/04) : ils ne le sont pas. `/config.js` et `/sw.js` arrivent avec `Cache-Control: max-age=…` et `Expires` à 00:30 UTC le lendemain ; `/assets/` perd son cache d'un an `immutable` de la même façon. Rien n'a été changé : la décision reste à prendre dans Nginx Proxy Manager.
 - **Toutes les étapes (relevé du 14 novembre).** `common_net` est interne : un conteneur qui doit joindre Internet (Gmail, Bunny, sites des scrapers, et Neon à l'étape 4) doit aussi être branché sur un réseau ordinaire de sa stack (E41). À l'étape 3, le backend écrira dans Bunny par ce réseau `sortie`, déjà en place.
 
 - **Étape 2, livrée dans le dépôt le 7 novembre 2026.** [SiteAmameApplicationTests.java](../backend/src/test/java/com/example/siteamame/SiteAmameApplicationTests.java) attend désormais « version 4, 26 tables ». Toute nouvelle migration change ces deux nombres.

@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 publiée (`frontend-v1.9` sur Docker Hub), en attente de déploiement (section 7).
+> **Avancement** : itérations 1 à 6 en production (`frontend-v1.9`) ; itération 7 en cours (section 7).
 
 ---
 
@@ -569,8 +569,8 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 6. Cartes, partie 2 | **image publiée** ; en attente de déploiement | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
+| 6. Cartes, partie 2 | **en production** | `frontend-v1.9` | 2026-11-20 | commit `c557df8` ; couleurs par domaine (D6) ; pages publiques (D7) |
+| 7. Polices servies par le site | **en cours** | `frontend-v1.10` (prévue) | 2026-11-20 | D9 |
 
 ### Itération 1 : détail (2026-11-19)
 
@@ -1025,6 +1025,12 @@ Retour arrière : `frontend-v1.7`.
      - navbar centrée ;
      - sous-menu visible au clavier après deux images, 10 essais sur 10.
 3. Fait : `docker push yayacode224/amame:frontend-v1.9`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:1b9bbfe73c1ffbf62afc58fde22820c0bcb1d39666b3cb3c5c2376e9d7b61016`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
-4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.9`.
+4. Fait le 2026-11-20 : `FRONTEND_IMAGE_TAG=frontend-v1.9` dans la stack Portainer `amamestack`.
+   Contrôle en production (lecture seule ; service worker bloqué, appels `/api/` servis par le navigateur de test avec les données de test, aucun n'atteint le serveur) :
+   - `index.html` servi identique, octet pour octet, à celui de l'image (`index-ClJ0b6em.js`, `index-BJH02P_W.css`) ;
+   - `cards6.py` (13 routes) et `cards.py` (8 routes) donnent en production exactement les mesures de l'image, à 390 et 1440 px ; cartes en ligne de 184 à 255 px de haut ; anneau vert au focus clavier ; aucun mouvement avec la réduction des animations ;
+   - hero aux 12 tailles, bords du contenu et navbar identiques à l'image.
+   - **Constat hors itération** : à travers Nginx Proxy Manager, `/config.js`, `/sw.js`, le JavaScript, le CSS et les images portent `Cache-Control: max-age=…` et `Expires` à 00:30 UTC le lendemain, au lieu des en-têtes du conteneur (`no-store` pour `config.js`, un an `immutable` pour `/assets/`). C'est l'option *Cache Assets* de Nginx Proxy Manager (relevée le 14 novembre, docs/03, notes de l'étape 1). Les vidéos `.mp4`, hors de sa liste, gardent leurs en-têtes. Conséquence : un changement de `MEDIA_BASE_URL` peut mettre jusqu'à un jour à atteindre un visiteur. Décision à prendre hors de ce plan : désactiver *Cache Assets*, ou exclure `config.js` et `sw.js`.
+5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.9`.
 
 Retour arrière : `frontend-v1.8`.
