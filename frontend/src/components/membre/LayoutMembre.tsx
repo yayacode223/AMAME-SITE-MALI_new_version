@@ -138,28 +138,10 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
 export default function LayoutMembre() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const navigate  = useNavigate();
-  const { user, isAuthenticated, isUserLoading } = useAuth();
-
-  // Guard : redirige si non authentifié ou rôle insuffisant
-  useEffect(() => {
-    if (isUserLoading) return;
-    if (!isAuthenticated) { navigate("/login"); return; }
-    if (!["MEMBER", "ADMIN", "SUPERADMIN", "EDITOR"].includes(user?.role ?? "")) {
-      navigate("/adhesion");
-    }
-  }, [isUserLoading, isAuthenticated, user, navigate]);
+  // Accès (connexion, rôle) vérifié par RequireAuth dans App.tsx, avant le rendu de ce layout.
 
   // Ferme le menu mobile à chaque changement de page
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
-
-  if (isUserLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-amame-surface">
-        <div className="animate-spin h-8 w-8 border-2 border-amame-green border-t-transparent rounded-full" />
-      </div>
-    );
-  }
 
   const currentNavItem = NAV_ITEMS.find(n => n.pathname === location.pathname) ?? NAV_ITEMS.find(n => location.pathname.startsWith(n.href));
 

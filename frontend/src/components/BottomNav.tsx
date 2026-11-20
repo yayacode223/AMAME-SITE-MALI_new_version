@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { loginPath } from '@/utils/authRedirect';
 import {
   Home, Award, Trophy, Compass, MoreHorizontal,
   Newspaper, Image, Info, Users, Building2,
@@ -60,7 +61,8 @@ function itemClass(active: boolean) {
 
 /* ── Composant principal ─────────────────────────────────────────── */
 export function BottomNav() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const { isAuthenticated, user, logout, isLoggingOut } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [orientationOpen, setOrientationOpen] = useState(false);
@@ -263,7 +265,7 @@ export function BottomNav() {
                   <div className="space-y-2 pt-1">
                     <SheetClose asChild>
                       <Link
-                        to="/login"
+                        to={loginPath(location)}
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold border border-amame-green text-amame-green hover:bg-amame-green-subtle transition-colors"
                       >
                         <LogIn className="h-4 w-4" />

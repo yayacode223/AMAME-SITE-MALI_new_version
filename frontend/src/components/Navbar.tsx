@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/userType";
+import { loginPath } from "@/utils/authRedirect";
 import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 
 /* ---------- Structure de navigation ---------- */
@@ -262,7 +263,7 @@ const Navbar = () => {
               ) : (
                 <div className="flex items-center gap-2">
                   <Button asChild variant="ghost" size="sm" className="text-gray-600 hover:text-amame-green hover:bg-amame-green-subtle font-medium">
-                    <Link to="/login">Connexion</Link>
+                    <Link to={loginPath(location)}>Connexion</Link>
                   </Button>
                   <Button asChild size="sm" className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold shadow-green hover:shadow-md transition-all">
                     <Link to="/adhesion">Adhérer</Link>

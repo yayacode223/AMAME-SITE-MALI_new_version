@@ -4,7 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import RequireAuth from "@/components/RequireAuth";
+import type { Role } from "@/types/userType";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomNav from "@/components/BottomNav";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
@@ -91,6 +92,9 @@ const PageLoader = () => (
   </div>
 );
 
+/* Rôles admis dans l'espace membre ; un USER est envoyé vers /adhesion */
+const MEMBER_SPACE_ROLES: Role[] = ["MEMBER", "ADMIN", "SUPERADMIN", "EDITOR"];
+
 /* Routes où BottomNav ne doit PAS apparaître */
 const HIDE_BOTTOM_NAV = ['/admin', '/membre', '/login', '/forgot-password', '/reset-password'];
 
@@ -140,7 +144,14 @@ const AppContent = () => {
           <Route path="/adhesion" element={<Adhesion />} />
 
           {/* Espace membre — layout avec sidebar */}
-          <Route path="/membre" element={<LayoutMembre />}>
+          <Route
+            path="/membre"
+            element={
+              <RequireAuth roles={MEMBER_SPACE_ROLES} deniedTo="/adhesion">
+                <LayoutMembre />
+              </RequireAuth>
+            }
+          >
             <Route index element={<Navigate to="/membre/dashboard" replace />} />
             <Route path="dashboard"  element={<DashboardHome />} />
             <Route path="activite"   element={<MembreActivite />} />
@@ -160,9 +171,9 @@ const AppContent = () => {
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute>
+              <RequireAuth permission="DASHBOARD_ACCESS" deniedTo="/forbidden">
                 <AdminLayout />
-              </ProtectedRoute>
+              </RequireAuth>
             }
           >
             <Route index element={<Dashboard />} />

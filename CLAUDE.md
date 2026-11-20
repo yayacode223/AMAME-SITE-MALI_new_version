@@ -128,6 +128,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Auth context**: `src/context/AuthContext.tsx` wraps the app and exposes `{ user, isAuthenticated, isUserLoading, login, logout, register, hasPermission }`. It calls `useGetCurrentUser()` (React Query) on mount to rehydrate session from cookie.
 
+**Protected pages and login return** (report 05, P2): `/admin/*` and `/membre/*` are guarded by `<RequireAuth>` (`src/components/RequireAuth.tsx`) in `App.tsx`, never by a check inside a layout. A visitor goes to `/login?redirect=<page>&raison=acces`, and `/login` sends them back after login. Every link to the login page uses `loginPath(location)` (`src/utils/authRedirect.ts`), never a bare `"/login"`. The `redirect` value is only followed through `safeRedirectPath` (paths of this site only, no open redirect). When `/api/auth/refresh` is refused (401/403/404) while a user is shown, the Axios interceptor clears the user and the guard sends to `/login?…&raison=session`; a network failure logs nobody out.
+
 **Routing** (`App.tsx`): All routes live in the `AppContent` inner component (inside `<BrowserRouter>`) to enable `useLocation()` access. `AppContent` conditionally renders `<BottomNav />` and `<PWAInstallBanner />` — suppressed on `/admin/*`, `/membre/*`, and auth pages.
 
 **Mobile navigation**: `<BottomNav />` (`src/components/BottomNav.tsx`) is a fixed bottom bar (mobile only, `lg:hidden`) with 4 primary tabs (Home, Bourses, Concours, Orientation) and a "Plus" Sheet for secondary links. The Navbar hamburger was removed — BottomNav is the sole mobile navigation.
@@ -160,7 +162,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.11`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.12`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.5`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

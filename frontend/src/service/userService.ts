@@ -9,6 +9,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { PageResponse, PaginationParams } from "@/types/commonTypes";
 import { purgePrivateCaches } from "@/utils/privateCaches";
+import { authKeys } from "./authKeys";
 
 export const register = async (
   data: RegisterPayload,
@@ -109,12 +110,7 @@ export const deleteUser = async (id: number): Promise<void> => {
   await Api.delete<void>(`/admin/user/${id}`);
 };
 
-export const authKeys = {
-  all: ["auth"] as const,
-  currentUser: () => [...authKeys.all, "currentUser"] as const,
-  users: () => [...authKeys.all, "users"] as const,
-  detail: (id: number) => [...authKeys.all, "detail", id] as const,
-};
+export { authKeys };
 
 export const useRegisterMutation = () => {
   const queryClient = useQueryClient();

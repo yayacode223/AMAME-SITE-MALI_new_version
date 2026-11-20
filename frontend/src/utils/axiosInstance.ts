@@ -1,4 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { queryClient } from "@/lib/queryClient";
+import { authKeys } from "@/service/authKeys";
+import { markSessionEnded } from "@/utils/authRedirect";
 
 export const Api = axios.create({
   baseURL: "/api",
@@ -30,6 +33,20 @@ const isAuthEndpoint = (url?: string) =>
     url.includes("/visitor/register")
   );
 
+/**
+ * Le serveur refuse le renouvellement (session expirée, révoquée par une déconnexion dans un autre
+ * onglet, compte supprimé) alors qu'un utilisateur est affiché : on l'oublie. Sur une page réservée,
+ * la garde renvoie alors vers la connexion, puis ramène à la page. Une panne réseau ou serveur
+ * (pas de réponse, 5xx) ne déconnecte personne.
+ */
+const forgetEndedSession = (refreshError: unknown) => {
+  const status = (refreshError as AxiosError)?.response?.status;
+  if (status !== 401 && status !== 403 && status !== 404) return;
+  if (!queryClient.getQueryData(authKeys.currentUser())) return; // visiteur : rien à oublier
+  markSessionEnded();
+  queryClient.setQueryData(authKeys.currentUser(), null);
+};
+
 // ── Intercepteur réponse ─────────────────────────────────────────────────────
 Api.interceptors.response.use(
   (response) => response,
@@ -60,7 +77,8 @@ Api.interceptors.response.use(
         return Api(original);     // Rejouer la requête originale
       } catch (refreshError) {
         processQueue(refreshError); // Rejeter les requêtes en attente
-        // Ne pas faire window.location.href ici : ProtectedRoute gère la redirection
+        forgetEndedSession(refreshError);
+        // Ne pas faire window.location.href ici : la garde RequireAuth gère la redirection
         // via React Router (sans rechargement), évitant la boucle infinie.
         return Promise.reject(refreshError);
       } finally {

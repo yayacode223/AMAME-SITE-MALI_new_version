@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { staticImageUrl } from "@/utils/staticImage";
 import { Link, useNavigate } from "react-router-dom";
+import { loginPath } from "@/utils/authRedirect";
+
+/** Après la connexion depuis cette page, on y revient (rapport 05, P2). */
+const LOGIN_FROM_ADHESION = loginPath({ pathname: "/adhesion" });
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -214,7 +218,7 @@ export default function Adhesion() {
           <p className="text-amame-muted max-w-sm mx-auto text-sm mb-8">
             En attendant, vous pouvez vous connecter avec l'adresse email et le mot de passe que vous venez de définir.
           </p>
-          <Link to="/login"
+          <Link to={LOGIN_FROM_ADHESION}
             className="inline-flex items-center gap-2 px-6 py-3 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green">
             Se connecter
           </Link>
@@ -390,7 +394,7 @@ export default function Adhesion() {
 
         <p className="text-center text-xs text-amame-muted">
           Déjà inscrit ?{" "}
-          <Link to="/login" className="text-amame-green hover:text-amame-green-dark font-semibold underline underline-offset-2">
+          <Link to={LOGIN_FROM_ADHESION} className="text-amame-green hover:text-amame-green-dark font-semibold underline underline-offset-2">
             Se connecter
           </Link>
         </p>

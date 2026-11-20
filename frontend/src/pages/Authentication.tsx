@@ -1,11 +1,11 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, Navigate, useSearchParams } from "react-router-dom";
 import { staticImageUrl } from "@/utils/staticImage";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import {
   Form,
@@ -17,7 +17,8 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, LogIn, Loader2, ArrowLeft, Clock, Lock } from "lucide-react";
+import { clearSessionEnded, REASON_PARAM, REDIRECT_PARAM, safeRedirectPath } from "@/utils/authRedirect";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -60,9 +61,25 @@ const PasswordInput = ({ field, placeholder, disabled, ...props }) => {
   );
 };
 
+/** Bandeau affiché quand on arrive ici sans l'avoir choisi (rapport 05, P2). */
+const REASON_NOTICES = {
+  acces: { Icon: Lock, text: "Connectez-vous pour accéder à cette page.", tone: "border-green-200 bg-amame-green-subtle text-amame-green-dark" },
+  session: { Icon: Clock, text: "Votre session a expiré. Reconnectez-vous pour continuer.", tone: "border-amber-200 bg-amber-50 text-amber-800" },
+} as const;
+
 const Login = () => {
-  const { login, isLoggingIn } = useAuth();
+  const { login, isLoggingIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Page à retrouver après la connexion : seulement un chemin du site, sinon l'accueil.
+  const target = safeRedirectPath(searchParams.get(REDIRECT_PARAM)) ?? "/";
+  const reason = searchParams.get(REASON_PARAM);
+  const notice = reason === "acces" || reason === "session" ? REASON_NOTICES[reason] : null;
+
+  // La raison est déjà dans l'adresse : l'indicateur de session terminée a servi.
+  useEffect(() => {
+    clearSessionEnded();
+  }, []);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -71,6 +88,11 @@ const Login = () => {
       password: "",
     },
   });
+
+  // Déjà connecté (lien gardé, bouton Retour) : directement à la page demandée.
+  if (isAuthenticated && !isLoggingIn) {
+    return <Navigate to={target} replace />;
+  }
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
@@ -82,7 +104,8 @@ const Login = () => {
         title: "Connexion réussie 🎉",
         description: "Vous êtes maintenant connecté à votre compte.",
       });
-      navigate("/");
+      // replace : le bouton Retour ne ramène pas sur le formulaire de connexion.
+      navigate(target, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -190,6 +213,13 @@ const Login = () => {
                   Entrez vos identifiants pour accéder à votre compte
                 </p>
               </div>
+
+              {notice && (
+                <div role="status" className={`mb-6 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm font-medium ${notice.tone}`}>
+                  <notice.Icon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+                  <p>{notice.text}</p>
+                </div>
+              )}
 
               {/* Formulaire */}
               <Form {...form}>
