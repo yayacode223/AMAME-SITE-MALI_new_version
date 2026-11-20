@@ -452,7 +452,7 @@ const Register = () => {
           </div>
 
           {/* Carte principale */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-card border border-amame-border overflow-hidden">
+          <div className="amame-panel overflow-hidden">
             {/* Barre de progression */}
             <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-gray-100">
               <div className="flex items-center justify-between">

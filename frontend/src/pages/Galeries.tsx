@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import Pagination from "../components/Pagination";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetAllGaleries } from "@/service/galerieService";
 import MediaImage from "@/components/MediaImage";
@@ -81,16 +81,8 @@ const Galeries = () => {
           <AnimatePresence mode="wait">
             {isLoading ? (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-amame-border overflow-hidden">
-                    <Skeleton className="h-48 w-full" />
-                    <div className="p-4 space-y-2">
-                      <Skeleton className="h-5 w-3/4 rounded-md" />
-                      <Skeleton className="h-4 w-1/2 rounded-md" />
-                    </div>
-                  </div>
-                ))}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={2} footer={false} />)}
               </motion.div>
             ) : filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -114,23 +106,25 @@ const Galeries = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                   {filtered.map((galerie, index) => (
                     <motion.div
                       key={galerie.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.06 }}
-                      className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden group"
                     >
-                      <div className="relative h-48 bg-amame-green-subtle overflow-hidden">
+                    {/* Carte .amame-card (index.css). Une galerie n'a pas de page à ouvrir : la carte
+                        n'est pas un lien et ne bouge pas au survol. */}
+                    <div className="amame-card">
+                      <div className="amame-card-media bg-amame-green-subtle">
                         {(galerie.coverImageUrl ?? galerie.coverImagePath) ? (
                           <MediaImage
                             src={galerie.coverImageUrl ?? galerie.coverImagePath}
                             maxWidth={640}
                             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                             alt={galerie.titre}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="h-full w-full object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -139,11 +133,9 @@ const Galeries = () => {
                         )}
                       </div>
 
-                      <div className="p-4">
-                        <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-2 line-clamp-2 group-hover:text-amame-green transition-colors">
-                          {galerie.titre}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-amame-muted">
+                      <div className="amame-card-body">
+                        <h3 className="amame-card-title">{galerie.titre}</h3>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-amame-muted mt-2">
                           {galerie.dateEvenement && (
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
@@ -158,11 +150,10 @@ const Galeries = () => {
                           )}
                         </div>
                         {galerie.descriptionCourte && (
-                          <p className="mt-2 text-sm text-amame-muted leading-relaxed line-clamp-2">
-                            {galerie.descriptionCourte}
-                          </p>
+                          <p className="amame-card-text mt-2">{galerie.descriptionCourte}</p>
                         )}
                       </div>
+                    </div>
                     </motion.div>
                   ))}
                 </div>

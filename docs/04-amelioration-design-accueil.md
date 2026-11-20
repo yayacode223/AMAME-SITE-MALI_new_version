@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 en cours (section 7).
+> **Avancement** : itérations 1 à 5 en production (`frontend-v1.8`) ; itération 6 commitée, image `frontend-v1.9` en construction (section 7).
 
 ---
 
@@ -569,7 +569,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
 | 5. Cartes, partie 1 | **en production** | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
-| 6. Cartes, partie 2 | **en cours** | `frontend-v1.9` (prévue) | 2026-11-20 | — |
+| 6. Cartes, partie 2 | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.9` | 2026-11-20 | couleurs par domaine (D6) ; pages publiques (D7) |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
 ### Itération 1 : détail (2026-11-19)
@@ -932,3 +932,82 @@ Retour arrière : `frontend-v1.6`.
 5. Fait : `deploy/portainer/amamestack.env.example` mis à `frontend-v1.8`.
 
 Retour arrière : `frontend-v1.7`.
+
+### Itération 6 : détail (2026-11-20)
+
+**Modifications** (17 fichiers, aucun nouveau) :
+- `src/index.css` : variante `.amame-card-row`, qui place le média à gauche dès 640 px. Nouvelle classe `.amame-panel` : même rayon, même bordure et même ombre qu'une carte, pour les blocs blancs qui ne sont pas des cartes.
+- `src/components/CardSkeleton.tsx` : options `layout="row"` (carte en ligne) et `media="none"` (carte sans média).
+- **Cartes converties aux classes `.amame-card-*`** :
+  - accueil : fonctionnalités et témoignages ;
+  - À propos : services et contacts ;
+  - articles, postes, guides et conseils (en ligne) ;
+  - galeries, liens utiles, ressources académiques ;
+  - articles similaires (page d'un article).
+- **Panneaux passés en `.amame-panel`** :
+  - pages de détail des bourses, des concours, des filières et des articles, avec leurs squelettes de chargement ;
+  - barre latérale des articles ;
+  - blocs du formulaire d'adhésion et de l'inscription ;
+  - message « aucun article ».
+- `CLAUDE.md` : la règle des cartes mentionne la variante en ligne et `.amame-panel`.
+
+**Ce qui change à l'écran :**
+- **Accueil, fonctionnalités** :
+  - la bordure épaisse colorée disparaît, et le gros bouton coloré « Découvrir » laisse la place au pied commun (« Voir les concours → », « Voir les filières → », « Voir les bourses → », dans la couleur du domaine) ;
+  - la pastille d'icône colorée reste.
+- **Accueil, témoignages** : carte à média portrait (224 px au lieu de 208) ; ils ne bougent plus au survol, puisqu'ils ne sont pas des liens.
+- **À propos, services** :
+  - même traitement que les fonctionnalités de l'accueil ;
+  - les couleurs suivent maintenant les domaines (D6) : orientation en vert, bourses en or, concours en bleu. Avant : orientation en bleu, bourses en vert, concours en or.
+- **À propos, contacts** :
+  - l'e-mail et le téléphone sont des liens : ils se soulèvent et reçoivent l'anneau de focus ;
+  - l'adresse et la disponibilité ne bougent plus.
+  - L'animation d'entrée passe sur une enveloppe : framer-motion laissait un `transform` en ligne sur l'élément, ce qui annulait le soulèvement au survol.
+- **Articles, postes, guides** :
+  - cartes en ligne, avec une image de 224 px de large à gauche dès 640 px ;
+  - la hauteur de la carte vient de son texte (176 px au moins) : une photo en portrait ne l'étire plus (voir « Constat »).
+  - Pour les postes et les guides, toute la carte devient un lien ; avant, seul le lien « Lire le guide » ou « Voir l'offre » l'était.
+  - Le titre d'un article passe de `h2` à `h3`, puisqu'il est placé sous le titre de section « Tous les articles ».
+- **Liens utiles** : toute la carte devient le lien externe ; avant, seul « Accéder au lien » l'était.
+- **Ressources** : avec un document joint, toute la carte devient le lien de téléchargement ; sans document, la carte n'est pas un lien.
+- **Galeries** : pas de page à ouvrir, donc pas de lien ; les cartes ne bougent plus au survol.
+- **Pages de détail, adhésion, inscription** : rayon de 16 px partout (12 px avant sur les concours et les filières) ; l'ombre des panneaux, invisible jusqu'ici (constat de l'itération 5), apparaît.
+- **Grilles** : `gap-5 lg:gap-6` partout. Les témoignages, les services et les contacts gardent leur nombre de colonnes (3 dès 768 px ; 4 dès 1024 px pour les contacts).
+- **Libellés et couleurs d'action** : teinte foncée du domaine, comme à l'itération 5.
+
+**Constat en cours de test.** Dans une carte en ligne, l'image était à `height: 100%` d'une zone sans hauteur fixe. Une photo en portrait imposait alors sa propre proportion : 320 px de haut pour 224 de large, contre 180 à 230 px pour le texte. La photo est désormais positionnée en absolu dans sa zone, à partir de 640 px.
+
+**Mesures** (Playwright ; données de test servies par le navigateur, aucun appel à une API réelle ; 13 routes : `/`, `/a-propos`, `/articles`, `/articles/postes`, `/orientation/guide-conseils`, `/galeries`, `/orientation/liens-utiles`, `/orientation/ressources`, `/articles/article-1`, `/bourses/1`, `/concours/1`, `/orientation/1`, `/adhesion` ; 390 et 1440 px) :
+
+| Mesure | Avant (`frontend-v1.8`) | Après |
+|---|---|---|
+| Blocs construits à la main (fond blanc, bordure, rayon ≥ 12 px, hors classes) | 6 (accueil), 7 (À propos), 6 (articles), 2 à 3 (guides, galeries, liens, ressources), 3 à 7 (pages de détail), 5 (adhésion) | **0 sur les 13 routes** |
+| Rayon des cartes et des panneaux | 12 ou 16 px selon la page | 16 px partout |
+| Ombre au repos | invisible (blanche) | visible (noir à 8 %) partout |
+| Média | 144 à 208 px | 176 px (photo), 224 px (portrait) ; cartes en ligne : 224 px de large, hauteur du texte (180 à 255 px) |
+| Titre des cartes | 14, 16 ou 18 px | 16 px |
+| Survol | soulèvement sur la plupart des cartes, liens ou non | soulèvement de 4 px sur les cartes-liens, aucun mouvement sur les autres |
+| Focus clavier (Tab, accueil, liens utiles, contacts, articles) | contour par défaut du navigateur | anneau vert sur la carte |
+| Réduction des animations | soulèvement conservé | aucun mouvement |
+| Débordement horizontal à 320 px | aucun | aucun, sur les 13 routes |
+| Erreurs JavaScript | aucune | aucune |
+
+- **Pages de l'itération 5** (`cards.py`, 8 routes) : mêmes mesures qu'en production, aucune régression.
+- **Recherche dans le code** (critère d'acceptation) : dans les pages publiques, plus aucun bloc blanc à bordure arrondie n'est construit hors des classes. Restent :
+  - des éléments qui ne sont pas des cartes : pastilles de logo de 40 à 56 px, menu déroulant de la navbar, bandeau d'installation de l'application ;
+  - le composant inutilisé `BoursesHero.tsx`.
+- **`shadow-card`** n'est plus utilisée dans les pages publiques. Elle reste dans l'administration et l'espace membre (hors périmètre, D7), avec son ombre invisible.
+
+**Vérifications de base** : `npx tsc --noEmit -p tsconfig.app.json`, les 4 erreurs connues et aucune nouvelle ; `vite build` réussi. Le précache passe de 114 à 113 entrées (1 808 contre 1 816 Kio) : Vite a regroupé autrement le squelette partagé, et les squelettes recopiés dans les pages ont disparu.
+
+**Pas traité :**
+- les CLS au chargement des nouvelles listes n'ont pas été mesurés un par un. Le mécanisme est celui de l'itération 5 : squelettes à la forme des cartes, mais en nombre fixe ;
+- l'administration et l'espace membre (D7).
+
+**Livraison** :
+1. Fait : étiquette par défaut passée à `frontend-v1.9` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
+2. En cours : image `frontend-v1.9` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
+3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.9`.
+
+Retour arrière : `frontend-v1.8`.

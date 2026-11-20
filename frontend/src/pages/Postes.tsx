@@ -6,7 +6,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion } from "framer-motion";
 import { useGetAllArticles } from "@/service/articleService";
 import { adaptArticleForNews } from "@/utils/articleAdapter";
@@ -72,17 +72,8 @@ const Postes = () => {
       <section className="flex-grow py-8 lg:py-12">
         <div className="page-container">
           {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl border border-amame-border p-5 flex gap-4">
-                  <Skeleton className="h-40 w-48 rounded-lg shrink-0" />
-                  <div className="flex-1 space-y-3">
-                    <Skeleton className="h-5 w-3/4 rounded-md" />
-                    <Skeleton className="h-4 w-1/3 rounded-md" />
-                    <Skeleton className="h-4 w-full rounded-md" />
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-5">
+              {[...Array(4)].map((_, i) => <CardSkeleton key={i} layout="row" lines={3} />)}
             </div>
           ) : postes.length === 0 ? (
             <div className="text-center py-20">
@@ -110,48 +101,46 @@ const Postes = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.06 }}
                   >
-                    <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden group">
-                      <div className="md:flex">
-                        <div className="md:w-48 md:shrink-0 bg-amame-gold-subtle flex items-center justify-center overflow-hidden">
-                          {(article.fileUrl ?? article.filePath) ? (
-                            <MediaImage
-                              src={article.fileUrl ?? article.filePath}
-                              maxWidth={640}
-                              sizes="(min-width: 768px) 192px, 100vw"
-                              alt={article.titre}
-                              className="w-full h-40 md:h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <Newspaper className="h-10 w-10 text-amame-gold/40 m-10" />
-                          )}
-                        </div>
-                        <div className="p-5 flex flex-col flex-grow">
-                          <span className="inline-block text-xs font-semibold text-amame-gold bg-amame-gold-subtle border border-amame-gold/20 px-2.5 py-1 rounded-full mb-2 w-fit">
+                    {/* Carte .amame-card en ligne (index.css) ; toute la carte est un lien (avant : seul
+                        « Voir l'offre » l'était) */}
+                    <Link to={`/articles/${article.slug}`} className="amame-card amame-card-row amame-card-interactive group">
+                      <div className="amame-card-media flex items-center justify-center bg-amame-gold-subtle">
+                        {(article.fileUrl ?? article.filePath) ? (
+                          <MediaImage
+                            src={article.fileUrl ?? article.filePath}
+                            maxWidth={640}
+                            sizes="(min-width: 640px) 224px, 100vw"
+                            alt={article.titre}
+                            className="amame-card-img"
+                          />
+                        ) : (
+                          <Newspaper className="h-10 w-10 text-amame-gold/40" />
+                        )}
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <div className="amame-card-body">
+                          <span className="inline-block text-xs font-semibold text-amber-700 bg-amame-gold-subtle border border-amame-gold/20 px-2.5 py-1 rounded-full mb-2 w-fit">
                             Poste
                           </span>
-                          <h3 className="font-nunito font-bold text-base text-amame-charcoal mb-2 line-clamp-2 group-hover:text-amame-green transition-colors">
-                            {article.titre}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-amame-muted mb-3">
+                          <h3 className="amame-card-title group-hover:text-amame-green-dark">{article.titre}</h3>
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-amame-muted mt-2">
                             <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{article.auteur || "AMAME"}</span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
                               {new Date(article.date_publication).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                             </span>
                           </div>
-                          <p className="text-sm text-amame-muted leading-relaxed line-clamp-2 flex-grow mb-4">
+                          <p className="amame-card-text line-clamp-2 mt-3">
                             {article.contenu || "Lire l'annonce pour plus de détails."}
                           </p>
-                          <Link
-                            to={`/articles/${article.slug}`}
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-amame-green hover:text-amame-green-dark transition-colors group/link"
-                          >
-                            Voir l'offre
-                            <ArrowRight className="h-3.5 w-3.5 group-hover/link:translate-x-1 transition-transform" />
-                          </Link>
+                        </div>
+                        <div className="amame-card-footer justify-end">
+                          <span className="amame-card-action text-amame-green-dark group-hover:gap-1.5">
+                            Voir l'offre <ArrowRight className="h-3.5 w-3.5" />
+                          </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </motion.div>
                 ))}
               </div>

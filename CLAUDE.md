@@ -138,7 +138,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Page container**: the main column of every public page, the navbar and the footer use `.page-container` (`src/index.css`): centered, 1280 px max including padding, side padding 16 px, 24 px from `sm`, 32 px from `lg`, so their edges stay aligned. Never use Tailwind's `container` (configured at 1400 px, still used by the member area) or rebuild `max-w-7xl mx-auto px-…` by hand for a page column; a narrower reading width is an extra `max-w-*` class or an inner wrapper. The design plan and its tracking live in `docs/04-amelioration-design-accueil.md`.
 
-**Cards**: a card on a public page uses the `.amame-card-*` classes of `src/index.css` (card, media zone `-media` / `-media-portrait` / `-media-logo`, `-img`, `-body`, `-title`, `-text`, `-footer`, `-action`), and its loading state uses `<CardSkeleton>` with the same media type. Add `.amame-card-interactive` only when the whole card is a link (`<Link className="amame-card amame-card-interactive group">`): it lifts on hover and gets the green focus ring; a card that is not a link does not move, only its footer link reacts. The domain color (gold for bourses, blue for concours, green for the rest) is for the icon, the title on hover and the action link, in a dark shade for text (`amber-700`, `blue-600`, `amame-green-dark`: at least 4.5:1 on white). Do not use the `shadow-card` utility: the name also matches the shadcn `card` color, so Tailwind emits a white shadow color after the shadow and the resting shadow is invisible; `.amame-card` sets the shadow itself.
+**Cards**: a card on a public page uses the `.amame-card-*` classes of `src/index.css` (card, media zone `-media` / `-media-portrait` / `-media-logo`, `-img`, `-body`, `-title`, `-text`, `-footer`, `-action`), and its loading state uses `<CardSkeleton>` with the same media type and layout. `.amame-card-row` puts the media on the left from `sm` (articles, guides, job posts). A white block that is not a card (detail-page panel, sidebar, form block) uses `.amame-panel` (same radius, border and shadow). Add `.amame-card-interactive` only when the whole card is a link (`<Link className="amame-card amame-card-interactive group">`): it lifts on hover and gets the green focus ring; a card that is not a link does not move, only its footer link reacts. The domain color (gold for bourses, blue for concours, green for the rest) is for the icon, the title on hover and the action link, in a dark shade for text (`amber-700`, `blue-600`, `amame-green-dark`: at least 4.5:1 on white). Do not use the `shadow-card` utility: the name also matches the shadcn `card` color, so Tailwind emits a white shadow color after the shadow and the resting shadow is invisible; `.amame-card` sets the shadow itself.
 
 **Tailwind brand tokens**: `amame-green` (#16a34a), `amame-green-dark` (#15803d), `amame-green-subtle` (#f0fdf4), `amame-gold` (#ca8a04), defined in `tailwind.config.ts`.
 
@@ -158,7 +158,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.8`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.9`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.4`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

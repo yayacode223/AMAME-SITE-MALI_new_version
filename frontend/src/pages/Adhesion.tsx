@@ -473,7 +473,7 @@ export default function Adhesion() {
                 Pourquoi adhérer ?
               </h2>
               {AVANTAGES.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex gap-3 p-4 bg-white rounded-2xl border border-amame-border shadow-card">
+                <div key={title} className="flex gap-3 p-4 amame-panel">
                   <div className="w-9 h-9 bg-amame-green-subtle rounded-xl flex items-center justify-center shrink-0">
                     <Icon className="h-5 w-5 text-amame-green" />
                   </div>
@@ -505,7 +505,7 @@ export default function Adhesion() {
 
             {/* ── Formulaire / Statut ── */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border border-amame-border shadow-card p-6 sm:p-8">
+              <div className="amame-panel p-6 sm:p-8">
                 <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-6">
                   {!isAuthenticated ? "Créer mon compte & adhérer" : "Ma demande d'adhésion"}
                 </h2>

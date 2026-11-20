@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Calendar, User, Search, Clock, Eye, Newspaper, ArrowRight, Tag } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import SEO from "../components/SEO";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -29,28 +29,6 @@ const getCatStyle = (cat: string) =>
 const formatDate = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-/* ─── Skeleton card ─────────────────────────────────────────── */
-const ArticleCardSkeleton = () => (
-  <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
-    <div className="flex flex-col sm:flex-row sm:min-h-[180px]">
-      <Skeleton className="sm:w-52 shrink-0 h-52 sm:h-auto" />
-      <div className="flex-1 p-5 sm:p-6 space-y-3">
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-20 rounded-full" />
-          <Skeleton className="h-5 w-28 rounded-full" />
-        </div>
-        <Skeleton className="h-6 w-4/5 rounded-md" />
-        <Skeleton className="h-4 w-full rounded-md" />
-        <Skeleton className="h-4 w-2/3 rounded-md" />
-        <div className="flex justify-between pt-2 border-t border-amame-border/50">
-          <Skeleton className="h-4 w-24 rounded-full" />
-          <Skeleton className="h-4 w-20 rounded-full" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
 /* ─── Article card ──────────────────────────────────────────── */
 const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArticleForNews>; index: number }) => (
   <motion.div
@@ -58,59 +36,59 @@ const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArtic
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, delay: index * 0.06 }}
   >
-    <Link to={`/articles/${article.slug}`} className="group block bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:min-h-[190px]">
-        {/* Image */}
-        <div className="sm:w-56 shrink-0 relative overflow-hidden bg-gradient-to-br from-amame-green-subtle to-green-100">
+    {/* Carte .amame-card en ligne (index.css) : média à gauche dès 640 px ; toute la carte est un lien */}
+    <Link to={`/articles/${article.slug}`} className="amame-card amame-card-row amame-card-interactive group">
+        {/* Média */}
+        <div className="amame-card-media bg-gradient-to-br from-amame-green-subtle to-green-100">
           {(article.fileUrl ?? article.filePath) ? (
             <MediaImage
               src={article.fileUrl ?? article.filePath}
               maxWidth={640}
               sizes="(min-width: 640px) 224px, 100vw"
               alt={article.titre}
-              className="w-full h-52 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="amame-card-img"
             />
           ) : (
-            <div className="w-full h-52 sm:h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center">
               <Newspaper className="h-12 w-12 text-amame-green/20" />
             </div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col flex-1 p-5 sm:p-6">
-          {/* Category + date */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${getCatStyle(article.categorie)}`}>
-              {article.categorie}
-            </span>
-            <span className="text-amame-border">·</span>
-            <span className="text-[11px] text-amame-muted flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {formatDate(article.date_publication)}
-            </span>
-            {article.temps_lecture && (
-              <>
-                <span className="text-amame-border">·</span>
-                <span className="text-[11px] text-amame-muted flex items-center gap-1">
-                  <Clock className="h-3 w-3" />{article.temps_lecture} min
-                </span>
-              </>
-            )}
+        {/* Corps et pied */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="amame-card-body">
+            {/* Category + date */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${getCatStyle(article.categorie)}`}>
+                {article.categorie}
+              </span>
+              <span className="text-amame-border">·</span>
+              <span className="text-[11px] text-amame-muted flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {formatDate(article.date_publication)}
+              </span>
+              {article.temps_lecture && (
+                <>
+                  <span className="text-amame-border">·</span>
+                  <span className="text-[11px] text-amame-muted flex items-center gap-1">
+                    <Clock className="h-3 w-3" />{article.temps_lecture} min
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Titre (h3 : les articles sont sous le titre de section « Tous les articles ») */}
+            <h3 className="amame-card-title group-hover:text-amame-green-dark">{article.titre}</h3>
+
+            {/* Extrait */}
+            <p className="amame-card-text line-clamp-2 mt-2">
+              {article.contenu || "Cliquez pour lire cet article."}
+            </p>
           </div>
 
-          {/* Title */}
-          <h2 className="font-nunito font-bold text-base sm:text-lg text-amame-charcoal line-clamp-2 leading-snug mb-2 group-hover:text-amame-green transition-colors duration-200">
-            {article.titre}
-          </h2>
-
-          {/* Excerpt */}
-          <p className="text-sm text-amame-muted leading-relaxed line-clamp-2 flex-1 mb-4">
-            {article.contenu || "Cliquez pour lire cet article."}
-          </p>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between border-t border-amame-border/50 pt-3 mt-auto">
+          {/* Pied */}
+          <div className="amame-card-footer">
             <span className="text-[11px] text-amame-muted flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-amame-green flex items-center justify-center text-white text-[9px] font-bold shrink-0">
                 {(article.auteur || "A")[0].toUpperCase()}
@@ -123,13 +101,12 @@ const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArtic
                   <Eye className="h-3 w-3" />{article.vues}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amame-green group-hover:gap-2 transition-all">
-                Lire <ArrowRight className="h-3 w-3" />
+              <span className="amame-card-action text-amame-green-dark group-hover:gap-1.5">
+                Lire l'article <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </div>
           </div>
         </div>
-      </div>
     </Link>
   </motion.div>
 );
@@ -241,11 +218,11 @@ export function Articles() {
                   {isLoading ? (
                     <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                       className="space-y-4">
-                      {[...Array(3)].map((_, i) => <ArticleCardSkeleton key={i} />)}
+                      {[...Array(3)].map((_, i) => <CardSkeleton key={i} layout="row" lines={2} />)}
                     </motion.div>
                   ) : articles.length === 0 ? (
                     <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                      className="text-center py-20 bg-white rounded-2xl border border-amame-border">
+                      className="text-center py-20 amame-panel">
                       <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-4">
                         <Search className="h-8 w-8 text-amame-green" />
                       </div>
@@ -279,7 +256,7 @@ export function Articles() {
               {/* Sidebar */}
               <aside className="space-y-5">
                 {/* Catégories */}
-                <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                <div className="amame-panel p-5">
                   <h3 className="font-nunito font-bold text-xs text-amame-charcoal mb-3 uppercase tracking-widest flex items-center gap-2">
                     <Tag className="h-3.5 w-3.5 text-amame-green" />
                     Catégories
@@ -304,7 +281,7 @@ export function Articles() {
 
                 {/* Articles récents */}
                 {recentArticles.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-xs text-amame-charcoal mb-4 uppercase tracking-widest flex items-center gap-2">
                       <Clock className="h-3.5 w-3.5 text-amame-green" />
                       Articles récents

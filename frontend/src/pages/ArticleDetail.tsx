@@ -188,7 +188,7 @@ export function ArticleDetail() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
+                <div className="amame-panel overflow-hidden">
                   {/* Image hero */}
                   {(article.fileUrl ?? article.filePath) && (
                     <div className="w-full overflow-hidden bg-amame-green-subtle">
@@ -269,27 +269,25 @@ export function ArticleDetail() {
                       <span className="w-1 h-5 bg-amame-green rounded-full inline-block" />
                       Articles similaires
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                       {similarArticles.map(a => (
-                        <Link key={a.id} to={`/articles/${a.slug}`}
-                          className="group bg-white rounded-2xl border border-amame-border shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
-                          <div className="overflow-hidden bg-gradient-to-br from-amame-green-subtle to-green-100">
+                        // Carte .amame-card (index.css) ; toute la carte est un lien
+                        <Link key={a.id} to={`/articles/${a.slug}`} className="amame-card amame-card-interactive group">
+                          <div className="amame-card-media bg-gradient-to-br from-amame-green-subtle to-green-100">
                             {(a.fileUrl ?? a.filePath) ? (
                               <MediaImage src={a.fileUrl ?? a.filePath} alt={a.titre} maxWidth={640}
-                                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                                className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
+                                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 100vw"
+                                className="amame-card-img" />
                             ) : (
-                              <div className="w-full h-36 flex items-center justify-center">
+                              <div className="w-full h-full flex items-center justify-center">
                                 <Newspaper className="h-8 w-8 text-amame-green/20" />
                               </div>
                             )}
                           </div>
-                          <div className="p-4">
-                            <p className="font-nunito font-semibold text-sm text-amame-charcoal line-clamp-2 leading-snug group-hover:text-amame-green transition-colors mb-2">
-                              {a.titre}
-                            </p>
-                            <p className="text-[11px] text-amame-muted flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />{formatDateShort(a.date_publication)}
+                          <div className="amame-card-body">
+                            <h4 className="amame-card-title group-hover:text-amame-green-dark">{a.titre}</h4>
+                            <p className="text-xs text-amame-muted flex items-center gap-1 mt-2">
+                              <Calendar className="h-3.5 w-3.5" />{formatDateShort(a.date_publication)}
                             </p>
                           </div>
                         </Link>
@@ -308,7 +306,7 @@ export function ArticleDetail() {
               >
                 {/* Articles récents */}
                 {recentArticles.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-xs text-amame-charcoal uppercase tracking-widest mb-4 flex items-center gap-2">
                       <Clock className="h-3.5 w-3.5 text-amame-green" />Articles récents
                     </h3>

@@ -20,8 +20,8 @@ const services = [
     description: "Guidance dans le choix des filières et établissements",
     features: ["Tests d'orientation", "Fiches métiers", "Conseils personnalisés"],
     image: "about/orientation" as const,
-    accentColor: "text-blue-600",
-    borderColor: "border-blue-100",
+    actionColor: "text-amame-green-dark",
+    titleHover: "group-hover:text-amame-green-dark",
     link: "/orientation",
   },
   {
@@ -30,8 +30,8 @@ const services = [
     description: "Accès aux opportunités de financement international",
     features: ["Base de données exhaustive", "Alertes personnalisées", "Aide aux candidatures"],
     image: "about/bourse" as const,
-    accentColor: "text-amame-green",
-    borderColor: "border-amame-green/20",
+    actionColor: "text-amber-700",
+    titleHover: "group-hover:text-amber-700",
     link: "/bourses",
   },
   {
@@ -40,8 +40,8 @@ const services = [
     description: "Information sur les concours et programmes spéciaux",
     features: ["Calendrier des concours", "Préparation aux épreuves", "Simulations"],
     image: "about/concours" as const,
-    accentColor: "text-amame-gold",
-    borderColor: "border-amame-gold/20",
+    actionColor: "text-blue-600",
+    titleHover: "group-hover:text-blue-600",
     link: "/concours",
   },
 ];
@@ -138,39 +138,37 @@ export function About() {
               </h2>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-5 lg:gap-6 max-w-5xl mx-auto">
               {services.map((s, i) => (
-                <motion.div key={s.title} {...fadeUp(i * 0.1)} className="group">
-                  <Link to={s.link} className="block h-full">
-                    <div className={`bg-white rounded-2xl border-2 ${s.borderColor} overflow-hidden flex flex-col h-full
-                                    transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 cursor-pointer`}>
+                <motion.div key={s.title} {...fadeUp(i * 0.1)}>
+                  {/* Carte .amame-card (index.css), toute la carte est un lien */}
+                  <Link to={s.link} className="amame-card amame-card-interactive group">
+                    <div className="amame-card-media">
+                      <StaticImage
+                        name={s.image}
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        alt={s.title}
+                        className="amame-card-img"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    </div>
 
-                      {/* Image pleine largeur en body */}
-                      <div className="relative h-48 overflow-hidden shrink-0">
-                        <StaticImage
-                          name={s.image}
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          alt={s.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                      </div>
+                    <div className="amame-card-body">
+                      <h3 className={`amame-card-title ${s.titleHover}`}>{s.title}</h3>
+                      <p className="amame-card-text line-clamp-none mt-2">{s.description}</p>
+                      <ul className="space-y-2 mt-4">
+                        {s.features.map(f => (
+                          <li key={f} className="flex items-center gap-2 text-sm text-amame-slate">
+                            <CheckCircle className="h-3.5 w-3.5 text-amame-green shrink-0" />{f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
-                      {/* Contenu */}
-                      <div className="p-6 flex flex-col flex-grow">
-                        <h3 className="font-nunito font-bold text-lg text-amame-charcoal mb-2">{s.title}</h3>
-                        <p className="text-sm text-amame-muted mb-4 leading-relaxed flex-grow">{s.description}</p>
-                        <ul className="space-y-2 mb-5">
-                          {s.features.map(f => (
-                            <li key={f} className="flex items-center gap-2 text-sm text-amame-slate">
-                              <CheckCircle className="h-3.5 w-3.5 text-amame-green shrink-0" />{f}
-                            </li>
-                          ))}
-                        </ul>
-                        <div className={`flex items-center gap-1.5 text-sm font-semibold ${s.accentColor} mt-auto`}>
-                          En savoir plus <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
+                    <div className="amame-card-footer justify-end">
+                      <span className={`amame-card-action ${s.actionColor} group-hover:gap-1.5`}>
+                        En savoir plus <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
                     </div>
                   </Link>
                 </motion.div>
@@ -192,75 +190,69 @@ export function About() {
               </p>
             </motion.div>
 
-            <div className="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Cartes .amame-card sans média. L'e-mail et le téléphone sont des liens (soulèvement,
+                anneau de focus) ; l'adresse et la disponibilité ne bougent pas. L'animation d'entrée
+                est sur l'enveloppe : framer-motion laisse un transform en ligne qui annulerait le
+                soulèvement s'il était posé sur la carte elle-même. */}
+            <div className="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
 
               {/* Email */}
-              <motion.a
-                href="mailto:contact@amame.ml"
-                {...fadeUp(0.05)}
-                className="group flex flex-col gap-3 bg-white border border-amame-border rounded-2xl p-5
-                           hover:border-amame-green/40 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="flex items-center justify-center w-10 h-10 bg-amame-green-subtle rounded-xl shrink-0">
-                  <Mail className="h-5 w-5 text-amame-green" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Email</p>
-                  <p className="font-semibold text-amame-charcoal text-sm">contact@amame.ml</p>
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold text-amame-green mt-auto">
-                  Écrire <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </motion.a>
+              <motion.div {...fadeUp(0.05)}>
+                <a href="mailto:contact@amame.ml" className="amame-card amame-card-interactive group gap-3 p-5">
+                  <div className="flex items-center justify-center w-10 h-10 bg-amame-green-subtle rounded-xl shrink-0">
+                    <Mail className="h-5 w-5 text-amame-green" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Email</p>
+                    <p className="font-semibold text-amame-charcoal text-sm">contact@amame.ml</p>
+                  </div>
+                  <span className="amame-card-action mt-auto text-amame-green-dark group-hover:gap-1.5">
+                    Écrire <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </a>
+              </motion.div>
 
               {/* Téléphone */}
-              <motion.a
-                href="tel:+22369780841"
-                {...fadeUp(0.1)}
-                className="group flex flex-col gap-3 bg-white border border-amame-border rounded-2xl p-5
-                           hover:border-blue-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-50 rounded-xl shrink-0">
-                  <Phone className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Téléphone</p>
-                  <p className="font-semibold text-amame-charcoal text-sm">+223 69 78 08 41</p>
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 mt-auto">
-                  Appeler <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </motion.a>
+              <motion.div {...fadeUp(0.1)}>
+                <a href="tel:+22369780841" className="amame-card amame-card-interactive group gap-3 p-5">
+                  <div className="flex items-center justify-center w-10 h-10 bg-blue-50 rounded-xl shrink-0">
+                    <Phone className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Téléphone</p>
+                    <p className="font-semibold text-amame-charcoal text-sm">+223 69 78 08 41</p>
+                  </div>
+                  <span className="amame-card-action mt-auto text-blue-600 group-hover:gap-1.5">
+                    Appeler <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </a>
+              </motion.div>
 
               {/* Adresse */}
-              <motion.div
-                {...fadeUp(0.15)}
-                className="flex flex-col gap-3 bg-white border border-amame-border rounded-2xl p-5
-                           hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="flex items-center justify-center w-10 h-10 bg-amame-gold-subtle rounded-xl shrink-0">
-                  <MapPin className="h-5 w-5 text-amame-gold" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Adresse</p>
-                  <p className="font-semibold text-amame-charcoal text-sm">Au Lycée Bouillagui FADIGA</p>
-                  <p className="text-xs text-amame-muted">Commune II du District de Bamako</p>
+              <motion.div {...fadeUp(0.15)}>
+                <div className="amame-card gap-3 p-5">
+                  <div className="flex items-center justify-center w-10 h-10 bg-amame-gold-subtle rounded-xl shrink-0">
+                    <MapPin className="h-5 w-5 text-amame-gold" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Adresse</p>
+                    <p className="font-semibold text-amame-charcoal text-sm">Au Lycée Bouillagui FADIGA</p>
+                    <p className="text-xs text-amame-muted">Commune II du District de Bamako</p>
+                  </div>
                 </div>
               </motion.div>
 
               {/* Disponibilité */}
-              <motion.div
-                {...fadeUp(0.2)}
-                className="flex flex-col gap-3 bg-white border border-amame-border rounded-2xl p-5
-                           hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="flex items-center justify-center w-10 h-10 bg-purple-50 rounded-xl shrink-0">
-                  <Clock className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Disponibilité</p>
-                  <p className="font-semibold text-amame-charcoal text-sm">Lun–Dim</p>
-                  <p className="text-xs text-amame-muted">24h / 7j</p>
+              <motion.div {...fadeUp(0.2)}>
+                <div className="amame-card gap-3 p-5">
+                  <div className="flex items-center justify-center w-10 h-10 bg-purple-50 rounded-xl shrink-0">
+                    <Clock className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-amame-muted mb-1">Disponibilité</p>
+                    <p className="font-semibold text-amame-charcoal text-sm">Lun–Dim</p>
+                    <p className="text-xs text-amame-muted">24h / 7j</p>
+                  </div>
                 </div>
               </motion.div>
 

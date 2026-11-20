@@ -88,6 +88,29 @@
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   }
 
+  /* Variante en ligne (articles, guides, postes) : le média passe à gauche dès 640 px. */
+  .amame-card-row {
+    @apply sm:flex-row;
+  }
+
+  .amame-card-row > .amame-card-media {
+    @apply sm:h-auto sm:min-h-[11rem] sm:w-56;
+  }
+
+  /* En ligne, la photo remplit la zone sans en fixer la hauteur : c'est le texte qui la donne.
+     Sinon, une photo en portrait étirerait la carte à sa propre proportion. */
+  .amame-card-row > .amame-card-media > img {
+    @apply sm:absolute sm:inset-0;
+  }
+
+  /* Panneau : même forme et même ombre qu'une carte, sans la mise en colonne (pages de détail,
+     barres latérales, blocs de formulaire). */
+  .amame-panel {
+    @apply rounded-2xl border border-amame-border bg-white;
+    --tw-shadow: theme("boxShadow.card");
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  }
+
   .amame-card-interactive {
     @apply transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-card-hover
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amame-green focus-visible:ring-offset-2

@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import Pagination from "../components/Pagination";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetRessources } from "@/service/ressourceAcademiqueService";
 import { mediaUrl } from "@/utils/media";
@@ -22,16 +22,6 @@ const TYPE_COLORS: Record<string, string> = {
 
 const getTypeStyle = (type?: string) =>
   type ? TYPE_COLORS[type] || "bg-gray-50 text-gray-600 border-gray-200" : "";
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-amame-border p-5 space-y-3">
-    <Skeleton className="h-10 w-10 rounded-lg" />
-    <Skeleton className="h-5 w-3/4 rounded-md" />
-    <Skeleton className="h-4 w-1/3 rounded-full" />
-    <Skeleton className="h-12 w-full rounded-md" />
-    <Skeleton className="h-8 w-1/3 rounded-md" />
-  </div>
-);
 
 const RessourcesAcademiques = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -154,8 +144,8 @@ const RessourcesAcademiques = () => {
           <AnimatePresence mode="wait">
             {isLoading ? (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="none" lines={3} />)}
               </motion.div>
             ) : filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -179,44 +169,53 @@ const RessourcesAcademiques = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {filtered.map((ressource, index) => (
-                    <motion.div key={ressource.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }}>
-                      <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 p-5 flex flex-col h-full group">
-                        <div className="w-10 h-10 bg-amame-gold-subtle rounded-xl flex items-center justify-center mb-4 shrink-0">
-                          <FileText className="h-5 w-5 text-amame-gold" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+                  {filtered.map((ressource, index) => {
+                    const fichier = ressource.fileUrl ?? ressource.filePath;
+                    const contenu = (
+                      <>
+                        <div className="amame-card-body">
+                          <div className="w-10 h-10 bg-amame-gold-subtle rounded-xl flex items-center justify-center mb-4 shrink-0">
+                            <FileText className="h-5 w-5 text-amame-gold" />
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {ressource.type && (
+                              <span className={`text-xs font-semibold border px-2 py-0.5 rounded-full ${getTypeStyle(ressource.type)}`}>{ressource.type}</span>
+                            )}
+                            {ressource.niveau && (
+                              <span className="text-xs font-medium border border-blue-200 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{ressource.niveau}</span>
+                            )}
+                          </div>
+                          <h3 className={`amame-card-title ${fichier ? "group-hover:text-amame-green-dark" : ""}`}>{ressource.titre}</h3>
+                          {ressource.description && <p className="amame-card-text line-clamp-2 mt-2">{ressource.description}</p>}
                         </div>
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {ressource.type && (
-                            <span className={`text-xs font-semibold border px-2 py-0.5 rounded-full ${getTypeStyle(ressource.type)}`}>{ressource.type}</span>
-                          )}
-                          {ressource.niveau && (
-                            <span className="text-xs font-medium border border-blue-200 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{ressource.niveau}</span>
+                        <div className="amame-card-footer">
+                          {fichier ? (
+                            <span className="amame-card-action ml-auto text-amame-green-dark group-hover:gap-1.5">
+                              <Download className="h-3.5 w-3.5" /> Télécharger
+                            </span>
+                          ) : (
+                            <p className="text-xs text-amame-muted italic">Aucun document joint</p>
                           )}
                         </div>
-                        <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-2 group-hover:text-amame-green transition-colors flex-grow">
-                          {ressource.titre}
-                        </h3>
-                        {ressource.description && (
-                          <p className="text-xs text-amame-muted leading-relaxed line-clamp-2 mb-4">{ressource.description}</p>
-                        )}
-                        {(ressource.fileUrl ?? ressource.filePath) ? (
-                          <a
-                            href={mediaUrl(ressource.fileUrl ?? ressource.filePath)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                            className="mt-auto inline-flex items-center gap-2 text-xs font-semibold text-amame-green hover:text-amame-green-dark transition-colors pt-3 border-t border-amame-border"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            Télécharger
+                      </>
+                    );
+                    return (
+                      <motion.div key={ressource.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }}>
+                        {/* Carte .amame-card sans média (index.css). Avec un document, toute la carte
+                            est le lien de téléchargement (avant : seul « Télécharger » l'était) ; sans
+                            document, elle n'est pas un lien et ne bouge pas. */}
+                        {fichier ? (
+                          <a href={mediaUrl(fichier)} target="_blank" rel="noopener noreferrer" download
+                            className="amame-card amame-card-interactive group">
+                            {contenu}
                           </a>
                         ) : (
-                          <p className="mt-auto text-xs text-amame-muted pt-3 border-t border-amame-border italic">Aucun document joint</p>
+                          <div className="amame-card">{contenu}</div>
                         )}
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
                 {ressourcesPage && !hasActiveFilters && (

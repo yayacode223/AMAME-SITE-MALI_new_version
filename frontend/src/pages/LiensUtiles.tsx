@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/CardSkeleton";
 import { motion } from "framer-motion";
 import { useGetLiensUtiles } from "@/service/lienUtileService";
 
@@ -20,15 +20,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const getCatStyle = (cat?: string) =>
   cat ? (CATEGORY_COLORS[cat] || "bg-gray-50 text-gray-600 border-gray-200") : "bg-gray-50 text-gray-600 border-gray-200";
-
-const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-amame-border p-5 space-y-3">
-    <Skeleton className="h-5 w-3/4 rounded-md" />
-    <Skeleton className="h-4 w-1/3 rounded-full" />
-    <Skeleton className="h-12 w-full rounded-md" />
-    <Skeleton className="h-8 w-1/3 rounded-md" />
-  </div>
-);
 
 const LiensUtiles = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -108,8 +99,8 @@ const LiensUtiles = () => {
       <section className="flex-grow py-8 lg:py-12">
         <div className="page-container">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="none" lines={2} />)}
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
@@ -127,32 +118,32 @@ const LiensUtiles = () => {
                 <h2 className="font-nunito font-bold text-lg text-amame-charcoal">Liens disponibles</h2>
                 <p className="text-sm text-amame-muted">{filtered.length} lien{filtered.length > 1 ? "s" : ""}</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
                 {filtered.map((lien, index) => (
                   <motion.div key={lien.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }}>
-                    <div className="bg-white rounded-xl border border-amame-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 p-5 flex flex-col h-full group">
-                      {lien.categorie && (
-                        <span className={`inline-block text-xs font-semibold border px-2.5 py-1 rounded-full mb-3 w-fit ${getCatStyle(lien.categorie)}`}>
-                          {lien.categorie}
+                    {/* Carte .amame-card sans média (index.css) ; toute la carte est le lien externe
+                        (avant : seul « Accéder au lien » l'était) */}
+                    <a
+                      href={lien.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="amame-card amame-card-interactive group"
+                    >
+                      <div className="amame-card-body">
+                        {lien.categorie && (
+                          <span className={`inline-block text-xs font-semibold border px-2.5 py-1 rounded-full mb-3 w-fit ${getCatStyle(lien.categorie)}`}>
+                            {lien.categorie}
+                          </span>
+                        )}
+                        <h3 className="amame-card-title group-hover:text-amame-green-dark">{lien.titre}</h3>
+                        {lien.description && <p className="amame-card-text mt-2">{lien.description}</p>}
+                      </div>
+                      <div className="amame-card-footer justify-end">
+                        <span className="amame-card-action text-amame-green-dark group-hover:gap-1.5">
+                          Accéder au lien <ExternalLink className="h-3.5 w-3.5" />
                         </span>
-                      )}
-                      <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-2 group-hover:text-amame-green transition-colors flex-grow">
-                        {lien.titre}
-                      </h3>
-                      {lien.description && (
-                        <p className="text-xs text-amame-muted leading-relaxed line-clamp-3 mb-4">
-                          {lien.description}
-                        </p>
-                      )}
-                      <a
-                        href={lien.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-auto inline-flex items-center gap-2 text-xs font-semibold text-amame-green hover:text-amame-green-dark transition-colors pt-3 border-t border-amame-border"
-                      >
-                        Accéder au lien <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </div>
+                      </div>
+                    </a>
                   </motion.div>
                 ))}
               </div>

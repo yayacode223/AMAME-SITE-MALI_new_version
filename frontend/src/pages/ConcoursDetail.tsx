@@ -105,14 +105,14 @@ const ConcoursDetail = () => {
           {isLoading ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-1 space-y-5">
-                <div className="bg-white rounded-xl border border-amame-border p-6 space-y-4">
+                <div className="amame-panel p-6 space-y-4">
                   <Skeleton className="h-6 w-24 rounded-full" />
                   {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-5 w-full rounded-lg" />)}
                   <Skeleton className="h-11 w-full rounded-xl" />
                 </div>
               </div>
               <div className="lg:col-span-2 space-y-5">
-                <div className="bg-white rounded-xl border border-amame-border p-6 space-y-4">
+                <div className="amame-panel p-6 space-y-4">
                   <Skeleton className="h-8 w-3/4 rounded-lg" />
                   <Skeleton className="h-5 w-full rounded-lg" />
                   <Skeleton className="h-5 w-2/3 rounded-lg" />
@@ -126,7 +126,7 @@ const ConcoursDetail = () => {
 
               {/* Sidebar */}
               <aside className="lg:col-span-1">
-                <div className="bg-white rounded-xl border border-amame-border shadow-card p-5 sticky top-20">
+                <div className="amame-panel p-5 sticky top-20">
                   {statusInfo && (
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border mb-5 ${statusInfo.cls}`}>
                       <Clock className="h-3.5 w-3.5" />{statusInfo.label}
@@ -200,7 +200,7 @@ const ConcoursDetail = () => {
               {/* Main content */}
               <div className="lg:col-span-2 space-y-5">
                 {/* Header */}
-                <div className="bg-white rounded-xl border border-amame-border shadow-card overflow-hidden">
+                <div className="amame-panel overflow-hidden">
                   {imageUrl ? (
                     /* Bannière image pleine largeur + badges flottants */
                     <div className="relative w-full h-52 sm:h-64 lg:h-80 bg-gray-100">
@@ -249,7 +249,7 @@ const ConcoursDetail = () => {
                 </div>
 
                 {/* Details */}
-                <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                <div className="amame-panel p-6 lg:p-7">
                   <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-5">Détails du concours</h2>
                   <div className="grid sm:grid-cols-2 gap-4 mb-6">
                     <div className="bg-amame-surface rounded-xl p-4 border border-amame-border">

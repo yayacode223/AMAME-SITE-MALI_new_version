@@ -96,7 +96,7 @@ const BoursesDetail = () => {
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-5">
-                  <div className="bg-white rounded-2xl border border-amame-border overflow-hidden">
+                  <div className="amame-panel overflow-hidden">
                     <Skeleton className="h-48 w-full rounded-none" />
                     <div className="p-6 space-y-4">
                       <Skeleton className="h-7 w-3/4 rounded-lg" />
@@ -105,7 +105,7 @@ const BoursesDetail = () => {
                       <Skeleton className="h-14 w-full rounded-xl" />
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl border border-amame-border p-6 space-y-3">
+                  <div className="amame-panel p-6 space-y-3">
                     <Skeleton className="h-5 w-40 rounded-lg" />
                     <Skeleton className="h-24 w-full rounded-lg" />
                   </div>
@@ -131,7 +131,7 @@ const BoursesDetail = () => {
                 <div className="lg:col-span-2 space-y-5">
 
                   {/* Carte header — drapeau pays hôte */}
-                  <div className="bg-white rounded-2xl border border-amame-border shadow-card overflow-hidden">
+                  <div className="amame-panel overflow-hidden">
 
                     {/* Image drapeau */}
                     <div className="relative h-48 overflow-hidden bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
@@ -187,7 +187,7 @@ const BoursesDetail = () => {
                   </div>
 
                   {/* Description détaillée */}
-                  <div className="bg-white rounded-2xl border border-amame-border shadow-card p-6 lg:p-7">
+                  <div className="amame-panel p-6 lg:p-7">
                     <h2 className="font-nunito font-bold text-base text-amame-charcoal mb-4">Description détaillée</h2>
                     {bourse.descriptionLongue ? (
                       <ExpandableText text={bourse.descriptionLongue} maxWords={50}
@@ -199,7 +199,7 @@ const BoursesDetail = () => {
 
                   {/* Organisation — désactivée temporairement */}
                   {/* {(bourse.organisation || bourse.bailleur) && (
-                    <div className="bg-white rounded-2xl border border-amame-border shadow-card p-6 lg:p-7">
+                    <div className="amame-panel p-6 lg:p-7">
                       <h2 className="font-nunito font-bold text-base text-amame-charcoal mb-4">Organisation</h2>
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 bg-amame-green-subtle rounded-xl flex items-center justify-center shrink-0">
@@ -220,7 +220,7 @@ const BoursesDetail = () => {
                 <div className="space-y-5">
 
                   {/* CTA + méta */}
-                  <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <Button
                       onClick={() => bourse.urlSource && window.open(bourse.urlSource, "_blank", "noopener,noreferrer")}
                       disabled={!bourse.urlSource}
@@ -255,7 +255,7 @@ const BoursesDetail = () => {
 
                   {/* Éligibilité — pills pour éviter le débordement */}
                   {(bourse.paysEligible || bourse.regionEligible) && (
-                    <div className="bg-white rounded-2xl border border-amame-border shadow-card p-5">
+                    <div className="amame-panel p-5">
                       <h3 className="font-nunito font-bold text-xs text-amame-charcoal uppercase tracking-wide mb-4">Éligibilité</h3>
                       <div className="space-y-4">
                         {bourse.paysEligible && (

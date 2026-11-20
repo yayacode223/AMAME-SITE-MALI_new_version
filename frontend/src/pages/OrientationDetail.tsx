@@ -84,7 +84,7 @@ export function OrientationDetail() {
         <div className="page-hero">
           <div className="page-container">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="w-14 h-14 bg-white rounded-xl shadow-card border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-14 h-14 bg-white rounded-xl shadow-sm border border-amame-border flex items-center justify-center overflow-hidden shrink-0">
                 {(filiere.fileUrl ?? filiere.filePath) ? (
                   <MediaImage src={filiere.fileUrl ?? filiere.filePath} maxWidth={320} sizes="56px" alt={filiere.nom} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
                 ) : (
@@ -109,7 +109,7 @@ export function OrientationDetail() {
               {/* Sidebar */}
               <aside className="lg:col-span-1 space-y-5">
                 {/* Quick stats */}
-                <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                <div className="amame-panel p-5">
                   <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
                     <Target className="h-4 w-4 text-amame-green" />Aperçu rapide
                   </h3>
@@ -129,7 +129,7 @@ export function OrientationDetail() {
 
                 {/* Universities */}
                 {filiere.universites && filiere.universites.length > 0 && (
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-blue-500" />Établissements
                     </h3>
@@ -148,7 +148,7 @@ export function OrientationDetail() {
 
                 {/* Prerequisites */}
                 {filiere.prerequis && filiere.prerequis.length > 0 && (
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-sm text-amame-charcoal uppercase tracking-wide mb-4 flex items-center gap-2">
                       <BookOpen className="h-4 w-4 text-amame-green" />Prérequis
                     </h3>
@@ -166,7 +166,7 @@ export function OrientationDetail() {
               {/* Main */}
               <div className="lg:col-span-2 space-y-5">
                 {/* Description */}
-                <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                <div className="amame-panel p-6 lg:p-7">
                   <div className="h-1 -mx-6 lg:-mx-7 -mt-6 lg:-mt-7 mb-5 rounded-t-xl bg-gradient-to-r from-amame-green to-amame-green-dark" />
                   <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4">Description de la filière</h2>
                   {(filiere.descriptionLongue || filiere.descriptionCourte) ? (
@@ -182,7 +182,7 @@ export function OrientationDetail() {
 
                 {/* Debouches */}
                 {filiere.debouches && filiere.debouches.length > 0 && (
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                  <div className="amame-panel p-6 lg:p-7">
                     <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4 flex items-center gap-2">
                       <Briefcase className="h-5 w-5 text-amame-gold" />Débouchés professionnels
                     </h2>
@@ -199,7 +199,7 @@ export function OrientationDetail() {
 
                 {/* Competences */}
                 {filiere.competences && filiere.competences.length > 0 && (
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-6 lg:p-7">
+                  <div className="amame-panel p-6 lg:p-7">
                     <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-4">Compétences développées</h2>
                     <div className="flex flex-wrap gap-2">
                       {filiere.competences.map((c, i) => (
@@ -211,7 +211,7 @@ export function OrientationDetail() {
 
                 {/* Salary & Perspectives */}
                 <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-4">Évolution de carrière</h3>
                     <div className="space-y-3">
                       {filiere.salaireDebut && (
@@ -229,7 +229,7 @@ export function OrientationDetail() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-amame-border shadow-card p-5">
+                  <div className="amame-panel p-5">
                     <h3 className="font-nunito font-bold text-sm text-amame-charcoal mb-3">Perspectives d'avenir</h3>
                     <ExpandableText
                       text={filiere.perspectives || "Les perspectives pour cette filière sont prometteuses avec une demande croissante sur le marché de l'emploi."}
