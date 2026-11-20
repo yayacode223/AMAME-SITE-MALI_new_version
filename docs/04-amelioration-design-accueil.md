@@ -4,7 +4,7 @@
 > Analyse du 2026-11-19, branche `deploiement/v1.3`. En production : `frontend-v1.3`.
 > Le périmètre est le frontend seul : ni backend, ni base de données, ni variable d'environnement.
 > **Décisions reçues le 2026-11-19** : D1 à D9 et D4 bis tranchées ; D10 est appliquée par défaut (section 5). Le plan ci-dessous en tient compte.
-> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 commitée, image `frontend-v1.8` en construction (section 7).
+> **Avancement** : itérations 1 à 4 en production (`frontend-v1.7`) ; itération 5 publiée (`frontend-v1.8` sur Docker Hub), en attente de déploiement (section 7).
 
 ---
 
@@ -568,7 +568,7 @@ La largeur du bloc de liens varie entre 594 et 623 px selon que les polices sont
 | 2. Navbar centrée | **en production** | `frontend-v1.5` | 2026-11-19 | commit `efb76f8` ; voir le détail ci-dessous |
 | 3. Hero vidéo | **en production** | `frontend-v1.6` | 2026-11-19 | commit `d803a7d` ; boucle (D1) ; pas de vidéo en économie de données, 2G ni 3G (D2) ; voir le détail ci-dessous |
 | 4. Message du hero | **en production** | `frontend-v1.7` | 2026-11-19 | commit `232df3e` ; texte A (D3) ; « Explorer les bourses » non remis (D4) ; chiffres retirés (D5) ; bouton des connectés selon la navbar (D4 bis) |
-| 5. Cartes, partie 1 | **implémentée, vérifiée en local, commitée** ; image en construction | `frontend-v1.8` | 2026-11-20 | couleurs par domaine (D6) ; pages publiques (D7) |
+| 5. Cartes, partie 1 | **image publiée** ; en attente de déploiement | `frontend-v1.8` | 2026-11-20 | commit `a5039e4` ; couleurs par domaine (D6) ; pages publiques (D7) |
 | 6. Cartes, partie 2 | prête à démarrer | — | — | — |
 | 7. Polices servies par le site | validée, après l'itération 4 | — | — | D9 |
 
@@ -918,9 +918,13 @@ Retour arrière : `frontend-v1.6`.
 - le contraste de la couleur or des icônes (calendrier) et des titres de bourse au repos : les icônes ne portent pas d'information seule, le titre reste en noir au repos.
 
 **Livraison** :
-1. Fait : étiquette par défaut passée à `frontend-v1.8` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code.
-2. En cours : image `frontend-v1.8` construite depuis ce commit dans un `git worktree` propre, puis vérifiée dans un conteneur de test.
-3. Reste à faire : `docker push`, puis publication des commits sur `main`.
+1. Fait : étiquette par défaut passée à `frontend-v1.8` dans `docker-compose.yml` et dans le tableau de `CLAUDE.md`, dans le commit du code (`a5039e4`).
+2. Fait : image `frontend-v1.8` construite depuis `a5039e4` dans un `git worktree` propre, supprimé ensuite. Image `e1b61d1ec385`, 112 Mo ; précache de 114 entrées (1 816 Kio).
+   Vérifiée dans un conteneur de test (`amame-it5-front`, supprimé ensuite) :
+   - **HTTP** : l'accueil, les 7 autres routes à cartes, `/config.js`, `sw.js`, une image statique et une vidéo répondent `200` avec le bon type ; le CSS livré pose l'ombre de `.amame-card` (noir à 8 %) et ne contient plus `.card-base` ni `.card-hover` ;
+   - **itération 5** : `cards.py` donne sur l'image exactement les mesures du développement (8 routes, 390 et 1440 px : forme, média, textes, squelettes, survol, CLS, aucune erreur) ; aucun débordement à 320 px ; aucun mouvement avec la réduction des animations ; ombre visible au repos ;
+   - **itérations 1 à 4** : hero aux 12 tailles identique (360×560 : marge de 23 px) ; bords du contenu à 16 / 32 / 112 / 352 px ; navbar centrée ; sous-menu visible au clavier après deux images, 10 essais sur 10.
+3. Fait : `docker push yayacode224/amame:frontend-v1.8`. L'empreinte sur Docker Hub est identique à celle de l'image vérifiée (`sha256:e1b61d1ec385f081a250d43a7c8456faf18f62632d404495942056ecd6aa2871`), plateforme `linux/amd64`. Commits publiés sur `main` (avance rapide).
 4. Après la bascule de la stack Portainer `amamestack` : contrôle en production, puis `deploy/portainer/amamestack.env.example` mis à `frontend-v1.8`.
 
 Retour arrière : `frontend-v1.7`.
