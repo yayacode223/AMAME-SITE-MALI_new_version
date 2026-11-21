@@ -1,6 +1,7 @@
 import type { ImgHTMLAttributes } from "react";
 import type { StaticImageName } from "@/generated/staticImages";
 import { staticImageInfo, staticImageSrcSet, staticImageUrl } from "@/utils/staticImage";
+import { fetchPriorityAttr } from "@/utils/fetchPriority";
 
 interface StaticImageProps
   extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet" | "width" | "height" | "loading"> {
@@ -27,7 +28,7 @@ const StaticImage = ({ name, sizes, priority = false, alt = "", ...rest }: Stati
       alt={alt}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
-      fetchPriority={priority ? "high" : "auto"}
+      {...fetchPriorityAttr(priority)}
       {...rest}
     />
   );

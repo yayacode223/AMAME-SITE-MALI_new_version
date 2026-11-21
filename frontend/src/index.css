@@ -210,6 +210,14 @@
     @apply h-auto aspect-square bg-amame-green-subtle sm:aspect-[4/5];
   }
 
+  /* Image d'un partenaire (logo, affiche, photo) : pleine largeur, 16:9, l'image remplit la zone
+     (absolute inset-0 object-cover object-top). Le 16:9 garde entier un logo large (le logo actuel fait
+     1,86:1) ; calée en haut, une affiche montre son titre. Fond blanc derrière un logo transparent.
+     La zone .amame-card-media-logo (logo réduit, marges) rendait une affiche illisible (docs/06, R10). */
+  .amame-card-media-wide {
+    @apply h-auto aspect-video bg-white;
+  }
+
   .amame-card-media-logo {
     @apply flex h-32 items-center justify-center border-b border-amame-border bg-gradient-to-br from-amame-green-subtle to-white p-5;
   }

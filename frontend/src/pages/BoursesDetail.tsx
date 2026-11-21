@@ -147,9 +147,11 @@ const BoursesDetail = () => {
                     {/* Image drapeau */}
                     <div className="relative h-48 overflow-hidden bg-gradient-to-br from-amame-gold-subtle to-amame-gold/10">
                       {getFlagImage(bourse.paysHote) && (
+                        // Image principale de la fiche (son LCP) : chargée tout de suite, en priorité (docs/06, R10)
                         <StaticImage
                           name={getFlagImage(bourse.paysHote)!}
                           sizes="(min-width: 1024px) 66vw, 100vw"
+                          priority
                           alt={bourse.paysHote ?? ""}
                           className="w-full h-full object-cover"
                         />

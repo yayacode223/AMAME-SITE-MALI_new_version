@@ -201,10 +201,12 @@ export function ArticleDetail() {
                   {/* Image hero */}
                   {(article.fileUrl ?? article.filePath) && (
                     <div className="w-full overflow-hidden bg-amame-green-subtle">
+                      {/* Image principale de l'article (son LCP) : chargée tout de suite, en priorité (docs/06, R10) */}
                       <MediaImage
                         src={article.fileUrl ?? article.filePath}
                         maxWidth={1280}
                         sizes="(min-width: 1024px) 66vw, 100vw"
+                        priority
                         alt={article.titre}
                         className="w-full object-cover"
                         style={{ aspectRatio: "16 / 7", objectPosition: "center" }}

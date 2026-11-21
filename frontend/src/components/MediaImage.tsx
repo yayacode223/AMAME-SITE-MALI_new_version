@@ -1,5 +1,6 @@
 import type { ImgHTMLAttributes } from "react";
 import { mediaUrl, sizedUrl, srcSet, type ImageWidth } from "@/utils/media";
+import { fetchPriorityAttr } from "@/utils/fetchPriority";
 
 interface MediaImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet" | "loading"> {
   /** URL renvoyée par l'API (fileUrl, coverImageUrl…) ou, à défaut, clé de stockage (filePath). */
@@ -26,7 +27,7 @@ const MediaImage = ({ src, maxWidth = 1280, priority = false, sizes, alt = "", .
       alt={alt}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
-      fetchPriority={priority ? "high" : "auto"}
+      {...fetchPriorityAttr(priority)}
       {...rest}
     />
   );

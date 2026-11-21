@@ -41,7 +41,7 @@ const Partenaires = () => {
         <div className="page-container">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-              {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="logo" lines={2} />)}
+              {[...Array(6)].map((_, i) => <CardSkeleton key={i} media="wide" lines={2} />)}
             </div>
           ) : isLoadingError ? (
             <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les partenaires n'ont pas pu être chargés." />
@@ -74,21 +74,25 @@ const Partenaires = () => {
                         {/* Carte .amame-card (index.css). Elle n'est pas un lien : pas de soulèvement
                             au survol ; seul le lien du pied réagit. */}
                         <div className="amame-card">
-                          {/* Média — logo (object-contain pour ne jamais rogner le logo) */}
-                          <div className="amame-card-media amame-card-media-logo">
+                          {/* Média — image du partenaire en pleine largeur, qui remplit la zone 16:9, calée en haut
+                              (.amame-card-media-wide, docs/06, R10) */}
+                          <div className="amame-card-media amame-card-media-wide border-b border-amame-border">
                             {(partenaire.fileUrl ?? partenaire.filePath) ? (
                               <MediaImage
                                 src={partenaire.fileUrl ?? partenaire.filePath}
-                                maxWidth={320}
-                                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                                maxWidth={640}
+                                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                                 alt={partenaire.nom}
-                                className="max-h-full max-w-full object-contain"
+                                className="absolute inset-0 h-full w-full object-cover object-top"
                                 onError={e => { e.currentTarget.style.display = "none"; }}
                               />
                             ) : (
-                              <Globe className="h-12 w-12 text-amame-green/30" />
+                              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amame-green-subtle to-white">
+                                <Globe className="h-12 w-12 text-amame-green/30" />
+                              </div>
                             )}
-                            <span className="absolute top-3 right-3 text-xs bg-white/90 backdrop-blur-sm text-amame-green-dark border border-amame-green/15 px-2.5 py-1 rounded-full font-medium shadow-sm">
+                            {/* Pastille opaque : en blanc à 90 %, l'image dessous la faisait tomber à 4,4:1 (docs/06, R10) */}
+                            <span className="absolute top-3 right-3 text-xs bg-white text-amame-green-dark border border-amame-green/15 px-2.5 py-1 rounded-full font-medium shadow-sm">
                               {partenaire.type || "Partenaire"}
                             </span>
                           </div>
