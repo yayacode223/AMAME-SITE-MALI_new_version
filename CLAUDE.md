@@ -138,7 +138,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Mobile navigation**: `<BottomNav />` (`src/components/BottomNav.tsx`) is a fixed bottom bar (mobile only, `lg:hidden`) with 4 primary tabs (Home, Bourses, Concours, Orientation) and a "Plus" Sheet for secondary links. The Navbar hamburger was removed — BottomNav is the sole mobile navigation.
 
-**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API. After a deployment, `src/utils/appUpdate.ts` (called from `main.tsx`) reloads the page when the new version takes control, at once if nothing was typed, otherwise at the next route change; it also reloads once on `vite:preloadError` (an old lazy chunk that no longer exists).
+**PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. The favicons and the manifest icons are kept out of the precache (`includeManifestIcons: false` and `globIgnores`): they were half of every visitor's offline download, and the browser fetches them itself for the tab and for installation. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API. After a deployment, `src/utils/appUpdate.ts` (called from `main.tsx`) reloads the page when the new version takes control, at once if nothing was typed, otherwise at the next route change; it also reloads once on `vite:preloadError` (an old lazy chunk that no longer exists).
 
 **Breakpoints**: Mobile/desktop split is at `lg` (1024px) matching Tailwind's default — consistent across Navbar, BottomNav, Footer padding (`pb-16 lg:pb-0`).
 
@@ -160,7 +160,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Runtime configuration**: `MEDIA_BASE_URL` and `MEDIA_OPTIMIZER_ENABLED` are read when the container starts, not at build time. `docker/40-runtime-config.sh` rewrites `/config.js` (dev default: `public/config.js`), `index.html` loads it before the app, and `src/utils/runtimeConfig.ts` exposes it. It is excluded from the PWA precache and served with `no-store`. Do not reintroduce a `VITE_*` build variable for a value that differs between environments.
 
-**Nginx headers** (`frontend/nginx.conf`): a `location` that sets its own `add_header` inherits none of the `server` level's. The security headers therefore live in `frontend/docker/security-headers.conf`, included at the `server` level and after the `add_header` of every location (and in `docker/uploads-disk.conf`): a new location with an `add_header` must include it too. `sw.js` and `registerSW.js` are served `no-cache`. In production, Nginx Proxy Manager's "Cache Assets" option on `amame.ml` overrides the site's `Cache-Control` and must stay off (docs/06, S3).
+**Nginx headers** (`frontend/nginx.conf`): a `location` that sets its own `add_header` inherits none of the `server` level's. The security headers therefore live in `frontend/docker/security-headers.conf`, included at the `server` level and after the `add_header` of every location (and in `docker/uploads-disk.conf`): a new location with an `add_header` must include it too. A cache duration is set by `add_header Cache-Control` alone, never with `expires` as well (that sent a second `Cache-Control` and an `Expires`). `sw.js` and `registerSW.js` are served `no-cache`. In production, Nginx Proxy Manager's "Cache Assets" option on `amame.ml` overrides the site's `Cache-Control` and must stay off (docs/06, S3).
 
 **Local dev outside Docker**: `npm run dev` proxies `/api` and `/uploads` to `http://localhost:8080` (`DEV_BACKEND_URL` to override).
 
@@ -172,7 +172,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.15`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.16`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

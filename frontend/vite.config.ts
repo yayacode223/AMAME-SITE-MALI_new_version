@@ -109,7 +109,10 @@ export default defineConfig(({ mode }) => {
       svgr(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'web-app-manifest-192x192.png', 'web-app-manifest-512x512.png'],
+        // Icônes hors du précache (docs/06, mesure du 21 novembre) : elles pesaient la moitié du
+        // téléchargement hors ligne de chaque visiteur (526 Kio sur ~1 Mio), alors qu'elles ne servent
+        // qu'à l'onglet et à l'installation sur l'écran d'accueil, où le navigateur les demande lui-même.
+        includeManifestIcons: false,
         manifest: {
           name: "AMAME — Association Malienne d'Appui aux Meilleurs Élèves",
           short_name: 'AMAME',
@@ -143,7 +146,8 @@ export default defineConfig(({ mode }) => {
           // Les polices latin-ext (ɛ ɔ ɲ ŋ…) ne servent qu'aux pages qui contiennent ces lettres : le
           // navigateur les demande alors lui-même. Précachées, elles seraient téléchargées par tous
           // (120 Ko). Hors ligne, ces lettres s'affichent dans la police du système.
-          globIgnores: ['**/amame-uploads/**', 'images/**', 'config.js', 'assets/*-latin-ext-*.woff2'],
+          globIgnores: ['**/amame-uploads/**', 'images/**', 'config.js', 'assets/*-latin-ext-*.woff2',
+            'favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png', 'web-app-manifest-*.png'],
           // Une navigation vers un fichier (média, fichier privé servi par l'API) va au serveur, pas
           // à l'application : sinon index.html s'afficherait à la place, et la redirection de
           // /uploads/ vers le CDN ne serait pas suivie (constat C14).

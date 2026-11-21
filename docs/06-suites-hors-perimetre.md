@@ -65,6 +65,7 @@ Pages concernées (requêtes React Query sans traitement d'erreur) : Articles, A
 | --- | --- | --- | --- |
 | **R1** — lisibilité et détails | S1 (4 zones), S2, `no-cache` de `sw.js` / `registerSW.js` dans `nginx.conf`, S5 (si confirmé), S6 | `frontend-v1.15` | chaque texte des 4 zones ≥ 4,5:1 (≥ 3:1 grand titre) au pire endroit, à 390, 768 et 1440 px ; champ en erreur jamais sous la barre (390 px) ; `nginx -t` correct, en-têtes de `sw.js` ; `tsc` sans erreur |
 | **R2** — pages publiques | S4 | `frontend-v1.15` (avec R1, voir E5) | pour chaque page : réponse 500 et réseau coupé → message et « Réessayer », jamais l'état vide ; fiche 404 → « introuvable » ; aucun écran vide (390 et 1440 px) |
+| **R3** — icônes et ménage Nginx (demandé le 21 novembre, hors plan initial) | icônes hors du précache, icônes recompressées sans perte, `expires` en double retiré | `frontend-v1.16` | précache sans icône et transfert réduit ; manifeste et `index.html` inchangés ; site toujours installable ; un seul `Cache-Control` par réponse, `nginx -t` correct |
 | Action de l'équipe | S3 : désactiver *Cache Assets* | aucune | en-têtes de `/config.js` et `/assets/` relus à travers `https://amame.ml` |
 
 Aucune itération ne touche le backend.
@@ -80,6 +81,7 @@ Aucune itération ne touche le backend.
 | E3 | Nginx Proxy Manager : désactiver *Cache Assets* sur `amame.ml` ? | **oui** (plus simple que des *Custom locations*) |
 | E4 | Ajouter à R1 la correction des en-têtes de sécurité perdus dans les `location` de `nginx.conf` qui posent leur propre `add_header` (docs/04, annexe C) ? | **oui** : même fichier, contrôle par `curl` |
 | E5 | Deux images (R1 puis R2) ? | **oui** : R1 est court et visible, R2 touche 17 pages. *Révisé le 20 novembre par l'équipe : « On continue avec le reste du correctif. À la fin, on fera un build et push » : R1 et R2 dans une seule image, `frontend-v1.15`.* |
+| E6 | Grande icône : effacer le liseré gris du bord gauche (4 px) et du haut, présent dans l'image d'origine (plus fin sur les autres icônes) ? | **oui** (décision du 21 novembre) : fait dans R3, sur les quatre icônes PNG |
 
 Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc (3,3:1, section 2.1) ; précache PWA de 1,9 Mio (environ 1 Mio transféré), dont la moitié pour l'icône de 512 px (mesure du 21 novembre, journal) ; en-têtes `Cache-Control` en double dans 5 `location` de `nginx.conf` ; `npm run lint` inutilisable (docs/04, annexe C).
 
@@ -91,6 +93,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | --- | --- | --- | --- | --- |
 | R1 | **en production** (décidé : E1, E2, E4, E5) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
 | R2 | **en production** ; même image que R1 (E5 révisé) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
+| R3 | **code prêt et vérifié**, avec E6 ; commit et construction en cours | `frontend-v1.16` | 2026-11-21 | voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -129,3 +132,13 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 **2026-11-21 — Rechargement automatique constaté.** Test de l'équipe : un appareil qui avait ouvert `amame.ml` avant le déploiement de `frontend-v1.15` s'est rechargé de lui-même et affiche la nouvelle adresse du pied de page. D9 (rapport 05) fonctionne en production. Tous les points de ce rapport sont faits ; restent seulement les sujets hors plan de la section 4.
 
 **2026-11-21 — Mesure du précache (hors plan).** Build de `a3494fc` dans le dossier temporaire de la session : 117 entrées, 113 adresses distinctes (4 icônes listées deux fois, téléchargées une seule fois). Environ 1,9 Mio de fichiers, soit environ 1 Mio transféré grâce à la compression gzip de Nginx. Répartition du transfert : icônes PNG/ICO **526 Kio** (dont `web-app-manifest-512x512.png` seule 368 Kio, puis l'icône de 192 px 65 Kio et `apple-touch-icon.png` 58 Kio) ; JS et CSS publics et communs 336 Kio ; polices 85 Kio ; administration 58 Kio (31 fichiers) ; espace membre 14 Kio. Correction de l'analyse du 20 novembre : l'administration ne pèse qu'environ 7 % ; le poste principal, ce sont les icônes, jamais compressées. Constat voisin : dans `nginx.conf`, 5 `location` (`/assets/`, `/images/`, `/amame-uploads/`, icônes et images, polices) posent à la fois `expires` et `add_header Cache-Control` ; le navigateur reçoit deux `Cache-Control` de même durée, plus un `Expires`. Sans effet gênant.
+
+**2026-11-21 — R3 : icônes et ménage Nginx.** Demandé par l'équipe après la mesure du précache.
+
+- **Icônes hors du précache** (`vite.config.ts`) : `includeAssets` retiré, `includeManifestIcons: false`, `favicon.ico`, `favicon-96x96.png`, `apple-touch-icon.png` et `web-app-manifest-*.png` dans `globIgnores`. Le navigateur les demande lui-même (onglet, installation sur l'écran d'accueil) ; une application déjà installée garde son icône.
+- **Icônes recompressées sans perte** (Pillow, `optimize`) : 512 px 368,9 → 300,3 Kio, 192 px 65,2 → 57,7 Kio, `apple-touch-icon` 58,0 → 51,6 Kio, `favicon-96x96` 18,9 → 17,0 Kio ; pixels identiques, vérifiés un à un. Écartée : la réduction à 256 couleurs (53 Kio pour la 512 px), qui fait apparaître des bandes dans le soleil et sur le chapeau du logo.
+- **Ménage Nginx** : les 5 `expires` de `nginx.conf` et celui de `docker/uploads-disk.conf` retirés ; la durée reste fixée par `add_header Cache-Control`, valeurs inchangées.
+- **Vérifié** : build de la nouvelle version : 108 entrées (117 avant), aucune icône ; environ 1 389 Kio de fichiers, **~496 Kio transférés au lieu de ~1 021 Kio (−51 %)**. Manifeste et `index.html` annoncent les mêmes icônes. Installabilité Chrome (`install_ab.py`, v1.15 contre la nouvelle version, servies en statique) : aucune erreur dans les deux cas, service worker actif, les quatre icônes PNG en 200. `fetch("/favicon.ico")` échoue depuis une page dans le Chromium de test, mais aussi sur la v1.15 sans service worker (la requête n'atteint pas le serveur ; le fichier s'ouvre normalement dans un onglet et répond 200 à une requête directe) : particularité du navigateur de test, pas du site.
+- **Reste à vérifier** (Docker Desktop arrêté) : `nginx -t` et les en-têtes servis par l'image (un seul `Cache-Control`, plus d'`Expires`), au moment de la construction.
+
+**2026-11-21 — E6 : liseré des icônes effacé.** L'équipe demande d'inclure E6 dans R3. Le défaut vient d'une ancienne numérisation : bande grise à gauche (512 px : 4 colonnes ; 192 et 180 px : 2 ; 96 px : 1), ligne grise et lignes transparentes en haut et en bas (semi-transparentes sur la 96 px). Correction : chaque bande reprend la première colonne ou ligne saine voisine, de sorte que le fond reste blanc et que le ruban bleu, qui touche le bord gauche, continue jusqu'au bord au lieu d'être coupé. Pixels modifiés : 4 588 (512 px), 764 (192 px), 716 (180 px), 286 (96 px), **aucun hors des bandes** ; icônes désormais entièrement opaques ; recompression sans perte ensuite (297,8, 56,9, 50,9 et 16,8 Kio). `favicon.ico` (16, 32 et 48 px), d'une autre source, n'a pas ce défaut : inchangé. Comparaison avant/après sur fond sombre vérifiée à l'œil (script `e6_icons.py` du dossier temporaire de la session).
