@@ -8,7 +8,37 @@ import PageHero from "../components/PageHero";
 import { Input } from "@/components/ui/input";
 import CardSkeleton from "@/components/CardSkeleton";
 import QueryError from "@/components/QueryError";
-import { useGetEtablissement } from "@/service/etablissementService";
+import { useGetEtablissement, type EtablissementResponse } from "@/service/etablissementService";
+
+/**
+ * Image d'un établissement (docs/06, R12) : l'image principale, sinon le logo, en pleine largeur et rognée
+ * pour remplir la zone, calée en haut. Une adresse morte (sites externes) passe à la suivante, puis à
+ * l'illustration par défaut : jamais de zone vide.
+ */
+const EtablissementImage = ({ etab }: { etab: EtablissementResponse }) => {
+  const sources = [...new Set([etab.url_image, etab.urlLogo].filter((url): url is string => !!url?.trim()))];
+  const [failed, setFailed] = useState(0);
+  const src = sources[failed];
+
+  if (!src) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amame-green-subtle to-white">
+        <Building2 className="h-12 w-12 text-amame-green/30" />
+      </div>
+    );
+  }
+  return (
+    <img
+      key={src}
+      src={src}
+      alt={etab.nom}
+      loading="lazy"
+      decoding="async"
+      className="absolute inset-0 h-full w-full object-cover object-top"
+      onError={() => setFailed(n => n + 1)}
+    />
+  );
+};
 
 
 const Universites = () => {
@@ -106,7 +136,7 @@ const Universites = () => {
         <div className="page-container">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-              {[...Array(9)].map((_, i) => <CardSkeleton key={i} media="logo" lines={1} />)}
+              {[...Array(9)].map((_, i) => <CardSkeleton key={i} media="wide" lines={1} />)}
             </div>
           ) : isLoadingError ? (
             <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les établissements n'ont pas pu être chargés." />
@@ -137,21 +167,12 @@ const Universites = () => {
                     {/* Carte .amame-card (index.css). Elle n'est pas un lien : pas de soulèvement au
                         survol ; seul le lien du pied réagit. */}
                     <div className="amame-card">
-                      {/* Média — logo (object-contain pour ne jamais rogner le logo) */}
-                      <div className="amame-card-media amame-card-media-logo">
-                        {etab.urlLogo ? (
-                          <img
-                            src={etab.urlLogo}
-                            alt={etab.nom}
-                            className="max-h-full max-w-full object-contain"
-                            loading="lazy"
-                            onError={e => { e.currentTarget.style.display = "none"; }}
-                          />
-                        ) : (
-                          <Building2 className="h-12 w-12 text-amame-green/30" />
-                        )}
+                      {/* Média — image en pleine largeur, zone 16:9 (.amame-card-media-wide, docs/06, R12) */}
+                      <div className="amame-card-media amame-card-media-wide border-b border-amame-border">
+                        <EtablissementImage etab={etab} />
+                        {/* Pastille opaque : posée sur une image, un blanc à 90 % peut descendre sous 4,5:1 */}
                         {etab.typeEtablissement && (
-                          <span className="absolute top-3 right-3 text-xs bg-white/90 backdrop-blur-sm text-amame-green-dark border border-amame-green/15 px-2.5 py-1 rounded-full font-medium shadow-sm">
+                          <span className="absolute top-3 right-3 text-xs bg-white text-amame-green-dark border border-amame-green/15 px-2.5 py-1 rounded-full font-medium shadow-sm">
                             {etab.typeEtablissement}
                           </span>
                         )}
