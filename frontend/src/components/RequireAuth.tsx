@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import type { Permission, Role } from "@/types/userType";
 import { hasSessionEnded, loginPath } from "@/utils/authRedirect";
+import PageLoader from "@/components/PageLoader";
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -24,11 +25,7 @@ export default function RequireAuth({ children, permission, roles, deniedTo }: R
   const location = useLocation();
 
   if (isUserLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-amame-surface" role="status" aria-label="Chargement">
-        <div className="animate-spin h-8 w-8 border-2 border-amame-green border-t-transparent rounded-full" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAuthenticated) {

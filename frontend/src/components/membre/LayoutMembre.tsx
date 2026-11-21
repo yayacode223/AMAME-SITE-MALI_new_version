@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PageLoader from "@/components/PageLoader";
 import { userMessage } from "@/utils/apiError";
 import {
   HomeIcon,
@@ -206,7 +207,10 @@ export default function LayoutMembre() {
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-5xl w-full mx-auto">
           <ErrorBoundary variant="section" resetKey={location.pathname}>
-            <Outlet />
+            {/* Chargement d'une page dans le contenu : le menu reste affiché (docs/06, R11) */}
+            <Suspense fallback={<PageLoader variant="section" />}>
+              <Outlet />
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>

@@ -52,6 +52,33 @@
   <link rel="preload" href="/src/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
   <link rel="preload" href="/src/assets/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 
+  <!-- ── Chargement de page (docs/06, R11) : logo AMAME dans une roue. Affiché par le HTML ci-dessous
+       jusqu'au premier rendu de React, puis par <PageLoader> (src/components/PageLoader.tsx, mêmes
+       classes) pendant le chargement d'une page. Ses styles sont ici, et non dans index.css, pour être
+       là avant toute feuille de style, en développement comme en production. -->
+  <style>
+    .amame-loader { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: #f9fafb; }
+    .amame-loader-section { position: relative; inset: auto; z-index: auto; min-height: 50vh; background: transparent; }
+    .amame-loader-mark { position: relative; width: 104px; height: 104px; }
+    .amame-loader-section .amame-loader-mark { width: 80px; height: 80px; }
+    .amame-loader-ring { position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: 3px solid #dcfce7; border-top-color: #16a34a; animation: amame-loader-spin .9s linear infinite; }
+    .amame-loader-logo { position: absolute; inset: 8px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .12); }
+    .amame-loader-section .amame-loader-logo { inset: 6px; }
+    /* 84 % du disque : le logo (bandeau et mains en bas) tient en entier dans le cercle. Le fichier a un
+       liseré sombre de 2 px à gauche et de 1 px en haut : clip-path le cache. */
+    .amame-loader-logo img { display: block; width: 84%; height: 84%; max-width: none; object-fit: contain; clip-path: inset(1% 1% 1% 1.6%); }
+    /* Entre deux pages : rien pendant 200 ms, pour qu'une page déjà en cache ne fasse pas clignoter le logo */
+    .amame-loader-delayed .amame-loader-mark { animation: amame-loader-in .2s ease-out .2s both; }
+    .amame-loader-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    @keyframes amame-loader-spin { to { transform: rotate(360deg); } }
+    @keyframes amame-loader-in { from { opacity: 0; } }
+    @keyframes amame-loader-pulse { 50% { opacity: .35; } }
+    /* Mouvement réduit : la roue ne tourne plus, elle pulse */
+    @media (prefers-reduced-motion: reduce) {
+      .amame-loader-ring { border-color: #16a34a; animation: amame-loader-pulse 1.6s ease-in-out infinite; }
+    }
+  </style>
+
   <!-- ── JSON-LD : Organization ────────────────────────────────────────── -->
   <script type="application/ld+json">
     {
@@ -104,7 +131,16 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <!-- Remplacé par React à son premier rendu ; même balisage que <PageLoader> -->
+  <div id="root">
+    <div id="amame-boot-loader" class="amame-loader" role="status">
+      <div class="amame-loader-mark" aria-hidden="true">
+        <div class="amame-loader-ring"></div>
+        <div class="amame-loader-logo"><img src="/logo-192.webp" alt="" width="74" height="74" fetchpriority="high" /></div>
+      </div>
+      <span class="amame-loader-sr">Chargement de la page…</span>
+    </div>
+  </div>
   <!-- Configuration d'exécution (URL des médias) : réécrite au démarrage du conteneur, lue avant l'application -->
   <script src="/config.js"></script>
   <script type="module" src="/src/main.tsx"></script>

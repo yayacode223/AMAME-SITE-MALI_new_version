@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
+import PageLoader from "@/components/PageLoader";
 import RequireAuth from "@/components/RequireAuth";
 import type { Role } from "@/types/userType";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -81,19 +81,6 @@ const MembreParametres     = lazy(() => import("@/pages/membre/Parametres"));
 const ForgotPassword       = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword        = lazy(() => import("@/pages/ResetPassword"));
 
-// ── Fallback Suspense ──────────────────────────────────────────────────────
-const PageLoader = () => (
-  <div className="min-h-screen flex flex-col gap-4 p-8 bg-amame-surface">
-    <Skeleton className="h-16 w-full rounded-xl" />
-    <Skeleton className="h-48 w-full rounded-xl" />
-    <div className="grid grid-cols-3 gap-4">
-      <Skeleton className="h-32 rounded-xl" />
-      <Skeleton className="h-32 rounded-xl" />
-      <Skeleton className="h-32 rounded-xl" />
-    </div>
-  </div>
-);
-
 /* Rôles admis dans l'espace membre ; un USER est envoyé vers /adhesion */
 const MEMBER_SPACE_ROLES: Role[] = ["MEMBER", "ADMIN", "SUPERADMIN", "EDITOR"];
 
@@ -111,6 +98,7 @@ const AppContent = () => {
   return (
     <ErrorBoundary resetKey={pathname}>
       <ScrollToTop />
+      {/* Pendant le chargement d'une page : logo AMAME dans une roue (docs/06, R11) */}
       <Suspense fallback={<PageLoader />}>
       <Routes>
           {/* Routes publiques */}

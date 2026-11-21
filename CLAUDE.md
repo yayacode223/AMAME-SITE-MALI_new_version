@@ -136,6 +136,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Routing** (`App.tsx`): All routes live in the `AppContent` inner component (inside `<BrowserRouter>`) to enable `useLocation()` access. `AppContent` conditionally renders `<BottomNav />` and `<PWAInstallBanner />` — suppressed on `/admin/*`, `/membre/*`, and auth pages.
 
+**Page loading** (docs/06, R11): the AMAME logo in a spinning ring. `index.html` shows it inside `#root` until React's first render, and `<PageLoader>` (`src/components/PageLoader.tsx`) shows the same markup afterwards: as the `Suspense` fallback of `App.tsx` (full screen, under the bottom bar), in `<RequireAuth>` while the user loads, and with `variant="section"` in the admin and member layouts (a `Suspense` around `<Outlet />`, the menu stays). Their CSS is the inline `<style>` of `index.html`, so it applies before any stylesheet; change it there. A loader that replaces another one (the HTML one, the guard's) shows at once and takes over the ring's phase (Web Animations `startTime`), so the arc never jumps. Between two pages the logo appears only after 200 ms, so a page already in cache does not flash it. Do not bring back a page-shaped skeleton as the route fallback; data inside a page keeps its own skeletons (`CardSkeleton`).
+
 **Mobile navigation**: `<BottomNav />` (`src/components/BottomNav.tsx`) is a fixed bottom bar (mobile only, `lg:hidden`) with 4 primary tabs (Home, Bourses, Concours, Orientation) and a "Plus" Sheet for secondary links. The Navbar hamburger was removed — BottomNav is the sole mobile navigation.
 
 **PWA**: Configured via `vite-plugin-pwa` in `vite.config.ts`. Manifest is fully declared in the plugin config (not in a separate file). The `site.webmanifest` in `public/` exists as a fallback reference. Service worker uses `registerType: 'autoUpdate'` with Workbox for caching and `NetworkFirst` strategy for `/api/*` calls. The favicons and the manifest icons are kept out of the precache (`includeManifestIcons: false` and `globIgnores`): they were half of every visitor's offline download, and the browser fetches them itself for the tab and for installation. Navigations to `/uploads/` and `/api/` bypass the app shell (`navigateFallbackDenylist`): a media link must reach Nginx (and its redirect to the CDN), a private file opened in a tab must reach the API. After a deployment, `src/utils/appUpdate.ts` (called from `main.tsx`) reloads the page when the new version takes control, at once if nothing was typed, otherwise at the next route change; it also reloads once on `vite:preloadError` (an old lazy chunk that no longer exists).
@@ -188,7 +190,7 @@ Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a la
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.23`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.24`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { Suspense, useState, useMemo } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS, Role } from "@/types/userType";
@@ -20,6 +20,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PageLoader from "@/components/PageLoader";
 import { userMessage } from "@/utils/apiError";
 
 /* ---------- Types ---------- */
@@ -404,7 +405,10 @@ const AdminLayout: React.FC = () => {
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
           <ErrorBoundary variant="section" resetKey={location.pathname}>
-            <Outlet />
+            {/* Chargement d'une page dans le contenu : le menu reste affiché (docs/06, R11) */}
+            <Suspense fallback={<PageLoader variant="section" />}>
+              <Outlet />
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>
