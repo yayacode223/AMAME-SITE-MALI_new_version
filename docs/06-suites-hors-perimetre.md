@@ -100,7 +100,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R2 | **en production** ; même image que R1 (E5 révisé) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
 | R3 | **en production** ; avec E6 | `frontend-v1.16` | 2026-11-21 | commit `08567c0`, voir le journal |
 | R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
-| R5 | **publiée**, à déployer par l'équipe (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
+| R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -186,3 +186,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Hors de cette itération, relevé** : sur la fiche bourse, les pastilles du pays et du niveau (blanc sur `bg-white/20`) sont posées sur l'image du drapeau, sous un dégradé noir qui part de 65 % ; pas mesurées, à vérifier avec la même méthode (un drapeau clair peut les faire passer sous 4,5:1).
 
 **2026-11-21 — `frontend-v1.18` construite et publiée.** Commit `14e37fc` (R5, E8, E9), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité sur chaque réponse contrôlée ; nouvelles images servies (`hero-about-*`, `hero-eleves-*`), anciennes en 404 (`hero-homepage-*`, `hero-galeries-626`, `hero-about-405`) ; précache de 108 entrées, sans icône ni image ; CSS : `.amame-hero-scrim` (82/72/62 %, puis 80/72/45/20 % dès 1024 px), `.amame-photo-cartouche` (noir à 55 %, flou de 6 px, sans préfixe `-webkit-` : un Safari antérieur à la version 18 ignore le flou, cas mesuré « sans flou »), `.amame-photo-veil` absente. Poussée : empreinte `sha256:95af8ca11925f0e62967bf41a2b84ab97278ec5858a6157893566e05bba69090`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.18`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.17`.
+
+**2026-11-21 — `frontend-v1.18` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.18`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.18`. Contrôle en production laissé à l'équipe.
