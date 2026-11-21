@@ -33,7 +33,7 @@ export const STATIC_IMAGES = {
   "home/orientation-filieres": { width: 2816, height: 1536, widths: [640, 1280, 1920] },
   "home/section-benevolat": { width: 2752, height: 1536, widths: [640, 1280, 1920] },
   "home/temoignage-aicha": { width: 2048, height: 2048, widths: [640, 1280, 1920] },
-  "home/temoignage-coulibaly": { width: 2048, height: 2048, widths: [640, 1280, 1920] },
+  "home/temoignage-coulibaly": { width: 2773, height: 2773, widths: [640, 1280, 1920] },
   "home/temoignage-fatoumata": { width: 2048, height: 2048, widths: [640, 1280, 1920] },
 } as const;
 

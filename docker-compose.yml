@@ -96,7 +96,7 @@ services:
 
   frontend:
     #image: yaya236/amame-web-site:frontend-v7
-    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.19}
+    image: yayacode224/amame:${FRONTEND_IMAGE_TAG:-frontend-v1.20}
     build:
       context: ./frontend
       dockerfile: Dockerfile

@@ -69,6 +69,7 @@ Pages concernées (requêtes React Query sans traitement d'erreur) : Articles, A
 | **R4** — boutons verts (E7, option A) | tout élément vert qui porte du texte : `#15803d`, survol `#166534` ; `--primary` aligné | `frontend-v1.17` | aucun texte sur fond vert sous 4,5:1 (3:1 grand texte), pages publiques, membre et administration ; survol mesuré |
 | **R5** — photos et logo (demandé le 21 novembre) | nouvelles images À propos, Galeries, Connexion, Mot de passe oublié ; logo de l'en-tête agrandi ; voile vert d'Adhésion, de Connexion et de Mot de passe oublié remplacé par des cartouches (E8) ; badge d'Adhésion manqué en R1 corrigé ; bandeaux photo des 17 pages (E9) | `frontend-v1.18` | textes sur photo au seuil à 390, 768 et 1440 px, fonds translucides compris, flou coupé compris ; logo 48 px (téléphone) et 64 px (ordinateur) ; défilement sous la barre inchangé |
 | **R6** — photos des membres (demandé le 21 novembre) | cartes de la page Membres : zone photo en portrait, image calée en haut | `frontend-v1.19` | visage entier visible à 390, 768, 1024 et 1440 px avec la vraie photo ; squelette de chargement de même forme ; `tsc` sans erreur |
+| **R7** — photo d'un témoignage (demandé le 21 novembre) | accueil : nouvelle photo du témoignage de Coulibaly Yaya, convertie en WebP | `frontend-v1.20` | visage visible à 390, 768 et 1440 px ; original hors de `public/` ; `tsc` sans erreur |
 | Action de l'équipe | S3 : désactiver *Cache Assets* | aucune | en-têtes de `/config.js` et `/assets/` relus à travers `https://amame.ml` |
 
 Aucune itération ne touche le backend.
@@ -103,6 +104,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
 | R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
 | R6 | **en production** | `frontend-v1.19` | 2026-11-21 | commit `3ad4b5b`, voir le journal |
+| R7 | **prête**, pas commitée | `frontend-v1.20` | 2026-11-21 | voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -200,3 +202,9 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 **2026-11-21 — `frontend-v1.19` construite et publiée.** Commit `3ad4b5b` (R6), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés depuis la v1.18 (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; CSS : `.amame-card-media-person` (`aspect-ratio: 1/1`, puis `4/5` dès 640 px), `sm:aspect-[4/5]` et `aspect-square` du squelette, `.object-top`. Poussée : empreinte `sha256:34d2b86cb74bf3301f8b943f631478f8ea65978023e0e154bd111e1e7adeb9d6`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.19`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.18`.
 
 **2026-11-21 — `frontend-v1.19` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.19`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.19`. Contrôle en production laissé à l'équipe.
+
+**2026-11-21 — R7 : photo du témoignage de Coulibaly Yaya.** Demande de l'équipe : remplacer `temoignage-coulibaly-{640,1280,1920}.webp` par `yaya.png`, déposée dans `public/static/home/`, convertie en WebP.
+
+- **Fait** : `yaya.png` (2773 × 4160, portrait en pied) déplacée vers `image-sources/home/temoignage-coulibaly.png`, à la place de l'ancien original (2048 × 2048) : servie telle quelle depuis `public/`, elle aurait pesé 10,6 Mo. `optimize_images.py` : variantes 640, 1280 et 1920 px, manifeste mis à jour. Même nom d'image : `Index.tsx` inchangé.
+- **Vérifié** (`temoignage_shots.py`) : la carte du témoignage (zone paysage de 224 px, image calée en haut) montre le haut de la photo, 0–42 % à 390 px, 0–66 % à 768 px, 0–46 % à 1440 px ; visage entier partout. Variante chargée : 1280 px à 390 px (écran ×3) et à 1440 px (×2), 640 px à 768 px. `tsc` sans erreur.
+- **Poids, puis recadrage (accord de l'équipe)** : la photo est en portrait et la carte n'en montre que le haut ; la variante chargée était passée de 68 à 177 Ko. L'original est recadré en carré depuis le haut (2773 × 2773, la partie basse et la signature du photographe, jamais visibles dans la carte, en sortent), au format des deux autres témoignages : variantes de 29, 100 et 190 Ko, la variante chargée passe à 100 Ko. Partie visible remesurée : 0–63 % du carré à 390 px, tout le carré à 768 px, 0–69 % à 1440 px ; cadrage à l'écran inchangé. La photo en pied n'est pas gardée dans le dépôt.
