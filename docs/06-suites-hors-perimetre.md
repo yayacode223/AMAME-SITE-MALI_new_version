@@ -102,7 +102,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R3 | **en production** ; avec E6 | `frontend-v1.16` | 2026-11-21 | commit `08567c0`, voir le journal |
 | R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
 | R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
-| R6 | **prête**, pas commitée | `frontend-v1.19` | 2026-11-21 | voir le journal |
+| R6 | **publiée**, à déployer par l'équipe | `frontend-v1.19` | 2026-11-21 | commit `3ad4b5b`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -191,8 +191,10 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 
 **2026-11-21 — `frontend-v1.18` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.18`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.18`. Contrôle en production laissé à l'équipe.
 
-**2026-11-21 — R6 : photos des membres (prête, pas commitée).** Signalement de l'équipe après le déploiement de la v1.18 : sur la page Membres, on ne voit pas le visage de la personne.
+**2026-11-21 — R6 : photos des membres.** Signalement de l'équipe après le déploiement de la v1.18 : sur la page Membres, on ne voit pas le visage de la personne.
 
 - **Cause** : la seule photo en production (`/api/visitor/membres`) est un portrait en pied de 2773 × 4160 px (2:3), visage entre 10 et 30 % de la hauteur. La zone photo de la carte (`.amame-card-media-portrait`) est paysage, 224 px de haut sur 284 à 356 px de large, et l'image y est centrée (`object-center`) : seule la tranche de 24 à 76 % de la hauteur était visible, du nez à la taille.
 - **Correction** : nouvelle zone `.amame-card-media-person` (`src/index.css`) : carrée sur téléphone, 4:5 dès 640 px ; l'image est en `absolute inset-0 object-cover object-top`. Squelette de chargement de même forme (`CardSkeleton`, `media="person"`). `.amame-card-media-portrait` est inchangée : les témoignages de l'accueil l'utilisent, déjà calés en haut.
 - **Vérifié** (`membres_shots.py`, vraie photo servie localement, un membre sans photo) : partie visible de la photo 0–67 % à 390 px (zone 356 × 356), 0–83 % à 768, 1024 et 1440 px (zones 348 × 435, 302 × 378, 284 × 355) ; visage entier partout ; initiales du membre sans photo centrées. `tsc` sans erreur.
+
+**2026-11-21 — `frontend-v1.19` construite et publiée.** Commit `3ad4b5b` (R6), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés depuis la v1.18 (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; CSS : `.amame-card-media-person` (`aspect-ratio: 1/1`, puis `4/5` dès 640 px), `sm:aspect-[4/5]` et `aspect-square` du squelette, `.object-top`. Poussée : empreinte `sha256:34d2b86cb74bf3301f8b943f631478f8ea65978023e0e154bd111e1e7adeb9d6`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.19`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.18`.
