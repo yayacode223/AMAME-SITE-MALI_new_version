@@ -1,9 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Hauteurs des zones média de index.css (.amame-card-media, -portrait, -logo) ; none : sans média. */
+/** Hauteurs des zones média de index.css (.amame-card-media, -portrait, -person, -logo) ; none : sans média. */
 const MEDIA_HEIGHT = {
   photo: "h-44",
   portrait: "h-56",
+  person: "h-auto aspect-square sm:aspect-[4/5]",
   logo: "h-32",
   none: "",
 } as const;

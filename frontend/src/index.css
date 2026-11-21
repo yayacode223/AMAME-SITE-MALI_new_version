@@ -202,6 +202,14 @@
     @apply h-56 bg-amame-green-subtle;
   }
 
+  /* Photo d'une personne (membres du bureau) : zone en portrait, carrée sur téléphone (une colonne :
+     en 4:5, la photo y ferait 450 px), 4:5 dès sm. Avec l'image calée en haut (absolute inset-0
+     object-cover object-top), le visage d'une photo en buste ou en pied reste visible ; la zone
+     paysage de 224 px n'en gardait que le milieu, du menton à la taille. */
+  .amame-card-media-person {
+    @apply h-auto aspect-square bg-amame-green-subtle sm:aspect-[4/5];
+  }
+
   .amame-card-media-logo {
     @apply flex h-32 items-center justify-center border-b border-amame-border bg-gradient-to-br from-amame-green-subtle to-white p-5;
   }

@@ -15,22 +15,22 @@ const MembreCard = ({ membre, index }: { membre: any; index: number }) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.07 }}
   >
-    {/* Carte .amame-card (index.css), zone média portrait. Elle n'est pas un lien : pas de
+    {/* Carte .amame-card (index.css), zone média d'une personne. Elle n'est pas un lien : pas de
         soulèvement au survol ; seul le lien du pied réagit. */}
     <div className="amame-card">
-      {/* Média — photo */}
-      <div className="amame-card-media amame-card-media-portrait">
+      {/* Média — photo, calée en haut : le visage reste visible */}
+      <div className="amame-card-media amame-card-media-person">
         {(membre.fileUrl ?? membre.filePath) ? (
           <MediaImage
             src={membre.fileUrl ?? membre.filePath}
             maxWidth={640}
             sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             alt={`${membre.prenom} ${membre.nom}`}
-            className="h-full w-full object-cover object-center"
+            className="absolute inset-0 h-full w-full object-cover object-top"
             onError={e => { e.currentTarget.style.display = "none"; }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amame-green-subtle to-amame-green/10">
             <span className="font-nunito font-black text-4xl text-amame-green/70">
               {membre.prenom?.[0]}{membre.nom?.[0]}
             </span>
@@ -88,7 +88,7 @@ const Membres = () => {
         <div className="page-container">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6">
-              {[...Array(8)].map((_, i) => <CardSkeleton key={i} media="portrait" lines={2} />)}
+              {[...Array(8)].map((_, i) => <CardSkeleton key={i} media="person" lines={2} />)}
             </div>
           ) : isLoadingError ? (
             <QueryError error={error} onRetry={refetch} isRetrying={isFetching} title="Les membres du bureau n'ont pas pu être chargés." />

@@ -68,6 +68,7 @@ Pages concernées (requêtes React Query sans traitement d'erreur) : Articles, A
 | **R3** — icônes et ménage Nginx (demandé le 21 novembre, hors plan initial) | icônes hors du précache, icônes recompressées sans perte, `expires` en double retiré | `frontend-v1.16` | précache sans icône et transfert réduit ; manifeste et `index.html` inchangés ; site toujours installable ; un seul `Cache-Control` par réponse, `nginx -t` correct |
 | **R4** — boutons verts (E7, option A) | tout élément vert qui porte du texte : `#15803d`, survol `#166534` ; `--primary` aligné | `frontend-v1.17` | aucun texte sur fond vert sous 4,5:1 (3:1 grand texte), pages publiques, membre et administration ; survol mesuré |
 | **R5** — photos et logo (demandé le 21 novembre) | nouvelles images À propos, Galeries, Connexion, Mot de passe oublié ; logo de l'en-tête agrandi ; voile vert d'Adhésion, de Connexion et de Mot de passe oublié remplacé par des cartouches (E8) ; badge d'Adhésion manqué en R1 corrigé ; bandeaux photo des 17 pages (E9) | `frontend-v1.18` | textes sur photo au seuil à 390, 768 et 1440 px, fonds translucides compris, flou coupé compris ; logo 48 px (téléphone) et 64 px (ordinateur) ; défilement sous la barre inchangé |
+| **R6** — photos des membres (demandé le 21 novembre) | cartes de la page Membres : zone photo en portrait, image calée en haut | `frontend-v1.19` | visage entier visible à 390, 768, 1024 et 1440 px avec la vraie photo ; squelette de chargement de même forme ; `tsc` sans erreur |
 | Action de l'équipe | S3 : désactiver *Cache Assets* | aucune | en-têtes de `/config.js` et `/assets/` relus à travers `https://amame.ml` |
 
 Aucune itération ne touche le backend.
@@ -101,6 +102,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R3 | **en production** ; avec E6 | `frontend-v1.16` | 2026-11-21 | commit `08567c0`, voir le journal |
 | R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
 | R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
+| R6 | **prête**, pas commitée | `frontend-v1.19` | 2026-11-21 | voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -188,3 +190,9 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 **2026-11-21 — `frontend-v1.18` construite et publiée.** Commit `14e37fc` (R5, E8, E9), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité sur chaque réponse contrôlée ; nouvelles images servies (`hero-about-*`, `hero-eleves-*`), anciennes en 404 (`hero-homepage-*`, `hero-galeries-626`, `hero-about-405`) ; précache de 108 entrées, sans icône ni image ; CSS : `.amame-hero-scrim` (82/72/62 %, puis 80/72/45/20 % dès 1024 px), `.amame-photo-cartouche` (noir à 55 %, flou de 6 px, sans préfixe `-webkit-` : un Safari antérieur à la version 18 ignore le flou, cas mesuré « sans flou »), `.amame-photo-veil` absente. Poussée : empreinte `sha256:95af8ca11925f0e62967bf41a2b84ab97278ec5858a6157893566e05bba69090`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.18`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.17`.
 
 **2026-11-21 — `frontend-v1.18` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.18`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.18`. Contrôle en production laissé à l'équipe.
+
+**2026-11-21 — R6 : photos des membres (prête, pas commitée).** Signalement de l'équipe après le déploiement de la v1.18 : sur la page Membres, on ne voit pas le visage de la personne.
+
+- **Cause** : la seule photo en production (`/api/visitor/membres`) est un portrait en pied de 2773 × 4160 px (2:3), visage entre 10 et 30 % de la hauteur. La zone photo de la carte (`.amame-card-media-portrait`) est paysage, 224 px de haut sur 284 à 356 px de large, et l'image y est centrée (`object-center`) : seule la tranche de 24 à 76 % de la hauteur était visible, du nez à la taille.
+- **Correction** : nouvelle zone `.amame-card-media-person` (`src/index.css`) : carrée sur téléphone, 4:5 dès 640 px ; l'image est en `absolute inset-0 object-cover object-top`. Squelette de chargement de même forme (`CardSkeleton`, `media="person"`). `.amame-card-media-portrait` est inchangée : les témoignages de l'accueil l'utilisent, déjà calés en haut.
+- **Vérifié** (`membres_shots.py`, vraie photo servie localement, un membre sans photo) : partie visible de la photo 0–67 % à 390 px (zone 356 × 356), 0–83 % à 768, 1024 et 1440 px (zones 348 × 435, 302 × 378, 284 × 355) ; visage entier partout ; initiales du membre sans photo centrées. `tsc` sans erreur.
