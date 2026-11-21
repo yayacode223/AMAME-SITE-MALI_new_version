@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { staticImageUrl } from "@/utils/staticImage";
+import { PhotoBackdrop, BackdropCard, BackdropCardTitle } from "@/components/PhotoBackdrop";
 import { Link, useNavigate } from "react-router-dom";
 import { loginPath } from "@/utils/authRedirect";
 import { applyFieldErrors, ERROR_MESSAGES, isEmailAlreadyUsed, toUserError, userMessage } from "@/utils/apiError";
@@ -76,7 +76,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 /** Champs que la validation du serveur peut signaler (AdhesionRegisterRequest). */
 const REGISTER_FIELDS = ["nom", "prenom", "email", "password", "ville", "phone"] as const;
 
-// ── Avantages sidebar ───────────────────────────────────────────────────────
+// ── Avantages : bloc « Pourquoi adhérer ? », retiré de la page (commenté en bas, docs/06, R8) ──
 
 const AVANTAGES = [
   { icon: AcademicCapIcon, title: "Ressources exclusives", desc: "Accès prioritaire aux bourses et concours réservés aux membres." },
@@ -174,7 +174,7 @@ export default function Adhesion() {
     // Loading
     if (isUserLoading || isLoadingStatus) {
       return (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-12">
           <div className="animate-spin h-8 w-8 border-2 border-amame-green border-t-transparent rounded-full" />
         </div>
       );
@@ -183,7 +183,7 @@ export default function Adhesion() {
     // Déjà approuvé (MEMBER)
     if (user?.role === "MEMBER") {
       return (
-        <div className="text-center py-14">
+        <div className="text-center py-4">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-amame-green-subtle rounded-full mb-6">
             <CheckCircleSolid className="h-12 w-12 text-amame-green" />
           </div>
@@ -204,7 +204,7 @@ export default function Adhesion() {
     // peut-être en attente (docs/06, R2).
     if (isAuthenticated && statusQuery.isLoadingError) {
       return (
-        <div className="py-10">
+        <div className="py-2">
           <QueryError error={statusQuery.error} onRetry={statusQuery.refetch} isRetrying={statusQuery.isFetching}
             title="L'état de votre demande d'adhésion n'a pas pu être chargé." />
         </div>
@@ -214,7 +214,7 @@ export default function Adhesion() {
     // Demande en attente
     if (adhesionStatus?.status === "PENDING") {
       return (
-        <div className="text-center py-14">
+        <div className="text-center py-4">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-50 rounded-2xl mb-5">
             <ClockIcon className="h-8 w-8 text-yellow-500" />
           </div>
@@ -238,7 +238,7 @@ export default function Adhesion() {
     // Succès après soumission du formulaire public
     if (submitted) {
       return (
-        <div className="text-center py-14">
+        <div className="text-center py-4">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-amame-green-subtle rounded-full mb-6">
             <CheckCircleSolid className="h-12 w-12 text-amame-green" />
           </div>
@@ -324,12 +324,12 @@ export default function Adhesion() {
             {takenEmail && emailValue === takenEmail && (
               <p className="text-sm text-amame-charcoal">
                 <Link to={LOGIN_FROM_ADHESION} state={{ email: takenEmail }}
-                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green">
+                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green-deep">
                   Connectez-vous
                 </Link>{" "}
                 ou saisissez une autre adresse.{" "}
                 <Link to="/forgot-password" state={{ email: takenEmail }}
-                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green whitespace-nowrap">
+                  className="font-semibold text-amame-green-dark underline underline-offset-2 hover:text-amame-green-deep whitespace-nowrap">
                   Mot de passe oublié ?
                 </Link>
               </p>
@@ -411,12 +411,12 @@ export default function Adhesion() {
               <div className="text-sm text-amame-slate leading-relaxed">
                 J'accepte les{" "}
                 <button type="button"
-                  className="text-amame-green underline underline-offset-2 hover:text-amame-green-dark font-medium">
+                  className="text-amame-green-dark underline underline-offset-2 hover:text-amame-green-deep font-medium">
                   conditions d'adhésion
                 </button>{" "}
                 et la{" "}
                 <button type="button"
-                  className="text-amame-green underline underline-offset-2 hover:text-amame-green-dark font-medium">
+                  className="text-amame-green-dark underline underline-offset-2 hover:text-amame-green-deep font-medium">
                   politique de confidentialité
                 </button>{" "}
                 de l'AMAME.
@@ -443,7 +443,7 @@ export default function Adhesion() {
 
         <p className="text-center text-xs text-amame-muted">
           Déjà inscrit ?{" "}
-          <Link to={LOGIN_FROM_ADHESION} className="text-amame-green hover:text-amame-green-dark font-semibold underline underline-offset-2">
+          <Link to={LOGIN_FROM_ADHESION} className="text-amame-green-dark hover:text-amame-green-deep font-semibold underline underline-offset-2">
             Se connecter
           </Link>
         </p>
@@ -494,88 +494,64 @@ export default function Adhesion() {
         path="/adhesion"
       />
       <Navbar />
-      <div className="min-h-screen bg-amame-surface">
 
-        {/* Hero */}
-        <div
-          className="relative overflow-hidden py-16 sm:py-24 hero-bg-image"
-          style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-adhesion")})` }}
-        >
-          {/* Vignette basse pour transition douce avec le contenu */}
-          <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-amame-surface to-transparent pointer-events-none" />
-
-          {/* Photo naturelle, sans voile : le texte est lisible grâce au cartouche sombre qui l'entoure (docs/06, R5, E8) */}
-          <div className="relative z-10 page-container">
-            <div className="amame-photo-cartouche mx-auto max-w-2xl text-center rounded-3xl px-5 py-7 sm:px-10 sm:py-9">
-              {/* Pastille en vert plein : le blanc y reste à 5:1 quelle que soit la photo ; l'ancienne pastille
-                  blanche translucide tombait à 3,5:1 (défaut manqué en R1, docs/06) */}
-              <div className="inline-flex items-center gap-2 bg-amame-green-dark text-white text-xs font-semibold px-4 py-2 rounded-full mb-5 ring-1 ring-white/20">
-                <UserGroupIcon className="h-4 w-4" />
-                Communauté AMAME
-              </div>
-              <h1 className="font-nunito font-black text-3xl sm:text-5xl text-white mb-4 leading-tight drop-shadow-sm">
-                Adhérer à l'AMAME
-              </h1>
-              <p className="text-white text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
-                Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves
-                et profitez d'un réseau unique d'excellence.
-              </p>
+      {/* Photo en fond, formulaire dans une carte, comme la connexion (docs/06, R8). Hauteur : au moins
+          l'écran sous la barre de navigation (64 px, 80 px dès 1024 px). */}
+      <PhotoBackdrop image="heroes/hero-adhesion"
+        className="flex min-h-[calc(100svh-4rem)] items-center py-8 sm:py-12 lg:min-h-[calc(100svh-5rem)]">
+        <div className="page-container w-full">
+          <BackdropCard className="mx-auto max-w-xl">
+            <BackdropCardTitle icon={<UserGroupIcon className="h-6 w-6" />} title="Adhérer à l'AMAME">
+              {!isAuthenticated
+                ? "Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves : créez votre compte et envoyez votre demande."
+                : "Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves et son réseau d'excellence."}
+            </BackdropCardTitle>
+            <div className="px-5 pb-6 pt-5 sm:px-8 sm:pb-8">
+              {renderContent()}
             </div>
-          </div>
+          </BackdropCard>
         </div>
+      </PhotoBackdrop>
 
-        <div className="page-container py-10 max-w-5xl">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      {/* « Pourquoi adhérer ? » et « Processus d'adhésion » : retirés de la page à la demande de l'équipe
+          (docs/06, R8), gardés ici pour pouvoir les remettre (dans une colonne à côté de la carte, ou dessous).
 
-            {/* ── Avantages sidebar ── */}
-            <div className="lg:col-span-2 space-y-4">
-              <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-5">
-                Pourquoi adhérer ?
-              </h2>
-              {AVANTAGES.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex gap-3 p-4 amame-panel">
-                  <div className="w-9 h-9 bg-amame-green-subtle rounded-xl flex items-center justify-center shrink-0">
-                    <Icon className="h-5 w-5 text-amame-green" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-amame-charcoal mb-0.5">{title}</p>
-                    <p className="text-xs text-amame-muted leading-relaxed">{desc}</p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Processus */}
-              <div className="p-4 bg-amame-gold-subtle border border-amame-gold/20 rounded-2xl">
-                <p className="font-semibold text-sm text-amame-charcoal mb-3">Processus d'adhésion</p>
-                {[
-                  "Remplissez le formulaire",
-                  "Examen par notre équipe (≤ 7 jours)",
-                  "Email de confirmation",
-                  "Accès à l'espace membre",
-                ].map((step, i) => (
-                  <div key={i} className="flex items-start gap-2.5 mb-2 last:mb-0">
-                    <span className="w-5 h-5 rounded-full bg-amame-gold text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span className="text-xs text-amame-slate leading-snug">{step}</span>
-                  </div>
-                ))}
-              </div>
+      <div className="lg:col-span-2 space-y-4">
+        <h2 className="font-nunito font-bold text-lg text-amame-charcoal mb-5">
+          Pourquoi adhérer ?
+        </h2>
+        {AVANTAGES.map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="flex gap-3 p-4 amame-panel">
+            <div className="w-9 h-9 bg-amame-green-subtle rounded-xl flex items-center justify-center shrink-0">
+              <Icon className="h-5 w-5 text-amame-green" />
             </div>
-
-            {/* ── Formulaire / Statut ── */}
-            <div className="lg:col-span-3">
-              <div className="amame-panel p-6 sm:p-8">
-                <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-6">
-                  {!isAuthenticated ? "Créer mon compte & adhérer" : "Ma demande d'adhésion"}
-                </h2>
-                {renderContent()}
-              </div>
+            <div>
+              <p className="font-semibold text-sm text-amame-charcoal mb-0.5">{title}</p>
+              <p className="text-xs text-amame-muted leading-relaxed">{desc}</p>
             </div>
-
           </div>
+        ))}
+
+        // Processus
+        <div className="p-4 bg-amame-gold-subtle border border-amame-gold/20 rounded-2xl">
+          <p className="font-semibold text-sm text-amame-charcoal mb-3">Processus d'adhésion</p>
+          {[
+            "Remplissez le formulaire",
+            "Examen par notre équipe (≤ 7 jours)",
+            "Email de confirmation",
+            "Accès à l'espace membre",
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-2.5 mb-2 last:mb-0">
+              <span className="w-5 h-5 rounded-full bg-amame-gold text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <span className="text-xs text-amame-slate leading-snug">{step}</span>
+            </div>
+          ))}
         </div>
       </div>
+      */}
+
       <Footer />
     </>
   );

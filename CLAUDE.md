@@ -155,7 +155,8 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 **Text on photos**: white text on a photo needs a dark layer under it, from `src/index.css`; there is no green veil any more.
 
 - Page heroes with left-aligned text (`PageHero`, the About hero) use `.amame-hero-scrim`. It is black and darkest under the text: a gradient to the right from `lg`, the whole photo below `lg` (docs/06, E9).
-- Elsewhere, `.amame-photo-cartouche` (black at 55 %, blur) goes on each text block and leaves the photo natural (docs/06, E8). It is used on Adhésion, the login panel and band, and the back link of Mot de passe oublié. White keeps 4.76:1 on it even over pure white, so it holds for any photo.
+- Elsewhere, `.amame-photo-cartouche` (black at 55 %, blur) goes on each text block and leaves the photo natural (docs/06, E8). It is used on the back link of the photo-backdrop pages. White keeps 4.76:1 on it even over pure white, so it holds for any photo.
+- The login, Mot de passe oublié and Adhésion pages use `src/components/PhotoBackdrop.tsx` (docs/06, R8): a natural photo as the page background, a real `<img>` with `srcset` so a phone loads the 640 px file. A white `BackdropCard` holds the form and the page's `<h1>`, set by `BackdropCardTitle`. The only text on the photo is `BackdropHeader`'s back link, in a cartouche. A new page of this kind reuses these components.
 
 On a photo:
 
@@ -187,7 +188,7 @@ Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a la
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.20`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.21`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |
