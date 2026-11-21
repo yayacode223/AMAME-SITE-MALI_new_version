@@ -106,7 +106,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
 | R6 | **en production** | `frontend-v1.19` | 2026-11-21 | commit `3ad4b5b`, voir le journal |
 | R7 | **en production** | `frontend-v1.20` | 2026-11-21 | commit `71c5f9c`, voir le journal |
-| R8 | **publiée**, à déployer par l'équipe | `frontend-v1.21` | 2026-11-21 | commit `80ab8ea`, voir le journal |
+| R8 | **en production** | `frontend-v1.21` | 2026-11-21 | commit `80ab8ea`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -226,3 +226,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Relevé** : l'image d'adhésion (`hero-adhesion`) ne fait que 736 × 736 px ; en fond de page sur ordinateur, elle est agrandie environ deux fois et paraît un peu floue sur les bords visibles. Une version plus grande (1456 px de large au moins) réglerait ce point.
 
 **2026-11-21 — `frontend-v1.21` construite et publiée.** Commit `80ab8ea` (R8), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; `/login` et `/adhesion` en 200 ; dans le JavaScript servi, « Bon retour », « Adhérer à l'AMAME » et « Retour au site » présents, « Pourquoi adhérer » et « Votre Passerelle » absents (code en commentaire et panneau retiré). Poussée : empreinte `sha256:f2ba19005d118e628cf0a961bc29179720dc553ee366c2b0168ed9b62ceee85e`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.21`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.20`.
+
+**2026-11-21 — `frontend-v1.21` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.21`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.21`. Contrôle en production laissé à l'équipe.
