@@ -104,7 +104,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
 | R5 | **en production** (décidé : E8, E9) | `frontend-v1.18` | 2026-11-21 | commit `14e37fc`, voir le journal |
 | R6 | **en production** | `frontend-v1.19` | 2026-11-21 | commit `3ad4b5b`, voir le journal |
-| R7 | **publiée**, à déployer par l'équipe | `frontend-v1.20` | 2026-11-21 | commit `71c5f9c`, voir le journal |
+| R7 | **en production** | `frontend-v1.20` | 2026-11-21 | commit `71c5f9c`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -210,3 +210,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Poids, puis recadrage (accord de l'équipe)** : la photo est en portrait et la carte n'en montre que le haut ; la variante chargée était passée de 68 à 177 Ko. L'original est recadré en carré depuis le haut (2773 × 2773, la partie basse et la signature du photographe, jamais visibles dans la carte, en sortent), au format des deux autres témoignages : variantes de 29, 100 et 190 Ko, la variante chargée passe à 100 Ko. Partie visible remesurée : 0–63 % du carré à 390 px, tout le carré à 768 px, 0–69 % à 1440 px ; cadrage à l'écran inchangé. La photo en pied n'est pas gardée dans le dépôt.
 
 **2026-11-21 — `frontend-v1.20` construite et publiée.** Commit `71c5f9c` (R7), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; `temoignage-coulibaly-{640,1280,1920}.webp` identiques au dépôt (29, 100 et 190 Ko), aucun `yaya.png` dans l'image. Poussée : empreinte `sha256:56fcb0a324a4c25d3f41e4adb6243422db03a44c77dc0cddc5570ffde67c105b`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.20`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.19`.
+
+**2026-11-21 — `frontend-v1.20` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.20`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.20`. Contrôle en production laissé à l'équipe.
