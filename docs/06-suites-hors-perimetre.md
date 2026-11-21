@@ -114,7 +114,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R9 | **en production** | `frontend-v1.22` | 2026-11-21 | commit `466a3e4`, voir le journal |
 | R10 | **en production** | `frontend-v1.23` | 2026-11-21 | commit `82ad56a`, voir le journal |
 | R11 | **en production** | `frontend-v1.24` | 2026-11-21 | commit `7d86fd1`, voir le journal |
-| R12 | **prête**, pas commitée | `frontend-v1.25` | 2026-11-21 | voir le journal |
+| R12 | **publiée**, à déployer par l'équipe | `frontend-v1.25` | 2026-11-21 | commit `51d0c7b`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -278,3 +278,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Correction** : zone `.amame-card-media-wide` (pleine largeur, 16:9, fond blanc), image `absolute inset-0 object-cover object-top` ; l'image principale d'abord, sinon le logo ; une adresse qui échoue passe à la suivante, puis à l'illustration (bâtiment sur dégradé vert, comme Partenaires) ; squelette de même forme ; pastille de type opaque (`bg-white`, 5,0:1), comme en R10.
 - **Vérifié** (`r12_universites.py`, données de production, vraies images, plus un établissement avec une photo en paysage et un sans image ; 390, 768 et 1440 px) : sceau de l'UKM sur toute la largeur, moitié haute visible (56 %), nom de l'université lisible, bas du sceau rogné (compromis de `object-cover` sur une image ronde) ; ENI-ABT : illustration au lieu de la zone vide ; photo : toute sa largeur, 84 % de sa hauteur ; sans image : illustration. `tsc` sans erreur.
 - **Relevé** : l'image de l'UKM est agrandie (×1,2 à ×1,3, floue sur un écran haute densité). L'original existe en 672 × 672 (`…_n.jpg.webp`, même adresse sans `-300x300`) : à renseigner par l'équipe dans le formulaire admin. Les adresses de l'ENI-ABT sont mortes : à remplacer, ou à vider.
+
+**2026-11-21 — `frontend-v1.25` construite et publiée.** Commit `51d0c7b` (R12), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; chargement de R11 toujours dans `index.html` ; page Universités : `amame-card-media-wide`, `object-cover object-top`, `url_image`, pastille `bg-white` opaque présents, `amame-card-media-logo`, `object-contain` et `bg-white/90 backdrop-blur-sm` absents. Poussée : empreinte `sha256:1caa79e530a83bd0fa76b7d58b9ea8d39584dfe5f4d01ebfbf6af000d7ce3650`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.25`, `backend-v1.7` inchangé) ; dans l'admin, image de l'UKM en 672 px, adresses mortes de l'ENI-ABT. Retour arrière : `frontend-v1.24`.
