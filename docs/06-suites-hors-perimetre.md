@@ -108,7 +108,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R6 | **en production** | `frontend-v1.19` | 2026-11-21 | commit `3ad4b5b`, voir le journal |
 | R7 | **en production** | `frontend-v1.20` | 2026-11-21 | commit `71c5f9c`, voir le journal |
 | R8 | **en production** | `frontend-v1.21` | 2026-11-21 | commit `80ab8ea`, voir le journal |
-| R9 | **prête**, pas commitée | `frontend-v1.22` | 2026-11-21 | voir le journal |
+| R9 | **publiée**, à déployer par l'équipe | `frontend-v1.22` | 2026-11-21 | commit `466a3e4`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -238,3 +238,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Réinitialisation du mot de passe** : même composant que Mot de passe oublié (`PhotoBackdrop`, photo `hero-about`, « Retour à la connexion » en cartouche, carte au centre), pour le lien valide (formulaire, puis succès) comme pour le lien invalide (`BackdropCard` gagne un liseré rouge, `accent="red"`). Titres en `h1` (la page n'en avait pas) ; titre d'onglet ajouté au lien invalide ; boutons œil avec `aria-label` ; règles du mot de passe en `amame-green-dark` (4,9:1 sur leur fond gris) et `gray-500` (4,7:1) au lieu du vert de la marque et de `gray-400`, sous 4,5:1. Vérifié (`r9_reset_contrast.py`, `r9_reset_shots.py`) : pas de défilement horizontal, un `h1`, lien de retour à 5,41:1 au pire (sans flou), 9,45:1 au survol. `tsc` sans erreur.
 - **À propos** : description du bandeau raccourcie par l'équipe (« Association Malienne d'Appui aux Meilleurs Élèves. »), incluse dans cette image à sa demande.
 - **Méthode** : deux pièges corrigés en cours de mesure, ajoutés à CLAUDE.md. Le défilement doux du site (`scroll-behavior: smooth`) décalait la capture par rapport aux boîtes de texte. Sous 1024 px, la barre de navigation fixe du bas recouvrait la carte mesurée. Ces deux pièges donnaient des 1,0:1 sans réalité. Le script coupe désormais le défilement doux et centre l'élément mesuré.
+
+**2026-11-21 — `frontend-v1.22` construite et publiée.** Commit `466a3e4` (R9, avec la description d'À propos raccourcie par l'équipe), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; dans le code servi : « Nouveau mot de passe », « Lien invalide », `bg-amber-700`, « Masquer le mot de passe » présents, `bg-amame-gold/85` et l'ancienne description d'À propos absents. Poussée : empreinte `sha256:1d46bf53b463d20c4cc54166bc687efe757b37e59ac21b7010fa953a59352431`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.22`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.21`.
