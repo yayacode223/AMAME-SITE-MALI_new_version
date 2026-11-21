@@ -43,10 +43,16 @@ export const BackdropHeader = ({ to, label }: { to: string; label: string }) => 
   </div>
 );
 
-/** Carte blanche posée sur la photo, liseré vert en haut. La largeur se règle par className. */
-export const BackdropCard = ({ className, children }: { className?: string; children: ReactNode }) => (
+/** Carte blanche posée sur la photo, liseré en haut : vert, ou rouge pour une erreur (lien invalide).
+ *  La largeur se règle par className. */
+export const BackdropCard = ({ className, accent = "green", children }: {
+  className?: string;
+  accent?: "green" | "red";
+  children: ReactNode;
+}) => (
   <Card className={cn("overflow-hidden rounded-2xl border-0 shadow-xl", className)}>
-    <div className="h-1.5 w-full bg-gradient-to-r from-amame-green to-amame-green-dark" aria-hidden="true" />
+    <div aria-hidden="true" className={cn("h-1.5 w-full bg-gradient-to-r",
+      accent === "red" ? "from-red-500 to-red-600" : "from-amame-green to-amame-green-dark")} />
     {children}
   </Card>
 );

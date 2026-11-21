@@ -155,18 +155,18 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 **Text on photos**: white text on a photo needs a dark layer under it, from `src/index.css`; there is no green veil any more.
 
 - Page heroes with left-aligned text (`PageHero`, the About hero) use `.amame-hero-scrim`. It is black and darkest under the text: a gradient to the right from `lg`, the whole photo below `lg` (docs/06, E9).
-- Elsewhere, `.amame-photo-cartouche` (black at 55 %, blur) goes on each text block and leaves the photo natural (docs/06, E8). It is used on the back link of the photo-backdrop pages. White keeps 4.76:1 on it even over pure white, so it holds for any photo.
-- The login, Mot de passe oublié and Adhésion pages use `src/components/PhotoBackdrop.tsx` (docs/06, R8): a natural photo as the page background, a real `<img>` with `srcset` so a phone loads the 640 px file. A white `BackdropCard` holds the form and the page's `<h1>`, set by `BackdropCardTitle`. The only text on the photo is `BackdropHeader`'s back link, in a cartouche. A new page of this kind reuses these components.
+- Elsewhere, `.amame-photo-cartouche` (black at 55 %, blur) goes on each text block and leaves the photo natural (docs/06, E8). It is used on the back link of the photo-backdrop pages and on the pills laid on a bourse's flag (detail page and cards; docs/06, R9). White keeps 4.76:1 on it even over pure white, so it holds for any photo.
+- The login, Mot de passe oublié, reset-password and Adhésion pages use `src/components/PhotoBackdrop.tsx` (docs/06, R8, R9): a natural photo as the page background, a real `<img>` with `srcset` so a phone loads the 640 px file. A white `BackdropCard` holds the form and the page's `<h1>`, set by `BackdropCardTitle`. The only text on the photo is `BackdropHeader`'s back link, in a cartouche. A new page of this kind reuses these components.
 
 On a photo:
 
-- a pill is a solid `bg-amame-green-dark`, never `bg-white/15` (white fell to 2.9–4.2:1);
+- a pill is a solid `bg-amame-green-dark` (`bg-amber-700` for a bourse's gold, white at 5.0:1) or, for neutral information, an `.amame-photo-cartouche`; never `bg-white/15` or `/20` (white fell to 1.6–4.5:1), never the brand gold (2.9:1 with white);
 - a highlighted word is `text-green-300`, never `text-amame-green` (down to 1.0:1);
 - gold is `amber-300` (the brand gold reaches 1.8:1);
 - `green-300` and `amber-300` are for large text only;
 - body text is full white, not `text-white/80`.
 
-Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a large title) at 390, 768, 1024 and 1440 px. Include translucent backgrounds: only an opaque background may be skipped. The R1 check skipped translucent backgrounds and left out the page heroes, where 96 texts were below the threshold (docs/06, R5). Do not lighten a layer without measuring again.
+Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a large title) at 390, 768, 1024 and 1440 px. Centre the element in the window first, and turn off `scroll-behavior: smooth`: below 1024 px the fixed bottom bar covers the bottom of the screen, and a smooth scroll moves the page under the capture. Include translucent backgrounds: only an opaque background may be skipped. The R1 check skipped translucent backgrounds and left out the page heroes, where 96 texts were below the threshold (docs/06, R5). Do not lighten a layer without measuring again.
 
 **Fonts**: Inter (text) and Nunito (`font-nunito`, headings) are served by the site, never by Google: variable `woff2` files in `src/assets/fonts/` (license `OFL.txt`), two subsets each (`latin`, `latin-ext`), declared by the `@font-face` rules at the top of `src/index.css`; `index.html` preloads the two `latin` files (Vite rewrites the `/src/assets/fonts/…` paths to the hashed names), which keeps the font swap from shifting the hero. Do not add a Google Fonts `@import`, `<link>` or `preconnect`. The `latin-ext` files are excluded from the PWA precache (`globIgnores` in `vite.config.ts`): the browser fetches them only for a page that contains one of their characters. Nunito has no ɛ, ɔ or ɲ: those letters fall back to another font.
 
@@ -188,7 +188,7 @@ Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a la
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.21`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.22`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

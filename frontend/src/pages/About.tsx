@@ -88,7 +88,7 @@ export function About() {
                 À Propos de l'<span className="text-green-300">AMAME</span>
               </h1>
               <p className="text-base sm:text-lg text-white max-w-xl leading-relaxed">
-                Association Malienne d'Appui aux Meilleurs Élèves — Guidons l'excellence académique vers des horizons illimités.
+                Association Malienne d'Appui aux Meilleurs Élèves.
               </p>
             </motion.div>
           </div>

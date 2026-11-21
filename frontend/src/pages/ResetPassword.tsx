@@ -6,13 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PhotoBackdrop, BackdropHeader, BackdropCard, BackdropCardTitle } from "@/components/PhotoBackdrop";
 import {
   Form,
   FormControl,
@@ -23,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useResetPassword } from "@/service/passwordResetService";
-import { ArrowLeft, KeyRound, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { KeyRound, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 const schema = z
   .object({
@@ -72,27 +66,37 @@ export default function ResetPassword() {
   };
 
   // ── Token absent dans l'URL ───────────────────────────────────────────────
+  // Même mise en page que Mot de passe oublié : photo en fond, carte au centre (docs/06, R9).
   if (!token) {
     return (
-      <div className="min-h-screen bg-amame-surface flex items-center justify-center px-4">
-        <Card className="shadow-xl border-0 rounded-2xl overflow-hidden max-w-md w-full">
-          <div className="bg-gradient-to-r from-red-500 to-red-600 h-1.5 w-full" />
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-4">
-              <AlertCircle className="h-7 w-7 text-red-500" />
+      <>
+        <Helmet>
+          <title>Lien invalide — AMAME</title>
+        </Helmet>
+        <PhotoBackdrop image="heroes/hero-about" className="flex min-h-screen items-center py-8">
+          <div className="page-container w-full">
+            <div className="mx-auto max-w-md">
+              <BackdropHeader to="/login" label="Retour à la connexion" />
+              <BackdropCard accent="red">
+                <div className="px-5 py-8 text-center sm:px-8">
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-4">
+                    <AlertCircle className="h-7 w-7 text-red-600" />
+                  </div>
+                  <h1 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">
+                    Lien invalide
+                  </h1>
+                  <p className="text-sm text-amame-muted mb-6">
+                    Ce lien de réinitialisation est invalide ou incomplet.
+                  </p>
+                  <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white rounded-xl">
+                    <Link to="/forgot-password">Faire une nouvelle demande</Link>
+                  </Button>
+                </div>
+              </BackdropCard>
             </div>
-            <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">
-              Lien invalide
-            </h2>
-            <p className="text-sm text-amame-muted mb-6">
-              Ce lien de réinitialisation est invalide ou incomplet.
-            </p>
-            <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white rounded-xl">
-              <Link to="/forgot-password">Faire une nouvelle demande</Link>
-            </Button>
           </div>
-        </Card>
-      </div>
+        </PhotoBackdrop>
+      </>
     );
   }
 
@@ -102,35 +106,22 @@ export default function ResetPassword() {
         <title>Nouveau mot de passe — AMAME</title>
       </Helmet>
 
-      <div className="min-h-screen bg-amame-surface flex items-center py-8">
-        <div className="page-container">
+      {/* Même mise en page que Mot de passe oublié : photo en fond, carte au centre (docs/06, R9) */}
+      <PhotoBackdrop image="heroes/hero-about" className="flex min-h-screen items-center py-8">
+        <div className="page-container w-full">
+          <div className="mx-auto max-w-md">
+            <BackdropHeader to="/login" label="Retour à la connexion" />
 
-          {/* En-tête */}
-          <div className="flex justify-between items-center mb-8 max-w-md mx-auto">
-            <Button variant="ghost" asChild className="text-sm">
-              <Link to="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à la connexion
-              </Link>
-            </Button>
-            <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
-              <img src="/logo-192.webp" alt="AMAME" className="w-7 h-7" />
-            </div>
-          </div>
-
-          <div className="max-w-md mx-auto">
-            <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
-              <div className="bg-gradient-to-r from-amame-green to-amame-green-dark h-1.5 w-full" />
-
+            <BackdropCard>
               {success ? (
                 /* ── État succès ── */
-                <div className="p-8 text-center">
+                <div className="px-5 py-8 text-center sm:px-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-full mb-5">
                     <CheckCircle className="h-8 w-8 text-amame-green" />
                   </div>
-                  <h2 className="font-nunito font-black text-xl text-amame-charcoal mb-3">
+                  <h1 className="font-nunito font-black text-xl text-amame-charcoal mb-3">
                     Mot de passe mis à jour !
-                  </h2>
+                  </h1>
                   <p className="text-sm text-amame-muted leading-relaxed mb-7">
                     Votre mot de passe a été réinitialisé avec succès.
                     Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
@@ -145,19 +136,11 @@ export default function ResetPassword() {
               ) : (
                 /* ── Formulaire ── */
                 <>
-                  <CardHeader className="text-center pb-2">
-                    <div className="mx-auto w-12 h-12 bg-amame-green-subtle rounded-full flex items-center justify-center mb-4">
-                      <KeyRound className="h-6 w-6 text-amame-green" />
-                    </div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">
-                      Nouveau mot de passe
-                    </CardTitle>
-                    <CardDescription className="text-gray-600 text-sm mt-1">
-                      Choisissez un mot de passe sécurisé pour votre compte.
-                    </CardDescription>
-                  </CardHeader>
+                  <BackdropCardTitle icon={<KeyRound className="h-6 w-6" />} title="Nouveau mot de passe">
+                    Choisissez un mot de passe sécurisé pour votre compte.
+                  </BackdropCardTitle>
 
-                  <CardContent className="pt-4">
+                  <div className="px-5 pb-6 pt-5 sm:px-8 sm:pb-8">
                     {/* Erreur backend */}
                     {errorMsg && (
                       <div className="flex items-start gap-3 p-3.5 mb-5 bg-red-50 border border-red-200 rounded-xl">
@@ -198,6 +181,7 @@ export default function ResetPassword() {
                                   <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                   >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -229,6 +213,7 @@ export default function ResetPassword() {
                                   <button
                                     type="button"
                                     onClick={() => setShowConfirm(!showConfirm)}
+                                    aria-label={showConfirm ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                   >
                                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -240,7 +225,8 @@ export default function ResetPassword() {
                           )}
                         />
 
-                        {/* Règles mot de passe */}
+                        {/* Règles mot de passe : vert foncé (4,9:1 sur ce gris) et gris 500 (4,7:1) ; le vert de la
+                            marque et le gris 400 restaient sous 4,5:1 */}
                         <div className="bg-gray-50 rounded-xl p-3 space-y-1">
                           {[
                             { rule: /^.{8,}$/, label: "Au moins 8 caractères" },
@@ -250,7 +236,7 @@ export default function ResetPassword() {
                           ].map(({ rule, label }) => {
                             const ok = rule.test(form.watch("newPassword") || "");
                             return (
-                              <p key={label} className={`text-xs flex items-center gap-2 ${ok ? "text-amame-green" : "text-gray-400"}`}>
+                              <p key={label} className={`text-xs flex items-center gap-2 ${ok ? "text-amame-green-dark" : "text-gray-500"}`}>
                                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${ok ? "bg-amame-green" : "bg-gray-300"}`} />
                                 {label}
                               </p>
@@ -277,13 +263,13 @@ export default function ResetPassword() {
                         </Button>
                       </form>
                     </Form>
-                  </CardContent>
+                  </div>
                 </>
               )}
-            </Card>
+            </BackdropCard>
           </div>
         </div>
-      </div>
+      </PhotoBackdrop>
     </>
   );
 }

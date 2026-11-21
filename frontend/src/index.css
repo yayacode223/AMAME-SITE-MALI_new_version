@@ -122,8 +122,8 @@
   }
 
   /* Cartouche : fond sombre translucide derrière un texte blanc posé sur une photo laissée naturelle
-     (lien de retour des pages « photo en fond + carte », connexion et mot de passe oublié :
-     components/PhotoBackdrop.tsx ; docs/06, R5, E8, R8). Le noir à 55 %
+     (lien de retour des pages « photo en fond + carte » : components/PhotoBackdrop.tsx ; pastilles
+     posées sur le drapeau d'une bourse ; docs/06, R5, E8, R8, R9). Le noir à 55 %
      suffit seul, quelle que soit la photo : même sur du blanc pur, le blanc y garde 4,76:1, l'or clair
      amber-300 3,3:1 et le vert clair green-300 3,4:1 (ces deux-là pour un grand texte seulement).
      Le flou, qu'un vieux navigateur peut ignorer, ne fait que lisser la photo dessous. Forme (rayon,

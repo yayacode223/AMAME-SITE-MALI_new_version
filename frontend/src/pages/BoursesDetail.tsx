@@ -156,20 +156,22 @@ const BoursesDetail = () => {
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
 
-                      {/* Pills overlay */}
-                      <div className="absolute bottom-4 left-5 flex flex-wrap gap-2">
+                      {/* Pastilles sur le drapeau (docs/06, R9) : pays et niveau sur cartouche sombre, financement
+                          en doré foncé plein (blanc à 5,0:1). En blanc translucide, elles tombaient à 1,6:1 sur un
+                          drapeau clair ; le doré de la marque ne donne que 2,9:1 avec du blanc. */}
+                      <div className="absolute bottom-4 left-5 right-5 flex flex-wrap gap-2">
                         {bourse.paysHote && (
-                          <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                          <span className="flex items-center gap-1.5 amame-photo-cartouche ring-1 ring-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                             <MapPin className="h-3 w-3 shrink-0" />{bourse.paysHote}
                           </span>
                         )}
                         {bourse.niveau && (
-                          <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                          <span className="flex items-center gap-1.5 amame-photo-cartouche ring-1 ring-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                             <GraduationCap className="h-3 w-3 shrink-0" />{bourse.niveau}
                           </span>
                         )}
                         {bourse.financementStatut && (
-                          <span className="bg-amame-gold/85 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                          <span className="bg-amber-700 ring-1 ring-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                             {bourse.financementStatut}
                           </span>
                         )}

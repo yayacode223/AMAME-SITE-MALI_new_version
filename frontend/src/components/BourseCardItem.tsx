@@ -60,10 +60,11 @@ const BourseCardItem = ({ id, titre, descriptionCourte, paysHote, dateLimite }: 
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+        {/* Pays sur cartouche sombre : posé à même le drapeau, le blanc tombait à 3,0–4,5:1 (docs/06, R9) */}
         {paysHote && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-            <MapPin className="h-3 w-3 text-white/80 shrink-0" />
-            <span className="text-white text-xs font-semibold drop-shadow-sm">{paysHote}</span>
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 amame-photo-cartouche rounded-full px-2.5 py-1 ring-1 ring-white/20">
+            <MapPin className="h-3 w-3 text-white shrink-0" />
+            <span className="text-white text-xs font-semibold">{paysHote}</span>
           </div>
         )}
       </div>
