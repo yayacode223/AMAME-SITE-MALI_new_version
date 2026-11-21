@@ -112,7 +112,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R8 | **en production** | `frontend-v1.21` | 2026-11-21 | commit `80ab8ea`, voir le journal |
 | R9 | **en production** | `frontend-v1.22` | 2026-11-21 | commit `466a3e4`, voir le journal |
 | R10 | **en production** | `frontend-v1.23` | 2026-11-21 | commit `82ad56a`, voir le journal |
-| R11 | **publiée**, à déployer par l'équipe | `frontend-v1.24` | 2026-11-21 | commit `7d86fd1`, voir le journal |
+| R11 | **en production** | `frontend-v1.24` | 2026-11-21 | commit `7d86fd1`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -267,3 +267,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Relevé** : sur cette machine, une fois ses fichiers arrivés, la page des bourses met environ 400 ms à s'afficher (rendu) ; sur un téléphone modeste, le logo sera donc visible à la plupart des changements de page, même avec les fichiers en cache.
 
 **2026-11-21 — `frontend-v1.24` construite et publiée.** Commit `7d86fd1` (R11), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; le HTML servi sur `/`, `/bourses` et `/admin/articles` contient le chargement (`amame-boot-loader`, ses styles, `clip-path` du logo, image 74 px en priorité haute) ; dans le code servi : « Chargement de la page », `amame-loader-section`, `amame-loader-delayed`, `getAnimations` ; fichiers identiques à ceux de la version vérifiée (`index-omJ1rZ01.js`). Poussée : empreinte `sha256:680a898aa25ba1a19989e96012604dd5d58ae6b3aa695416ff09640f3adcbfb0`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.24`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.23`.
+
+**2026-11-21 — `frontend-v1.24` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.24`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.24`. Contrôle en production laissé à l'équipe.
