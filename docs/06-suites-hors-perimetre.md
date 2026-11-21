@@ -96,7 +96,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R1 | **en production** (décidé : E1, E2, E4, E5) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
 | R2 | **en production** ; même image que R1 (E5 révisé) | `frontend-v1.15` | 2026-11-20 | commit `a3494fc`, voir le journal |
 | R3 | **en production** ; avec E6 | `frontend-v1.16` | 2026-11-21 | commit `08567c0`, voir le journal |
-| R4 | **publiée** sur Docker Hub, à déployer | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
+| R4 | **en production** | `frontend-v1.17` | 2026-11-21 | commit `c57c6bf`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -163,3 +163,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Vérifié** (serveur Vite, API simulée, `r4_scan.py` : tout texte sur fond vert, transparences composées) : 38 pages (21 publiques dont fiches, connexion, mot de passe oublié et réinitialisation, adhésion en visiteur, USER et MEMBER ; 5 de l'espace membre ; 8 de l'administration dont formulaires et fiche utilisateur), **357 textes sur fond vert, aucun sous le seuil** après la correction du pied de page (`r4_subset.py` pour les pages reprises). Couleurs calculées : repos `rgb(21, 128, 61)`, survol `rgb(22, 101, 52)` (« Adhérer », « Se connecter », « Nouvel article »). `tsc` sans erreur. Les pages Don et Cotisation s'affichaient en erreur au premier passage à cause des données simulées (objet au lieu d'une liste) ; avec une liste, elles s'affichent.
 
 **2026-11-21 — `frontend-v1.17` construite et publiée.** Commit `c57c6bf` (R4), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés depuis la v1.16 (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 fichiers sans icône ; CSS : `bg-amame-green-dark` (`rgb(21 128 61)`), `hover:bg-amame-green-deep` (`rgb(22 101 52)`), `--primary: 142 72% 29%`, `text-green-100/70`. Poussée : empreinte `sha256:04888507d7c9bc705bef5e8438b7928435db2132ee3fb4d6acf142937ee72324`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.17`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.16`. Non inclus : trois PNG non suivis apparus dans `frontend/public/static/` (`heroes/image1.png`, `heroes/image2.png`, `image3.png`, ~1,5 Mo chacun), absents du commit.
+
+**2026-11-21 — `frontend-v1.17` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.17`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.17`. Contrôle en production laissé à l'équipe.
