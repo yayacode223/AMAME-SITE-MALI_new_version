@@ -110,7 +110,7 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 | R7 | **en production** | `frontend-v1.20` | 2026-11-21 | commit `71c5f9c`, voir le journal |
 | R8 | **en production** | `frontend-v1.21` | 2026-11-21 | commit `80ab8ea`, voir le journal |
 | R9 | **en production** | `frontend-v1.22` | 2026-11-21 | commit `466a3e4`, voir le journal |
-| R10 | **publiée**, à déployer par l'équipe | `frontend-v1.23` | 2026-11-21 | commit `82ad56a`, voir le journal |
+| R10 | **en production** | `frontend-v1.23` | 2026-11-21 | commit `82ad56a`, voir le journal |
 | S3 (équipe) | **fait** : *Cache Assets* décoché sur `amame.ml` | — | 2026-11-21 | confirmé par l'équipe ; contrôle des en-têtes laissé à l'équipe |
 
 ### Journal
@@ -253,3 +253,5 @@ Hors de ce plan, à décider plus tard : teinte des boutons verts à texte blanc
 - **Relevé** : le logo Jokers est servi tel quel (PNG de 687 Ko pour une carte de 387 px de large) tant que Bunny Optimizer n'est pas activé.
 
 **2026-11-21 — `frontend-v1.23` construite et publiée.** Commit `82ad56a` (R10), construite depuis un worktree propre, étiquette absente de Docker Hub auparavant. Contrôle de l'image : `nginx -t` correct ; en-têtes inchangés (un seul `Cache-Control`, aucun `Expires`, 5 en-têtes de sécurité) ; précache de 108 entrées sans icône ; dans le code servi : `fetchpriority` présent et `fetchPriority` absent, page Partenaires avec `amame-card-media-wide`, `object-cover object-top`, pastille `bg-white` opaque, `sizes` à 33 vw, plus d'`object-contain` ni de zone logo ; CSS `.amame-card-media-wide` en 16:9 sur fond blanc. Poussée : empreinte `sha256:4f87d3e9dec53711373fba3c35451b0be933c1b4c21ea81628ced396c9b712ac`, identique sur Docker Hub et en local. À faire par l'équipe : déployer (`FRONTEND_IMAGE_TAG=frontend-v1.23`, `backend-v1.7` inchangé). Retour arrière : `frontend-v1.22`.
+
+**2026-11-21 — `frontend-v1.23` en production.** Déploiement confirmé par l'équipe (`FRONTEND_IMAGE_TAG=frontend-v1.23`, `backend-v1.7` inchangé) ; `deploy/portainer/amamestack.env.example` passe à `frontend-v1.23`. Contrôle en production laissé à l'équipe.
