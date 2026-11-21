@@ -112,7 +112,7 @@ export function ArticleDetail() {
               </div>
               <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Article non trouvé</h2>
               <p className="text-amame-muted mb-6">L'article que vous recherchez n'existe pas ou a été déplacé.</p>
-              <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+              <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2">
                 <Link to="/articles"><ArrowLeft className="h-4 w-4" />Retour aux actualités</Link>
               </Button>
             </div>
@@ -162,7 +162,7 @@ export function ArticleDetail() {
             </h1>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-amame-muted">
               <span className="flex items-center gap-1.5">
-                <span className="w-6 h-6 rounded-full bg-amame-green flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                <span className="w-6 h-6 rounded-full bg-amame-green-dark flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                   {(article.auteur || "A")[0].toUpperCase()}
                 </span>
                 {article.auteur || "AMAME"}
@@ -259,7 +259,7 @@ export function ArticleDetail() {
                     {/* Auteur card */}
                     <div className="mt-8 pt-6 border-t border-amame-border">
                       <div className="flex items-center gap-4 p-4 bg-amame-green-subtle/60 rounded-2xl border border-amame-green/15">
-                        <div className="w-12 h-12 bg-amame-green rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
+                        <div className="w-12 h-12 bg-amame-green-dark rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">
                           {(article.auteur || "A")[0].toUpperCase()}
                         </div>
                         <div>
@@ -344,7 +344,7 @@ export function ArticleDetail() {
 
                 {/* Toutes les actualités */}
                 <Link to="/articles"
-                  className="group flex items-center justify-between p-4 bg-amame-green text-white rounded-2xl hover:bg-amame-green-dark transition-colors shadow-green">
+                  className="group flex items-center justify-between p-4 bg-amame-green-dark text-white rounded-2xl hover:bg-amame-green-deep transition-colors shadow-green">
                   <div>
                     <p className="font-nunito font-bold text-sm">Toutes les actualités</p>
                     <p className="text-green-100 text-xs mt-0.5">Voir tous les articles</p>

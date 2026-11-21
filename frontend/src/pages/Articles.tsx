@@ -91,7 +91,7 @@ const ArticleCard = ({ article, index }: { article: ReturnType<typeof adaptArtic
           {/* Pied */}
           <div className="amame-card-footer">
             <span className="text-[11px] text-amame-muted flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-amame-green flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+              <span className="w-5 h-5 rounded-full bg-amame-green-dark flex items-center justify-center text-white text-[9px] font-bold shrink-0">
                 {(article.auteur || "A")[0].toUpperCase()}
               </span>
               {article.auteur || "AMAME"}
@@ -186,7 +186,7 @@ export function Articles() {
                   onClick={() => handleCategory(id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                     selectedCategory === id
-                      ? "bg-amame-green text-white border-amame-green shadow-green"
+                      ? "bg-amame-green-dark text-white border-amame-green-dark shadow-green"
                       : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"
                   }`}
                 >
@@ -233,7 +233,7 @@ export function Articles() {
                       </div>
                       <h3 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">Aucun article trouvé</h3>
                       <p className="text-sm text-amame-muted mb-6">Essayez de modifier vos critères de recherche.</p>
-                      <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                      <Button onClick={resetFilters} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl">
                         Voir tous les articles
                       </Button>
                     </motion.div>

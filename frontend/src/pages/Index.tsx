@@ -193,7 +193,7 @@ const Index = () => {
                     </li>
                   ))}
                 </ul> */}
-                <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl shadow-green px-7">
+                <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl shadow-green px-7">
                   <Link to="/a-propos" className="flex items-center gap-2">
                     En savoir plus sur l'AMAME
                     <ArrowRight className="h-4 w-4" />

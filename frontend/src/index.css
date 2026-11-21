@@ -56,8 +56,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 7%;
 
-    /* Primary: Vert AMAME (Mali green) */
-    --primary: 142 71% 45%;
+    /* Primary : vert des boutons AMAME, #15803d (texte blanc à 5,0:1 ; docs/06, E7). L'ancien
+       142 71% 45% (#21c45d) ne donnait que 2,3:1. */
+    --primary: 142 72% 29%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary: Or Mali */
@@ -113,7 +114,7 @@
 
   /* Boutons AMAME */
   .btn-primary {
-    @apply bg-amame-green hover:bg-amame-green-dark text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-green hover:shadow-lg;
+    @apply bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-green hover:shadow-lg;
   }
 
   .btn-secondary {

@@ -103,7 +103,7 @@ const Hero = () => {
             <Button
               asChild
               size="lg"
-              className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold
+              className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold
                          text-base px-7 py-6 rounded-xl shadow-green hover:shadow-lg transition-all"
             >
               <Link to={action.to}>{action.label}</Link>

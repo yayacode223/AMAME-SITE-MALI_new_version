@@ -91,7 +91,7 @@ const ConcoursManagement: React.FC = () => {
         <div className="mt-4 sm:mt-0">
           <Link
             to="/admin/concours/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark transition-colors shadow-green"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-amame-green-dark hover:bg-amame-green-deep transition-colors shadow-green"
           >
             <PlusIcon className="h-4 w-4" />
             Nouveau concours

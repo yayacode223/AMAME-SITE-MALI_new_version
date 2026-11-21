@@ -82,7 +82,7 @@ const Universites = () => {
               <button
                 type="button"
                 onClick={() => setSelectedType("all")}
-                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedType === "all" ? "bg-amame-green text-white border-amame-green" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
+                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedType === "all" ? "bg-amame-green-dark text-white border-amame-green-dark" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
               >
                 Tous
               </button>
@@ -91,7 +91,7 @@ const Universites = () => {
                   key={type}
                   type="button"
                   onClick={() => setSelectedType(type)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedType === type ? "bg-amame-green text-white border-amame-green" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedType === type ? "bg-amame-green-dark text-white border-amame-green-dark" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
                 >
                   {type}
                 </button>

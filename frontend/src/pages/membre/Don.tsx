@@ -92,7 +92,7 @@ export default function Don() {
                       onClick={() => setValue("montant", m, { shouldValidate: true })}
                       className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
                         montantWatch === m
-                          ? "bg-amame-green text-white border-amame-green"
+                          ? "bg-amame-green-dark text-white border-amame-green-dark"
                           : "bg-white text-amame-charcoal border-amame-border hover:border-amame-green hover:text-amame-green"
                       }`}
                     >
@@ -131,7 +131,7 @@ export default function Don() {
               <button
                 type="submit"
                 disabled={submitMutation.isPending}
-                className="w-full py-3 bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl transition-colors shadow-green disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+                className="w-full py-3 bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl transition-colors shadow-green disabled:opacity-50 text-sm flex items-center justify-center gap-2"
               >
                 {submitMutation.isPending ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Envoi...</>

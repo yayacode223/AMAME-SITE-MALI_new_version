@@ -107,7 +107,7 @@ const AdhesionsManagement: React.FC = () => {
             onClick={() => { setStatusFilter(value); setPage(0); }}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
               statusFilter === value
-                ? "bg-amame-green text-white border-amame-green shadow-green"
+                ? "bg-amame-green-dark text-white border-amame-green-dark shadow-green"
                 : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"
             }`}
           >
@@ -200,7 +200,7 @@ const AdhesionsManagement: React.FC = () => {
                               onClick={() => handleApprove(a)}
                               disabled={approveMutation.isPending}
                               title="Approuver"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amame-green-subtle text-amame-green hover:bg-amame-green hover:text-white transition-colors border border-amame-green/20"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amame-green-subtle text-amame-green hover:bg-amame-green-dark hover:text-white transition-colors border border-amame-green/20"
                             >
                               <CheckIcon className="h-3.5 w-3.5" />
                               Approuver

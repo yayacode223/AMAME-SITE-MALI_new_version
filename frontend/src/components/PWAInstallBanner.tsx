@@ -41,7 +41,7 @@ export function PWAInstallBanner() {
         <button
           type="button"
           onClick={install}
-          className="shrink-0 flex items-center gap-1.5 bg-amame-green hover:bg-amame-green-dark text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors shadow-green"
+          className="shrink-0 flex items-center gap-1.5 bg-amame-green-dark hover:bg-amame-green-deep text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors shadow-green"
         >
           <Download className="h-3.5 w-3.5" />
           Installer

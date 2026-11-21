@@ -64,7 +64,7 @@ const Pagination = ({
               size="sm"
               className={`w-9 h-9 p-0 rounded-lg text-sm ${
                 currentPage + 1 === page
-                  ? "bg-amame-green hover:bg-amame-green-dark text-white"
+                  ? "bg-amame-green-dark hover:bg-amame-green-deep text-white"
                   : "border-amame-border hover:bg-gray-50"
               }`}
               onClick={() => onPageChange(Number(page) - 1)}

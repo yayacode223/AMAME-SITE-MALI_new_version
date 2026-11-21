@@ -77,7 +77,7 @@ const ConcoursDetail = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-5"><Trophy className="h-8 w-8 text-red-500" /></div>
               <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Concours non trouvé</h1>
               <p className="text-amame-muted mb-8">Le concours que vous recherchez n'existe pas ou a été supprimé.</p>
-              <Button onClick={() => navigate("/concours")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+              <Button onClick={() => navigate("/concours")} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2">
                 <ArrowLeft className="h-4 w-4" /> Retour aux concours
               </Button>
             </>
@@ -189,7 +189,7 @@ const ConcoursDetail = () => {
                   {/* Actions */}
                   <div className="space-y-2 pt-4 border-t border-amame-border">
                     {concours.lienOfficiel && (
-                      <Button className="w-full bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2 text-sm"
+                      <Button className="w-full bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2 text-sm"
                         onClick={() => window.open(concours.lienOfficiel, "_blank")}>
                         <Globe className="h-4 w-4" />Site officiel<ExternalLink className="h-3.5 w-3.5 ml-auto" />
                       </Button>

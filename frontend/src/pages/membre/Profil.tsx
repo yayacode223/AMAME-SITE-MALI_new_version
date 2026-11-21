@@ -209,7 +209,7 @@ export default function Profil() {
           <button
             type="submit"
             disabled={mutation.isPending || !isDirty}
-            className="px-6 py-2.5 bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
+            className="px-6 py-2.5 bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
           >
             {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {mutation.isPending ? "Enregistrement..." : "Sauvegarder"}

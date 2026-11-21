@@ -146,11 +146,13 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Cards**: a card on a public page uses the `.amame-card-*` classes of `src/index.css` (card, media zone `-media` / `-media-portrait` / `-media-logo`, `-img`, `-body`, `-title`, `-text`, `-footer`, `-action`), and its loading state uses `<CardSkeleton>` with the same media type and layout. `.amame-card-row` puts the media on the left from `sm` (articles, guides, job posts). A white block that is not a card (detail-page panel, sidebar, form block) uses `.amame-panel` (same radius, border and shadow). Add `.amame-card-interactive` only when the whole card is a link (`<Link className="amame-card amame-card-interactive group">`): it lifts on hover and gets the green focus ring; a card that is not a link does not move, only its footer link reacts. The domain color (gold for bourses, blue for concours, green for the rest) is for the icon, the title on hover and the action link, in a dark shade for text (`amber-700`, `blue-600`, `amame-green-dark`: at least 4.5:1 on white). Do not use the `shadow-card` utility: the name also matches the shadcn `card` color, so Tailwind emits a white shadow color after the shadow and the resting shadow is invisible; `.amame-card` sets the shadow itself.
 
-**Tailwind brand tokens**: `amame-green` (#16a34a), `amame-green-dark` (#15803d), `amame-green-subtle` (#f0fdf4), `amame-gold` (#ca8a04), defined in `tailwind.config.ts`.
+**Tailwind brand tokens**: `amame-green` (#16a34a), `amame-green-dark` (#15803d), `amame-green-deep` (#166534), `amame-green-darker` (#14532d), `amame-green-subtle` (#f0fdf4), `amame-gold` (#ca8a04), defined in `tailwind.config.ts`.
+
+**Green behind text** (docs/06, E7): a green background that carries text (button, active filter or page, avatar initials, band) is `bg-amame-green-dark` with `hover:bg-amame-green-deep` (white at 5.0:1 and 7.1:1), never `bg-amame-green` (white at 3.3:1, below the 4.5:1 minimum). `bg-amame-green` stays for what carries no text: dots, bars, icons, borders, gradients. shadcn's `--primary` is the same #15803d, and the default `Button` hovers to `amame-green-deep` (a `/90` transparency lightens it below 4.5:1). Light text on the dark footer green uses at least `text-green-100/70`.
 
 **Opacity modifiers**: Tailwind 3.4 generates `/<n>` only for its opacity scale (0, 5, 10 … 95, 100). `/72` or `/58` produce no class at all, silently (this is why the photo overlays of Adhésion and the login page were never rendered, docs/06 S1): use the scale or an arbitrary value (`/[.72]`).
 
-**Text on photos**: a photo behind text gets the `.amame-photo-veil` class (`src/index.css`: dark greens, 82 to 90 %) and white text; gold on it is `amber-300` (the brand gold reaches 1.8:1). Measured at 4.5:1 or more at 390, 768 and 1440 px (docs/06, R1); do not lighten the veil without measuring again. White text on `bg-amame-green` (#16a34a) is only 3.3:1.
+**Text on photos**: a photo behind text gets the `.amame-photo-veil` class (`src/index.css`: dark greens, 82 to 90 %) and white text; gold on it is `amber-300` (the brand gold reaches 1.8:1). Measured at 4.5:1 or more at 390, 768 and 1440 px (docs/06, R1); do not lighten the veil without measuring again.
 
 **Fonts**: Inter (text) and Nunito (`font-nunito`, headings) are served by the site, never by Google: variable `woff2` files in `src/assets/fonts/` (license `OFL.txt`), two subsets each (`latin`, `latin-ext`), declared by the `@font-face` rules at the top of `src/index.css`; `index.html` preloads the two `latin` files (Vite rewrites the `/src/assets/fonts/…` paths to the hashed names), which keeps the font swap from shifting the hero. Do not add a Google Fonts `@import`, `<link>` or `preconnect`. The `latin-ext` files are excluded from the PWA precache (`globIgnores` in `vite.config.ts`): the browser fetches them only for a page that contains one of their characters. Nunito has no ɛ, ɔ or ɲ: those letters fall back to another font.
 
@@ -172,7 +174,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.16`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.17`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

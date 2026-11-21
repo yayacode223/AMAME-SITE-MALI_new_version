@@ -25,7 +25,7 @@ const NotFound = () => {
           <p className="text-amame-muted mb-8 leading-relaxed">
             La page que vous recherchez n'existe pas ou a été déplacée.
           </p>
-          <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+          <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2">
             <Link to="/"><ArrowLeft className="h-4 w-4" />Retour à l'accueil</Link>
           </Button>
         </div>

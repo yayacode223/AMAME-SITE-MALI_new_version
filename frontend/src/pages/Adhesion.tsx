@@ -192,7 +192,7 @@ export default function Adhesion() {
             Votre adhésion a été approuvée. Accédez à votre espace membre.
           </p>
           <Link to="/membre/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green">
+            className="inline-flex items-center gap-2 px-6 py-3 bg-amame-green-dark text-white font-semibold rounded-xl hover:bg-amame-green-deep transition-colors shadow-green">
             <UserGroupIcon className="h-5 w-5" />
             Mon espace membre
           </Link>
@@ -234,7 +234,7 @@ export default function Adhesion() {
         </div>
       );
     }
-
+    
     // Succès après soumission du formulaire public
     if (submitted) {
       return (
@@ -250,7 +250,7 @@ export default function Adhesion() {
             En attendant, vous pouvez vous connecter avec l'adresse email et le mot de passe que vous venez de définir.
           </p>
           <Link to={LOGIN_FROM_ADHESION}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green">
+            className="inline-flex items-center gap-2 px-6 py-3 bg-amame-green-dark text-white font-semibold rounded-xl hover:bg-amame-green-deep transition-colors shadow-green">
             Se connecter
           </Link>
         </div>
@@ -429,7 +429,7 @@ export default function Adhesion() {
         <FormAlert message={formError} />
 
         <button type="submit" disabled={registerMutation.isPending}
-          className="w-full py-3 px-5 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+          className="w-full py-3 px-5 bg-amame-green-dark text-white font-semibold rounded-xl hover:bg-amame-green-deep transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
           {registerMutation.isPending ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -478,7 +478,7 @@ export default function Adhesion() {
       </div>
       <FormAlert message={motivationError} />
       <button type="submit" disabled={submitMutation.isPending || motivation.trim().length < 10}
-        className="w-full py-3 px-5 bg-amame-green text-white font-semibold rounded-xl hover:bg-amame-green-dark transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+        className="w-full py-3 px-5 bg-amame-green-dark text-white font-semibold rounded-xl hover:bg-amame-green-deep transition-colors shadow-green disabled:opacity-50 disabled:cursor-not-allowed text-sm">
         {submitMutation.isPending ? "Envoi..." : "Soumettre ma demande"}
       </button>
     </form>

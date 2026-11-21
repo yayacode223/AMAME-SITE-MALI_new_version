@@ -56,7 +56,10 @@ export default {
 				// AMAME Brand System — Vert Mali + Or
 				amame: {
 					green: '#16a34a',
+					// Fond d'un élément vert qui porte du texte (bouton, filtre actif, avatar) : green-dark
+					// (blanc à 5,0:1), survol green-deep (7,1:1). Jamais green (#16a34a) : blanc à 3,3:1 (docs/06, E7).
 					'green-dark': '#15803d',
+					'green-deep': '#166534',
 					'green-darker': '#14532d',
 					'green-light': '#dcfce7',
 					'green-subtle': '#f0fdf4',

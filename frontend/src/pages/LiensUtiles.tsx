@@ -83,12 +83,12 @@ const LiensUtiles = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setSelectedCat("all")}
-                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedCat === "all" ? "bg-amame-green text-white border-amame-green" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}>
+                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedCat === "all" ? "bg-amame-green-dark text-white border-amame-green-dark" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}>
                 Tous
               </button>
               {categories.map(cat => (
                 <button key={cat} type="button" onClick={() => setSelectedCat(cat)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedCat === cat ? "bg-amame-green text-white border-amame-green" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${selectedCat === cat ? "bg-amame-green-dark text-white border-amame-green-dark" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}>
                   {cat}
                 </button>
               ))}

@@ -34,7 +34,7 @@ export default function Cotisation() {
       <div className={`rounded-2xl border p-6 ${cotisationCourante?.status === "PAID" ? "bg-amame-green-subtle border-amame-green/20" : "bg-white border-amame-border shadow-card"}`}>
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${cotisationCourante?.status === "PAID" ? "bg-amame-green text-white" : "bg-gray-100"}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${cotisationCourante?.status === "PAID" ? "bg-amame-green-dark text-white" : "bg-gray-100"}`}>
               <CreditCardIcon className="h-6 w-6" />
             </div>
             <div>

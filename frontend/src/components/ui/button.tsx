@@ -9,7 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Survol plein, pas bg-primary/90 : la transparence éclaircit le vert (blanc à 4,2:1).
+        default: "bg-primary text-primary-foreground hover:bg-amame-green-deep",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

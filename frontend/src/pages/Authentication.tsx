@@ -155,7 +155,7 @@ const Login = () => {
               </Link>
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 bg-amame-green hover:bg-amame-green-dark text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg ring-1 ring-white/30 transition-all hover:shadow-xl"
+                className="inline-flex items-center gap-2 bg-amame-green-dark hover:bg-amame-green-deep text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg ring-1 ring-white/30 transition-all hover:shadow-xl"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Retour au site
@@ -190,7 +190,7 @@ const Login = () => {
                 <span className="font-nunito font-black text-white text-lg drop-shadow">AMAME</span>
               </Link>
               {/* Bouton retour vert amame */}
-              <Link to="/" className="inline-flex items-center gap-1.5 bg-amame-green hover:bg-amame-green-dark text-white text-xs font-semibold px-3 py-2 rounded-full shadow-lg ring-1 ring-white/30 transition-all">
+              <Link to="/" className="inline-flex items-center gap-1.5 bg-amame-green-dark hover:bg-amame-green-deep text-white text-xs font-semibold px-3 py-2 rounded-full shadow-lg ring-1 ring-white/30 transition-all">
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Retour au site
               </Link>
@@ -290,7 +290,7 @@ const Login = () => {
                   <Button
                     type="submit"
                     disabled={isLoggingIn}
-                    className="w-full h-12 bg-amame-green hover:bg-amame-green-dark text-white font-semibold text-base rounded-xl transition-all duration-200 hover:shadow-lg shadow-green mt-2"
+                    className="w-full h-12 bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold text-base rounded-xl transition-all duration-200 hover:shadow-lg shadow-green mt-2"
                   >
                     {isLoggingIn ? (
                       <>

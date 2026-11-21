@@ -165,7 +165,7 @@ export function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="page-container py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-green-100/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-green-100/70">
             <p>© {new Date().getFullYear()} AMAME. Tous droits réservés.</p>
             {/* <p>Association Malienne d'Appui aux Meilleurs Élèves</p> */}
           </div>

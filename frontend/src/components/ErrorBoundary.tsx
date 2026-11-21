@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amame-green px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amame-green-dark focus:outline-none focus:ring-2 focus:ring-amame-green focus:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amame-green-dark px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amame-green-deep focus:outline-none focus:ring-2 focus:ring-amame-green focus:ring-offset-2"
           >
             <RotateCw className="h-4 w-4" aria-hidden="true" />
             Recharger la page

@@ -87,7 +87,7 @@ export default function ResetPassword() {
             <p className="text-sm text-amame-muted mb-6">
               Ce lien de réinitialisation est invalide ou incomplet.
             </p>
-            <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white rounded-xl">
+            <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white rounded-xl">
               <Link to="/forgot-password">Faire une nouvelle demande</Link>
             </Button>
           </div>
@@ -137,7 +137,7 @@ export default function ResetPassword() {
                   </p>
                   <Button
                     onClick={() => navigate("/login")}
-                    className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl px-8 shadow-green"
+                    className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl px-8 shadow-green"
                   >
                     Se connecter
                   </Button>
@@ -261,7 +261,7 @@ export default function ResetPassword() {
                         <Button
                           type="submit"
                           disabled={mutation.isPending}
-                          className="w-full h-12 bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-lg transition-all hover:shadow-lg"
+                          className="w-full h-12 bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-lg transition-all hover:shadow-lg"
                         >
                           {mutation.isPending ? (
                             <>

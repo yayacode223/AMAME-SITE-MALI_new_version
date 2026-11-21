@@ -202,7 +202,7 @@ const Navbar = () => {
                           alt={`${user.prenom} ${user.nom}`}
                           className="object-cover"
                         />
-                        <AvatarFallback className="bg-amame-green text-white text-xs font-bold">
+                        <AvatarFallback className="bg-amame-green-dark text-white text-xs font-bold">
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
@@ -266,7 +266,7 @@ const Navbar = () => {
                   <Button asChild variant="ghost" size="sm" className="text-gray-600 hover:text-amame-green hover:bg-amame-green-subtle font-medium">
                     <Link to={loginPath(location)}>Connexion</Link>
                   </Button>
-                  <Button asChild size="sm" className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold shadow-green hover:shadow-md transition-all">
+                  <Button asChild size="sm" className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold shadow-green hover:shadow-md transition-all">
                     <Link to="/adhesion">Adhérer</Link>
                   </Button>
                 </div>
@@ -281,7 +281,7 @@ const Navbar = () => {
                     <button type="button" className="p-1 rounded-full hover:bg-gray-50 transition-colors">
                       <Avatar className="h-8 w-8 ring-2 ring-green-100">
                         <AvatarImage src={user.imageUrl} alt={`${user.prenom} ${user.nom}`} className="object-cover" />
-                        <AvatarFallback className="bg-amame-green text-white text-xs font-bold">{getUserInitials()}</AvatarFallback>
+                        <AvatarFallback className="bg-amame-green-dark text-white text-xs font-bold">{getUserInitials()}</AvatarFallback>
                       </Avatar>
                     </button>
                   </DropdownMenuTrigger>

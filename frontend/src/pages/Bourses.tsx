@@ -202,7 +202,7 @@ const Bourses = () => {
                 <p className="text-amame-muted text-sm max-w-md mx-auto mb-6">
                   Aucune bourse ne correspond à vos critères. Essayez de modifier les filtres.
                 </p>
-                <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                <Button onClick={resetFilters} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl">
                   Voir toutes les bourses
                 </Button>
               </motion.div>
@@ -240,7 +240,7 @@ const Bourses = () => {
                             key={page}
                             variant={filteredBourses.currentPage + 1 === page ? "default" : "outline"}
                             size="sm"
-                            className={`w-9 h-9 p-0 rounded-lg text-sm ${filteredBourses.currentPage + 1 === page ? "bg-amame-green hover:bg-amame-green-dark text-white" : "border-amame-border hover:bg-gray-50"}`}
+                            className={`w-9 h-9 p-0 rounded-lg text-sm ${filteredBourses.currentPage + 1 === page ? "bg-amame-green-dark hover:bg-amame-green-deep text-white" : "border-amame-border hover:bg-gray-50"}`}
                             onClick={() => handlePageChange(Number(page) - 1)}
                           >
                             {page}

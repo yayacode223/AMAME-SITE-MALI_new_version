@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { IdentificationIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 const quickActions = [
-  { href: "/admin/users/new",    label: "Nouvel utilisateur",  cls: "bg-amame-green hover:bg-amame-green-dark" },
+  { href: "/admin/users/new",    label: "Nouvel utilisateur",  cls: "bg-amame-green-dark hover:bg-amame-green-deep" },
   { href: "/admin/articles/new", label: "Nouvel article",      cls: "bg-blue-600 hover:bg-blue-700" },
   { href: "/admin/bourses/new",  label: "Nouvelle bourse",     cls: "bg-amame-gold hover:bg-yellow-600" },
   { href: "/admin/concours/new", label: "Nouveau concours",    cls: "bg-purple-600 hover:bg-purple-700" },

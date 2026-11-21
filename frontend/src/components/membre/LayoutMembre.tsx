@@ -78,7 +78,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
                 active
-                  ? "bg-amame-green text-white"
+                  ? "bg-amame-green-dark text-white"
                   : "text-amame-slate hover:bg-gray-100 hover:text-amame-charcoal"
               }`}
             >
@@ -111,7 +111,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
               className="h-7 w-7 rounded-full object-cover shrink-0 ring-1 ring-green-100"
             />
           ) : (
-            <div className="h-7 w-7 rounded-full bg-amame-green flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-full bg-amame-green-dark flex items-center justify-center shrink-0">
               <span className="text-white text-xs font-bold">{initials}</span>
             </div>
           )}

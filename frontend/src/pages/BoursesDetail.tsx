@@ -73,7 +73,7 @@ const BoursesDetail = () => {
               </div>
               <h1 className="font-nunito font-bold text-2xl text-amame-charcoal mb-3">Bourse non trouvée</h1>
               <p className="text-amame-muted mb-8">La bourse que vous recherchez n'existe pas ou a été supprimée.</p>
-              <Button onClick={() => navigate("/bourses")} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+              <Button onClick={() => navigate("/bourses")} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2">
                 <ArrowLeft className="h-4 w-4" /> Retour aux bourses
               </Button>
             </>

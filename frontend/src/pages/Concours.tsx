@@ -195,7 +195,7 @@ const Concours = () => {
                   {hasActiveFilters ? "Aucun concours ne correspond à vos critères. Essayez de modifier les filtres." : "Aucun concours n'est disponible pour le moment. Revenez plus tard."}
                 </p>
                 {hasActiveFilters && (
-                  <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                  <Button onClick={resetFilters} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl">
                     Voir tous les concours
                   </Button>
                 )}
@@ -238,7 +238,7 @@ const Concours = () => {
                             key={page}
                             variant={filteredConcours.currentPage + 1 === page ? "default" : "outline"}
                             size="sm"
-                            className={`w-9 h-9 p-0 rounded-lg text-sm ${filteredConcours.currentPage + 1 === page ? "bg-amame-green hover:bg-amame-green-dark text-white" : "border-amame-border hover:bg-gray-50"}`}
+                            className={`w-9 h-9 p-0 rounded-lg text-sm ${filteredConcours.currentPage + 1 === page ? "bg-amame-green-dark hover:bg-amame-green-deep text-white" : "border-amame-border hover:bg-gray-50"}`}
                             onClick={() => handlePageChange(Number(page) - 1)}
                           >
                             {page}

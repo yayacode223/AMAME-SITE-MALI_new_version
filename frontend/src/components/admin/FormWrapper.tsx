@@ -106,7 +106,7 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
               type="submit"
               form="admin-form"
               disabled={isSubmitting}
-              className="inline-flex justify-center py-2 px-5 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amame-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex justify-center py-2 px-5 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green-dark hover:bg-amame-green-deep focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amame-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting
                 ? "Sauvegarde en cours..."

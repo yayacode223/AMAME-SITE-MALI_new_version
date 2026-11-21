@@ -115,7 +115,7 @@ const RessourcesAcademiques = () => {
                   key={t}
                   type="button"
                   onClick={() => setSelectedType(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${selectedType === t ? "bg-amame-green text-white border-amame-green" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${selectedType === t ? "bg-amame-green-dark text-white border-amame-green-dark" : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"}`}
                 >
                   {t === "all" ? "Tous" : t}
                 </button>

@@ -180,7 +180,7 @@ const BoursesList = ({ defaultCategorie }: BourseListProps) => {
                     : "Aucune bourse disponible pour cette catégorie pour le moment."}
                 </p>
                 {hasUserFilters && (
-                  <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                  <Button onClick={resetFilters} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl">
                     Réinitialiser les filtres
                   </Button>
                 )}
@@ -217,7 +217,7 @@ const BoursesList = ({ defaultCategorie }: BourseListProps) => {
                             key={page}
                             variant={data.currentPage + 1 === page ? "default" : "outline"}
                             size="sm"
-                            className={`w-9 h-9 p-0 rounded-lg text-sm ${data.currentPage + 1 === page ? "bg-amame-green hover:bg-amame-green-dark text-white" : "border-amame-border hover:bg-gray-50"}`}
+                            className={`w-9 h-9 p-0 rounded-lg text-sm ${data.currentPage + 1 === page ? "bg-amame-green-dark hover:bg-amame-green-deep text-white" : "border-amame-border hover:bg-gray-50"}`}
                             onClick={() => handlePage(Number(page) - 1)}
                           >
                             {page}

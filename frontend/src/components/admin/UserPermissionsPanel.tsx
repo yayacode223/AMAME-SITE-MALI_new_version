@@ -197,7 +197,7 @@ const UserPermissionsPanel: React.FC<Props> = ({ targetUserId, targetRole }) => 
                 type="button"
                 disabled={roleMut.isPending}
                 onClick={handleRoleSave}
-                className="px-3 py-1.5 text-sm rounded-md bg-amame-green text-white hover:bg-amame-green-dark disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm rounded-md bg-amame-green-dark text-white hover:bg-amame-green-deep disabled:opacity-50 transition-colors"
               >
                 {roleMut.isPending ? "Enregistrement…" : "Enregistrer"}
               </button>

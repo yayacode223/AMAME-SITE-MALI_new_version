@@ -142,7 +142,7 @@ export function Orientation() {
                     onClick={() => handleDomain(value)}
                     className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
                       selectedDomain === value
-                        ? "bg-amame-green text-white border-amame-green shadow-green"
+                        ? "bg-amame-green-dark text-white border-amame-green-dark shadow-green"
                         : "bg-white text-amame-slate border-amame-border hover:border-amame-green hover:text-amame-green"
                     }`}
                   >
@@ -194,7 +194,7 @@ export function Orientation() {
                   </div>
                   <h3 className="font-nunito font-bold text-xl text-amame-charcoal mb-2">Aucune filière trouvée</h3>
                   <p className="text-amame-muted text-sm max-w-md mx-auto mb-6">Essayez de modifier vos critères de recherche.</p>
-                  <Button onClick={resetFilters} className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl">
+                  <Button onClick={resetFilters} className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl">
                     Voir toutes les filières
                   </Button>
                 </motion.div>

@@ -56,7 +56,7 @@ export function OrientationDetail() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-amame-green-subtle rounded-2xl mb-5"><Briefcase className="h-8 w-8 text-amame-green" /></div>
               <h2 className="font-nunito font-bold text-xl text-amame-charcoal mb-3">Filière non trouvée</h2>
               <p className="text-amame-muted mb-6">La filière que vous recherchez n'existe pas ou a été déplacée.</p>
-              <Button asChild className="bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-xl gap-2">
+              <Button asChild className="bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-xl gap-2">
                 <Link to="/orientation"><ArrowLeft className="h-4 w-4" />Retour à l'orientation</Link>
               </Button>
             </div>

@@ -117,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={onClose}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
                   active
-                    ? "bg-amame-green text-white"
+                    ? "bg-amame-green-dark text-white"
                     : "text-amame-slate hover:bg-gray-100 hover:text-amame-charcoal"
                 }`}
               >
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         onClick={onClose}
                         className={`flex items-center px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-150 ${
                           childActive && hasUniqueHrefs
-                            ? "bg-amame-green text-white"
+                            ? "bg-amame-green-dark text-white"
                             : childActive && !hasUniqueHrefs
                               ? "bg-green-50 text-amame-green-dark"
                               : "text-amame-slate hover:bg-gray-100 hover:text-amame-charcoal"
@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* User footer */}
       <div className="shrink-0 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2 px-2 py-2.5 rounded-lg bg-gray-50">
-          <div className="flex-none flex items-center justify-center h-7 w-7 rounded-full bg-amame-green">
+          <div className="flex-none flex items-center justify-center h-7 w-7 rounded-full bg-amame-green-dark">
             <span className="text-white text-xs font-bold leading-none">
               {userInitials}
             </span>

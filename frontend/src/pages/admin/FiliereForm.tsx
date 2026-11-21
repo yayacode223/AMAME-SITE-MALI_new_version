@@ -98,7 +98,7 @@ const FiliereForm: React.FC = () => {
           onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addToList(list, inputValue, setInputValue))}
           className={inputCls} placeholder={placeholder} />
         <button type="button" onClick={() => addToList(list, inputValue, setInputValue)}
-          className="px-4 py-2 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark transition-colors shrink-0">
+          className="px-4 py-2 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green-dark hover:bg-amame-green-deep transition-colors shrink-0">
           Ajouter
         </button>
       </div>
@@ -277,7 +277,7 @@ const FiliereForm: React.FC = () => {
             Annuler
           </button>
           <button type="submit" disabled={isLoading}
-            className="inline-flex justify-center py-2 px-5 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green hover:bg-amame-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amame-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            className="inline-flex justify-center py-2 px-5 border border-transparent rounded-xl text-sm font-semibold text-white bg-amame-green-dark hover:bg-amame-green-deep focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amame-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {isLoading ? "Sauvegarde..." : isEditing ? "Mettre à jour" : "Créer la filière"}
           </button>
         </div>

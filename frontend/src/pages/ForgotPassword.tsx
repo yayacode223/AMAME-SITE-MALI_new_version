@@ -176,7 +176,7 @@ export default function ForgotPassword() {
                         <Button
                           type="submit"
                           disabled={mutation.isPending}
-                          className="w-full h-12 bg-amame-green hover:bg-amame-green-dark text-white font-semibold rounded-lg transition-all hover:shadow-lg"
+                          className="w-full h-12 bg-amame-green-dark hover:bg-amame-green-deep text-white font-semibold rounded-lg transition-all hover:shadow-lg"
                         >
                           {mutation.isPending ? (
                             <>

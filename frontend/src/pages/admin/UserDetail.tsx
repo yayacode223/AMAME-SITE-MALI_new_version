@@ -116,7 +116,7 @@ const UserDetail: React.FC = () => {
       {/* ── Carte profil ── */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-amame-green px-6 py-8">
+        <div className="bg-amame-green-dark px-6 py-8">
           <div className="flex items-center gap-5">
             <div className="shrink-0">
               {user.imageUrl ? (
@@ -130,12 +130,12 @@ const UserDetail: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">{user.prenom} {user.nom}</h1>
-              <p className="text-white/80 text-sm">{user.email}</p>
+              <p className="text-white text-sm">{user.email}</p>
               <div className="mt-2 flex items-center gap-2">
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${roleColor}`}>
                   {roleLabel}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amame-green-darker text-white">
                   {getSexeLabel(user.sexe)}
                 </span>
               </div>
