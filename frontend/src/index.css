@@ -95,21 +95,42 @@
 
   html {
     scroll-behavior: smooth;
-    /* La barre de navigation des pages publiques reste en haut (sticky, 64 px). Safari (WebKit, tous les
+    /* La barre de navigation des pages publiques reste en haut (sticky, 64 px, 80 px dès 1024 px). Safari (WebKit, tous les
        navigateurs d'iPhone) amène un champ qui reçoit le focus au bord haut, donc sous la barre : cette
        marge l'arrête dessous. Vaut aussi pour les ancres et scrollIntoView (docs/06, S2). */
     scroll-padding-top: 5rem;
   }
+  @media (min-width: 1024px) {
+    html { scroll-padding-top: 6rem; }
+  }
 }
 
 @layer components {
-  /* Voile sur une photo qui porte du texte blanc (bandeau Adhésion, panneau de connexion, Mot de passe
-     oublié) : verts foncés seulement, réglé pour 4,5:1 au pire endroit de la photo (docs/06, S1).
-     Le vert de la marque (#16a34a) ne convient pas : du blanc sur lui ne dépasse pas 3,3:1.
-     Attention aux opacités Tailwind hors de l'échelle (/72, /58…) : aucune classe n'est générée. */
-  .amame-photo-veil {
-    background-image: linear-gradient(to bottom right,
-      rgb(20 83 45 / 0.9), rgb(20 83 45 / 0.85), rgb(21 128 61 / 0.82));
+  /* Voile des bandeaux photo à texte aligné à gauche (PageHero, en-tête d'À propos ; docs/06, R5, E9) :
+     noir, le plus sombre sous le texte. Sur ordinateur, dégradé vers la droite, où la photo reste visible ;
+     sur téléphone, le texte couvre toute la largeur : toute la photo est assombrie. Mesuré sur 17 pages à
+     390, 768, 1024 et 1440 px : pire 5,2:1 (grand titre), 8,6:1 (texte courant). L'ancien dégradé
+     (72 % à gauche, 22 % en haut sur téléphone) laissait 96 textes sur 208 sous le seuil. */
+  .amame-hero-scrim {
+    background-image: linear-gradient(to top, rgb(0 0 0 / 0.82) 0%, rgb(0 0 0 / 0.72) 50%, rgb(0 0 0 / 0.62) 100%);
+  }
+  @media (min-width: 1024px) {
+    .amame-hero-scrim {
+      background-image: linear-gradient(to right, rgb(0 0 0 / 0.8) 0%, rgb(0 0 0 / 0.72) 55%,
+        rgb(0 0 0 / 0.45) 80%, rgb(0 0 0 / 0.2) 100%);
+    }
+  }
+
+  /* Cartouche : fond sombre translucide derrière un bloc de texte blanc posé sur une photo laissée
+     naturelle (bandeau Adhésion, panneau et bandeau de connexion, lien de retour de Mot de passe oublié ;
+     docs/06, R5, E8). Le noir à 55 %
+     suffit seul, quelle que soit la photo : même sur du blanc pur, le blanc y garde 4,76:1, l'or clair
+     amber-300 3,3:1 et le vert clair green-300 3,4:1 (ces deux-là pour un grand texte seulement).
+     Le flou, qu'un vieux navigateur peut ignorer, ne fait que lisser la photo dessous. Forme (rayon,
+     marges) laissée aux classes de l'élément. Ne pas éclaircir sans mesurer. */
+  .amame-photo-cartouche {
+    background-color: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(6px);
   }
 
   /* Boutons AMAME */
@@ -223,8 +244,8 @@
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
-  /* Hero de l'accueil : la hauteur visible de l'écran, moins la navbar (4rem et sa bordure de
-     1 px) et, sous 1024 px, la barre de navigation du bas (4rem, sa bordure, et la zone de sécurité
+  /* Hero de l'accueil : la hauteur visible de l'écran, moins la navbar (4rem, 5rem dès 1024 px, et sa
+     bordure de 1 px) et, sous 1024 px, la barre de navigation du bas (4rem, sa bordure, et la zone de sécurité
      de l'iPhone). Plancher de 26rem (mobile) et 37,5rem (desktop), plafond de 53,75rem (desktop).
      Les déclarations en vh servent aux navigateurs sans svh (Safari < 15.4, Chrome < 108), qui
      ignorent la suivante. */
@@ -236,8 +257,8 @@
 
   @media (min-width: 1024px) {
     .home-hero-height {
-      min-height: min(53.75rem, max(37.5rem, calc(100vh - 4rem - 1px)));
-      min-height: min(53.75rem, max(37.5rem, calc(100svh - 4rem - 1px)));
+      min-height: min(53.75rem, max(37.5rem, calc(100vh - 5rem - 1px)));
+      min-height: min(53.75rem, max(37.5rem, calc(100svh - 5rem - 1px)));
     }
   }
 

@@ -137,7 +137,7 @@ const ConcoursDetail = () => {
 
               {/* Sidebar */}
               <aside className="lg:col-span-1">
-                <div className="amame-panel p-5 sticky top-20">
+                <div className="amame-panel p-5 sticky top-20 lg:top-24">
                   {statusInfo && (
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border mb-5 ${statusInfo.cls}`}>
                       <Clock className="h-3.5 w-3.5" />{statusInfo.label}

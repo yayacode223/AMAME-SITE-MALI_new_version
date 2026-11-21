@@ -116,16 +116,17 @@ const Navbar = () => {
           {/* Desktop : grille 1fr | auto | 1fr. Les liens restent centrés sur la page quelle que soit
               la largeur du logo et des actions (visiteur, connecté, chargement). Une colonne 1fr ne
               descend jamais sous la largeur de son contenu : pas de chevauchement sur les petits écrans. */}
-          <div className="flex items-center justify-between h-16 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4">
+          <div className="flex items-center justify-between h-16 lg:h-20 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4">
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0 group lg:justify-self-start">
+            {/* Logo : 48 px sur téléphone (barre de 64 px), 64 px dès 1024 px (barre de 80 px). À 36 px,
+                l'emblème était illisible (docs/06, R5). logo-192.webp couvre 64 px sur un écran 3x. */}
+            <Link to="/" className="flex items-center gap-3 shrink-0 group lg:justify-self-start">
               <img
                 src="/logo-192.webp"
                 alt="AMAME"
-                className="h-9 w-9 rounded-full object-cover ring-2 ring-green-100 group-hover:ring-green-200 transition-all"
+                className="h-12 w-12 lg:h-16 lg:w-16 rounded-full object-cover ring-2 ring-green-100 group-hover:ring-green-200 transition-all"
               />
-              <span className="font-nunito font-bold text-xl text-amame-green-dark tracking-tight">
+              <span className="font-nunito font-bold text-xl lg:text-2xl text-amame-green-dark tracking-tight">
                 AMAME
               </span>
             </Link>

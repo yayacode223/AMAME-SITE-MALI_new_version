@@ -42,18 +42,9 @@ const PageHero = ({
           />
         </div>
 
-        {/* Scrim desktop : dégradé gauche→droite, image visible à droite */}
-        <div
-          className="absolute inset-0 hidden lg:block"
-          style={{ background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 42%, rgba(0,0,0,0.10) 75%, transparent 100%)" }}
-          aria-hidden="true"
-        />
-        {/* Scrim mobile : dégradé bas→haut */}
-        <div
-          className="absolute inset-0 lg:hidden"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.22) 100%)" }}
-          aria-hidden="true"
-        />
+        {/* Voile noir, le plus sombre sous le texte : dégradé vers la droite sur ordinateur, toute la photo
+            sur téléphone (.amame-hero-scrim, docs/06, E9). L'ancien laissait des titres et le mot en vert sous le seuil. */}
+        <div className="absolute inset-0 amame-hero-scrim" aria-hidden="true" />
 
         <div className="relative z-10 page-container">
           <motion.div
@@ -62,8 +53,8 @@ const PageHero = ({
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className="max-w-2xl"
           >
-            {/* Icon + label pill */}
-            <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-2 mb-6 shadow-sm">
+            {/* Icon + label pill : vert plein, le blanc y reste à 5:1 quelle que soit la photo (blanc translucide : 2,9 à 4,2:1) */}
+            <div className="inline-flex items-center gap-2.5 bg-amame-green-dark border border-white/20 rounded-full px-4 py-2 mb-6 shadow-sm">
               <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 shrink-0">
                 <Icon className="h-3.5 w-3.5 text-white" />
               </div>
@@ -78,14 +69,15 @@ const PageHero = ({
             <h1 className="font-nunito font-black text-3xl sm:text-4xl lg:text-5xl xl:text-6xl
                            text-white mb-5 leading-[1.1]">
               {title}{" "}
+              {/* Vert clair : le vert de la marque (#16a34a) tombait à 1,0:1 sur le voile sombre */}
               {titleHighlight && (
-                <span className="text-amame-green">{titleHighlight}</span>
+                <span className="text-green-300">{titleHighlight}</span>
               )}
             </h1>
 
             {/* Description */}
             {description && (
-              <p className="text-base sm:text-lg text-white/80 leading-relaxed max-w-xl">
+              <p className="text-base sm:text-lg text-white leading-relaxed max-w-xl">
                 {description}
               </p>
             )}

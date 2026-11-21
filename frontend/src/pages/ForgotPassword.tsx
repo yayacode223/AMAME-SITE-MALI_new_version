@@ -62,15 +62,14 @@ export default function ForgotPassword() {
       </Helmet>
 
       <div className="min-h-screen flex items-center py-8 relative overflow-hidden bg-cover bg-center"
-        style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
-        {/* Voile commun des photos à texte (docs/06, S1) ; l'ancien point du milieu (/82) ne générait aucune classe. */}
-        <div className="absolute inset-0 amame-photo-veil pointer-events-none" />
+        style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-about")})` }}>
+        {/* Photo naturelle, sans voile (docs/06, R5) : le seul texte posé dessus, le lien de retour, a son cartouche */}
         <div className="page-container relative z-10">
 
           {/* En-tête */}
           <div className="flex justify-between items-center mb-8 max-w-md mx-auto">
-            {/* Blanc sur le voile vert : le texte foncé par défaut du bouton « ghost » n'y faisait que 3:1 */}
-            <Button variant="ghost" asChild className="text-sm text-white hover:bg-white/10 hover:text-white">
+            {/* Blanc sur cartouche sombre ; au survol, cartouche plus foncé (un fond blanc translucide l'éclaircirait) */}
+            <Button variant="ghost" asChild className="amame-photo-cartouche rounded-full text-sm text-white hover:bg-black/70 hover:text-white">
               <Link to="/login">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour à la connexion

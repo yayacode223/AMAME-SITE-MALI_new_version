@@ -152,7 +152,20 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 **Opacity modifiers**: Tailwind 3.4 generates `/<n>` only for its opacity scale (0, 5, 10 … 95, 100). `/72` or `/58` produce no class at all, silently (this is why the photo overlays of Adhésion and the login page were never rendered, docs/06 S1): use the scale or an arbitrary value (`/[.72]`).
 
-**Text on photos**: a photo behind text gets the `.amame-photo-veil` class (`src/index.css`: dark greens, 82 to 90 %) and white text; gold on it is `amber-300` (the brand gold reaches 1.8:1). Measured at 4.5:1 or more at 390, 768 and 1440 px (docs/06, R1); do not lighten the veil without measuring again.
+**Text on photos**: white text on a photo needs a dark layer under it, from `src/index.css`; there is no green veil any more.
+
+- Page heroes with left-aligned text (`PageHero`, the About hero) use `.amame-hero-scrim`. It is black and darkest under the text: a gradient to the right from `lg`, the whole photo below `lg` (docs/06, E9).
+- Elsewhere, `.amame-photo-cartouche` (black at 55 %, blur) goes on each text block and leaves the photo natural (docs/06, E8). It is used on Adhésion, the login panel and band, and the back link of Mot de passe oublié. White keeps 4.76:1 on it even over pure white, so it holds for any photo.
+
+On a photo:
+
+- a pill is a solid `bg-amame-green-dark`, never `bg-white/15` (white fell to 2.9–4.2:1);
+- a highlighted word is `text-green-300`, never `text-amame-green` (down to 1.0:1);
+- gold is `amber-300` (the brand gold reaches 1.8:1);
+- `green-300` and `amber-300` are for large text only;
+- body text is full white, not `text-white/80`.
+
+Measure every text on a photo at the photo's brightest spot (4.5:1, 3:1 for a large title) at 390, 768, 1024 and 1440 px. Include translucent backgrounds: only an opaque background may be skipped. The R1 check skipped translucent backgrounds and left out the page heroes, where 96 texts were below the threshold (docs/06, R5). Do not lighten a layer without measuring again.
 
 **Fonts**: Inter (text) and Nunito (`font-nunito`, headings) are served by the site, never by Google: variable `woff2` files in `src/assets/fonts/` (license `OFL.txt`), two subsets each (`latin`, `latin-ext`), declared by the `@font-face` rules at the top of `src/index.css`; `index.html` preloads the two `latin` files (Vite rewrites the `/src/assets/fonts/…` paths to the hashed names), which keeps the font swap from shifting the hero. Do not add a Google Fonts `@import`, `<link>` or `preconnect`. The `latin-ext` files are excluded from the PWA precache (`globIgnores` in `vite.config.ts`): the browser fetches them only for a page that contains one of their characters. Nunito has no ɛ, ɔ or ɲ: those letters fall back to another font.
 
@@ -174,7 +187,7 @@ Every upload goes through `UploadValidator`, which reads the type from the file'
 
 | Service | Image tag | Exposed port |
 |---|---|---|
-| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.17`) | 80 |
+| frontend | `yayacode224/amame:${FRONTEND_IMAGE_TAG}` (default `frontend-v1.18`) | 80 |
 | backend | `yayacode224/amame:${BACKEND_IMAGE_TAG}` (default `backend-v1.7`) | internal only |
 | database | postgres:15-alpine | internal only |
 | pgadmin | dpage/pgadmin4 | 127.0.0.1:5050 |

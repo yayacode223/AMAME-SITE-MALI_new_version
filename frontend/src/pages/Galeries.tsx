@@ -57,7 +57,7 @@ const Galeries = () => {
         title="Nos"
         titleHighlight="Galeries"
         description="" //Revivez les moments forts de l'AMAME : cérémonies de remise de prix, ateliers, rencontres et événements organisés par l'association.
-        image="heroes/hero-galeries"
+        image="heroes/hero-eleves"
         imageAlt="Galerie photo — événements et cérémonies AMAME"
       />
 

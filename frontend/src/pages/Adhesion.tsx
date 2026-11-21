@@ -501,24 +501,26 @@ export default function Adhesion() {
           className="relative overflow-hidden py-16 sm:py-24 hero-bg-image"
           style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-adhesion")})` }}
         >
-          {/* Voile de verts foncés : la photo reste une texture, le texte blanc atteint 4,5:1 au pire endroit
-              (docs/06, S1). L'ancien dégradé (/72, /58, /42) ne générait aucune classe : pas de voile. */}
-          <div className="absolute inset-0 amame-photo-veil pointer-events-none" />
           {/* Vignette basse pour transition douce avec le contenu */}
           <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-amame-surface to-transparent pointer-events-none" />
 
-          <div className="relative z-10 page-container text-center max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full mb-5 border border-white/20">
-              <UserGroupIcon className="h-4 w-4" />
-              Communauté AMAME
+          {/* Photo naturelle, sans voile : le texte est lisible grâce au cartouche sombre qui l'entoure (docs/06, R5, E8) */}
+          <div className="relative z-10 page-container">
+            <div className="amame-photo-cartouche mx-auto max-w-2xl text-center rounded-3xl px-5 py-7 sm:px-10 sm:py-9">
+              {/* Pastille en vert plein : le blanc y reste à 5:1 quelle que soit la photo ; l'ancienne pastille
+                  blanche translucide tombait à 3,5:1 (défaut manqué en R1, docs/06) */}
+              <div className="inline-flex items-center gap-2 bg-amame-green-dark text-white text-xs font-semibold px-4 py-2 rounded-full mb-5 ring-1 ring-white/20">
+                <UserGroupIcon className="h-4 w-4" />
+                Communauté AMAME
+              </div>
+              <h1 className="font-nunito font-black text-3xl sm:text-5xl text-white mb-4 leading-tight drop-shadow-sm">
+                Adhérer à l'AMAME
+              </h1>
+              <p className="text-white text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
+                Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves
+                et profitez d'un réseau unique d'excellence.
+              </p>
             </div>
-            <h1 className="font-nunito font-black text-3xl sm:text-5xl text-white mb-4 leading-tight drop-shadow-sm">
-              Adhérer à l'AMAME
-            </h1>
-            <p className="text-white text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
-              Rejoignez l'Association Malienne d'Appui aux Meilleurs Élèves
-              et profitez d'un réseau unique d'excellence.
-            </p>
           </div>
         </div>
 

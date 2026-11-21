@@ -135,17 +135,13 @@ const Login = () => {
 
         {/* ── Panneau gauche : image hero + branding (desktop) ───────────── */}
         <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden flex-col bg-cover bg-no-repeat [background-position:center_right_10%]"
-          style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage")})` }}>
-          {/* Voile de verts foncés : texte lisible sur la photo (docs/06, S1). L'ancien dégradé (/72) ne
-              générait aucune classe : pas de voile. Bas assombri en plus, sous le copyright. */}
-          <div className="absolute inset-0 amame-photo-veil pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-amame-green-darker/70 to-transparent pointer-events-none" />
-
+          style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-eleves")})` }}>
+          {/* Photo naturelle, sans voile : chaque texte posé dessus a son cartouche sombre (docs/06, R5, E8) */}
           <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
 
             {/* Logo (plus visible) + bouton retour (vert amame, visible) */}
             <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3 group">
+              <Link to="/" className="flex items-center gap-3 group amame-photo-cartouche rounded-full py-1.5 pl-1.5 pr-5">
                 <img
                   src="/logo-192.webp"
                   alt="AMAME"
@@ -163,14 +159,14 @@ const Login = () => {
             </div>
 
             {/* Centre : uniquement le slogan */}
-            <h1 className="font-nunito font-black text-5xl xl:text-6xl text-white leading-[1.1] drop-shadow-md">
+            <h1 className="self-start amame-photo-cartouche rounded-3xl px-7 py-6 font-nunito font-black text-5xl xl:text-6xl text-white leading-[1.1] drop-shadow-md">
               Votre Passerelle
-              {/* Or clair : l'or de la marque (#ca8a04) n'atteint pas 3:1 sur le voile sombre */}
+              {/* Or clair : l'or de la marque (#ca8a04) n'atteint pas 3:1 sur le fond sombre */}
               <span className="block text-amber-300 mt-2">vers l'Excellence</span>
             </h1>
 
             {/* Pied */}
-            <p className="text-white text-xs">
+            <p className="self-start amame-photo-cartouche rounded-full px-3 py-1 text-white text-xs">
               © {new Date().getFullYear()} AMAME. Tous droits réservés.
             </p>
           </div>
@@ -181,11 +177,11 @@ const Login = () => {
 
           {/* Bandeau mobile : image + logo */}
           <div className="lg:hidden relative h-44 overflow-hidden shrink-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-homepage", 640)})` }}>
-            <div className="absolute inset-0 amame-photo-veil" />
+            style={{ backgroundImage: `url(${staticImageUrl("heroes/hero-eleves", 640)})` }}>
+            {/* Photo naturelle, sans voile : logo et slogan ont leur cartouche sombre (docs/06, R5, E8) */}
             <div className="relative z-10 flex items-center justify-between px-5 pt-5">
               {/* Logo plus visible */}
-              <Link to="/" className="flex items-center gap-2 group">
+              <Link to="/" className="flex items-center gap-2 group amame-photo-cartouche rounded-full py-1 pl-1 pr-3">
                 <img src="/logo-192.webp" alt="AMAME" className="h-10 w-10 rounded-full ring-2 ring-white/50 shadow-lg object-cover" />
                 <span className="font-nunito font-black text-white text-lg drop-shadow">AMAME</span>
               </Link>
@@ -196,7 +192,7 @@ const Login = () => {
               </Link>
             </div>
             <div className="relative z-10 px-5 pt-4">
-              <p className="font-nunito font-black text-xl text-white leading-tight drop-shadow">
+              <p className="inline-block amame-photo-cartouche rounded-2xl px-3 py-2 font-nunito font-black text-xl text-white leading-tight drop-shadow">
                 Votre passerelle <span className="text-amber-300">vers l'excellence</span>
               </p>
             </div>

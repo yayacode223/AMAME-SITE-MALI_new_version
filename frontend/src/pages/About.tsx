@@ -73,23 +73,21 @@ export function About() {
             <StaticImage name="heroes/hero-about" sizes="100vw" priority
               className="w-full h-full object-cover object-center" />
           </div>
-          <div className="absolute inset-0 hidden lg:block" aria-hidden="true"
-            style={{ background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.50) 42%, rgba(0,0,0,0.10) 75%, transparent 100%)" }} />
-          <div className="absolute inset-0 lg:hidden" aria-hidden="true"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.22) 100%)" }} />
+          {/* Même voile et mêmes couleurs que PageHero (docs/06, E9) */}
+          <div className="absolute inset-0 amame-hero-scrim" aria-hidden="true" />
 
           <div className="relative z-10 page-container">
             <motion.div {...fadeUp()} className="max-w-2xl">
-              <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-2 mb-6 shadow-sm">
+              <div className="inline-flex items-center gap-2.5 bg-amame-green-dark border border-white/20 rounded-full px-4 py-2 mb-6 shadow-sm">
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 shrink-0">
                   <Target className="h-3.5 w-3.5 text-white" />
                 </div>
                 <span className="text-white font-semibold text-xs tracking-widest uppercase">À propos</span>
               </div>
               <h1 className="font-nunito font-black text-3xl sm:text-5xl lg:text-6xl text-white mb-4 leading-tight">
-                À Propos de l'<span className="text-amame-green">AMAME</span>
+                À Propos de l'<span className="text-green-300">AMAME</span>
               </h1>
-              <p className="text-base sm:text-lg text-white/80 max-w-xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white max-w-xl leading-relaxed">
                 Association Malienne d'Appui aux Meilleurs Élèves — Guidons l'excellence académique vers des horizons illimités.
               </p>
             </motion.div>
